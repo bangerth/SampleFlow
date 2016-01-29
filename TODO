@@ -1,0 +1,23 @@
+0/ Convert everything to C++11
+
+
+1a/ Add correct acceptance criterion to MCPMC
+1b/ Get MCPMC to run for a simple (scalar) Gaussian
+
+2/ Make it run for a 2-dimensional Gaussian
+3/ Make it run for a 2-dimensional sum of Gaussians
+
+
+4/ Create data and visualizations:
+     - convergence histories for mean value/stddev for 
+         50 runs with MH
+     - same for MCPMC
+   both as function of #samples taken overall
+
+5/ Implement in parallel (threads)
+
+6/ Write up general algorithm and results for 2/3 above
+
+
+
+7/ Do all of this for the elliptic parameter estimation problem
