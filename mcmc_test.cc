@@ -2,8 +2,7 @@
 #include <fstream>
 #include "mcmc.h"
 #include "mcpmc.h"
-#include <boost/random/uniform_real_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
+
 
 double log_likelihood (const double &x)
 {
@@ -13,8 +12,8 @@ double log_likelihood (const double &x)
 
 double perturb (const double &x)
 {
-  static boost::random::mt19937 rng;
-  static boost::random::uniform_real_distribution<> uniform_distribution(-0.01,0.01);
+  static std::mt19937 rng;
+  static std::uniform_real_distribution<> uniform_distribution(-0.01,0.01);
   return x + uniform_distribution(rng);
 }
 
@@ -35,34 +34,34 @@ int main ()
 {
   Observers::SampleStore<double> mh_sample_store;
   Samplers::MetropolisHastings<double> mh_sampler;
-  mh_sampler.register_listener (boost::bind(&Observers::Base<double>::receive_sample,
-                                            boost::ref(mh_sample_store),
-                                            _1));
+  mh_sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
+                                          std::ref(mh_sample_store),
+                                          std::placeholders::_1));
   mh_sampler.sample (0,
-                  &log_likelihood,
-                  &perturb,
-                  100000);
+                     &log_likelihood,
+                     &perturb,
+                     100000);
 
-  
+
   Samplers::MCPMC<double> sampler;
-  
+
   std::ofstream o ("output");
   Observers::StreamOutput<double> s(o);
-  sampler.register_listener (boost::bind(&Observers::Base<double>::receive_sample,
-                                         boost::ref(s),
-                                         _1));
+  sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
+                                       std::ref(s),
+                                       std::placeholders::_1));
 
   std::ofstream o_m ("output.mean");
   Observers::MeanValue<double> m;
-  sampler.register_listener (boost::bind(&Observers::Base<double>::receive_sample,
-                                         boost::ref(m),
-                                         _1));
-  m.register_listener (boost::bind (&write_every_nth_sample<double>,
-                                    _1,
-                                    _2,
-                                    1000,
-                                    boost::ref(o_m)));
-  
+  sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
+                                       std::ref(m),
+                                       std::placeholders::_1));
+  m.register_listener (std::bind (&write_every_nth_sample<double>,
+                                  std::placeholders::_1,
+                                  std::placeholders::_2,
+                                  1000,
+                                  std::ref(o_m)));
+
   sampler.sample (mh_sample_store,
                   &log_likelihood,
                   &perturb,

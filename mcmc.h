@@ -1,11 +1,10 @@
 #ifndef MCMC_H
 #define MCMC_H
 
-#include <boost/random/uniform_real_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
 #include <boost/signals2.hpp>
-#include <boost/function.hpp>
 
+#include <random>
+#include <functional>
 #include <iostream>
 
 
@@ -15,13 +14,13 @@ namespace Samplers
   class Base
   {
   public:
-    void register_listener (const boost::function<void (const T &)> &f)
-      {
-        sample_signal.connect (f);
-      }
-  
+    void register_listener (const std::function<void (const T &)> &f)
+    {
+      sample_signal.connect (f);
+    }
+
   private:
-    boost::signals2::signal<void (const T&)> sample_signal;
+    boost::signals2::signal<void (const T &)> sample_signal;
   };
 
 
@@ -30,34 +29,34 @@ namespace Samplers
   {
   public:
     void sample (const T &starting_point,
-                 const boost::function<double (const T &)> &log_likelihood,
-                 const boost::function<T (const T &)> &perturb,
+                 const std::function<double (const T &)> &log_likelihood,
+                 const std::function<T (const T &)> &perturb,
                  const unsigned int n_samples)
-      {
-        boost::random::mt19937 rng;
-        boost::random::uniform_real_distribution<> uniform_distribution(0,1);
-        
-        T      current_sample         = starting_point;
-        double current_log_likelihood = log_likelihood (current_sample);
-        
-        sample_signal(current_sample);
-        
-        for (unsigned int i=0; i<n_samples; ++i)
-          {
-            const T      trial_sample         = perturb (current_sample);
-            const double trial_log_likelihood = log_likelihood (trial_sample);
+    {
+      std::mt19937 rng;
+      std::uniform_real_distribution<> uniform_distribution(0,1);
 
-            if ((trial_log_likelihood > current_log_likelihood)
-                ||
-                (exp(trial_log_likelihood)/exp(current_log_likelihood) >= uniform_distribution(rng)))
-              {
-                current_sample         = trial_sample;
-                current_log_likelihood = trial_log_likelihood;
-              }
+      T      current_sample         = starting_point;
+      double current_log_likelihood = log_likelihood (current_sample);
 
-            sample_signal (current_sample);
-          }
-      }
+      sample_signal(current_sample);
+
+      for (unsigned int i=0; i<n_samples; ++i)
+        {
+          const T      trial_sample         = perturb (current_sample);
+          const double trial_log_likelihood = log_likelihood (trial_sample);
+
+          if ((trial_log_likelihood > current_log_likelihood)
+              ||
+              (exp(trial_log_likelihood)/exp(current_log_likelihood) >= uniform_distribution(rng)))
+            {
+              current_sample         = trial_sample;
+              current_log_likelihood = trial_log_likelihood;
+            }
+
+          sample_signal (current_sample);
+        }
+    }
   };
 }
 
@@ -78,33 +77,33 @@ namespace Observers
   {
   public:
     MeanValue()
-    :
-    terms_in_sum (0)
-      {}
-    
-    
+      :
+      terms_in_sum (0)
+    {}
+
+
     virtual void receive_sample (const T &t)
-      {
-        if (terms_in_sum == 0)
-          sample_signal(0, sum);
-        
-        sum += t;
-        ++terms_in_sum;
+    {
+      if (terms_in_sum == 0)
+        sample_signal(0, sum);
 
-        sample_signal(terms_in_sum, sum/terms_in_sum);
-      }
+      sum += t;
+      ++terms_in_sum;
 
-    void register_listener (const boost::function<void (const unsigned int &sample_number,
-                                                        const T &current_mean)>  &f)
+      sample_signal(terms_in_sum, sum/terms_in_sum);
+    }
+
+    void register_listener (const std::function<void (const unsigned int &sample_number,
+                                                      const T &current_mean)>  &f)
     {
       sample_signal.connect (f);
     }
-  
+
   private:
     T            sum;
     unsigned int terms_in_sum;
 
-    boost::signals2::signal<void (const unsigned int &, const T&)> sample_signal;
+    boost::signals2::signal<void (const unsigned int &, const T &)> sample_signal;
   };
 
 
@@ -113,15 +112,15 @@ namespace Observers
   {
   public:
     StreamOutput (std::ostream &out)
-    :
-    out (out)
-      {}
-    
+      :
+      out (out)
+    {}
+
     virtual void receive_sample (const T &t)
-      {
-        out << t << std::endl;
-      }
-  
+    {
+      out << t << std::endl;
+    }
+
   private:
     std::ostream &out;
   };
@@ -132,22 +131,22 @@ namespace Observers
   {
   public:
     virtual void receive_sample (const T &t)
-      {
-        samples.push_back (t);
-      }
+    {
+      samples.push_back (t);
+    }
 
     typename std::vector<T>::size_type
     n_samples () const
-      {
-        return samples.size();
-      }
+    {
+      return samples.size();
+    }
 
     const T &
     operator[] (const typename std::vector<T>::size_type i) const
-      {
-        return samples[i];
-      }    
-  
+    {
+      return samples[i];
+    }
+
   private:
     std::vector<T> samples;
   };
@@ -159,20 +158,20 @@ namespace Observers
   {
   public:
     virtual void receive_sample (const T &t)
-      {
-        sample = t;
-      }
+    {
+      sample = t;
+    }
 
     const T &
     get () const
-      {
-        return sample;
-      }    
-  
+    {
+      return sample;
+    }
+
   private:
     T sample;
   };
-  
+
 }
 
 
