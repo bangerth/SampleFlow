@@ -1,7 +1,7 @@
 #include "mcmc.h"
 #include <random>
 
-
+/*
 namespace Samplers
 {
   template <typename T>
@@ -40,3 +40,5 @@ namespace Samplers
     }
   };
 }
+
+*/

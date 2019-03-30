@@ -29,7 +29,7 @@ namespace SampleFlow
     public:
       void connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f)
       {
-        sample_signal.connect (f);
+        issue_sample.connect (f);
       }
 
     protected:

@@ -1,5 +1,11 @@
 #include <iostream>
 #include <fstream>
+
+#include <sampleflow/filter.h>
+#include <sampleflow/producer.h>
+#include <sampleflow/consumer.h>
+
+
 #include "mcmc.h"
 #include "mcpmc.h"
 
@@ -32,6 +38,7 @@ void write_every_nth_sample (const unsigned int &sample_number,
 
 int main ()
 {
+  /*
   Observers::SampleStore<double> mh_sample_store;
   Samplers::MetropolisHastings<double> mh_sampler;
   mh_sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
@@ -67,5 +74,5 @@ int main ()
                   &perturb,
                   10,
                   10000);
-
+  */
 }

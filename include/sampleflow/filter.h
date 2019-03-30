@@ -20,6 +20,7 @@
 #include <sampleflow/consumer.h>
 
 #include <boost/optional.hpp>
+#include <mutex>
 
 namespace SampleFlow
 {
@@ -32,17 +33,19 @@ namespace SampleFlow
       process_sample (InputType sample,
                       AuxiliaryData aux_data) override
       {
-        boost::optional<std::pair<OutputType, AuxiliaryData>> maybe_sample =
-                                                             filter (std::move (sampe), std::move (aux_data));
+        boost::optional<std::pair<OutputType, AuxiliaryData>>
+                                                           maybe_sample =
+                                                             filter (std::move (sample), std::move (aux_data));
 
         if (maybe_sample)
           issue_sample (std::move (maybe_sample->first),
                         std::move (maybe_sample->second));
       }
 
-      virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
-                                                                 filter (InputType sample,
-                                                                         AuxiliaryData aux_data) = 0;
+      virtual
+      boost::optional<std::pair<OutputType, AuxiliaryData>>
+                                                         filter (InputType sample,
+                                                                 AuxiliaryData aux_data) = 0;
   };
 
   namespace Filters
@@ -58,11 +61,12 @@ namespace SampleFlow
         {
         }
 
-        virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
-                                                                   filter (InputType sample,
-                                                                           AuxiliaryData aux_data) override
+        virtual
+        boost::optional<std::pair<InputType, AuxiliaryData>>
+                                                          filter (InputType sample,
+                                                                  AuxiliaryData aux_data) override
         {
-          std::lock<std::mutex> lock(mutex);
+          std::lock_guard<std::mutex> lock(mutex);
 
           ++counter;
           if (counter % every_nth == 0)

@@ -20,6 +20,8 @@
 #include <sampleflow/producer.h>
 #include <boost/signals2.hpp>
 #include <list>
+#include <mutex>
+
 
 namespace SampleFlow
 {
@@ -28,22 +30,10 @@ namespace SampleFlow
   {
     public:
       virtual
-      ~Consumer ()
-      {
-        for (auto &connection : connections_to_producers)
-          connection.disconnect ();
-      }
+      ~Consumer ();
 
       void
-      connect_to_producer (Producer<InputType> &producer)
-      {
-        connections_to_producers.push_back (
-          producer.connect_to_signal (
-            [&](InputType sample, AuxiliaryData aux_data)
-        {
-          this->process (std::move(sample), std::move(aux_data));
-        }));
-      }
+      connect_to_producer (Producer<InputType> &producer);
 
       virtual void
       process_sample (InputType sample,
@@ -52,6 +42,29 @@ namespace SampleFlow
     private:
       std::list<boost::signals2::connection> connections_to_producers;
   };
+
+
+  template <typename InputType>
+  Consumer<InputType>::~Consumer ()
+  {
+    for (auto &connection : connections_to_producers)
+      connection.disconnect ();
+  }
+
+
+  template <typename InputType>
+  void
+  Consumer<InputType>::
+  connect_to_producer (Producer<InputType> &producer)
+  {
+    connections_to_producers.push_back (
+      producer.connect_to_signal (
+        [&](InputType sample, AuxiliaryData aux_data)
+    {
+      this->process (std::move(sample), std::move(aux_data));
+    }));
+  }
+
 
 
 
@@ -63,40 +76,63 @@ namespace SampleFlow
       public:
         using value_type = InputType;
 
-        MeanValue ()
-          :
-          n_samples (0)
-        {}
+        MeanValue ();
 
-        virtual void process_sample (InputType sample, AuxiliaryData /*aux_data*/) override
-        {
-          std::lock<std::mutex> lock(mutex);
-
-          if (n_samples == 0)
-            {
-              n_samples = 1;
-              sum = std::move(sample);
-            }
-          else
-            {
-              ++n_samples;
-              sum += sample;
-            }
-        }
+        virtual
+        void
+        process_sample (InputType sample, AuxiliaryData /*aux_data*/) override;
 
         value_type
-        get () const
-        {
-          value_type mean = sum;
-          mean /= n_samples;
-          return std::move (mean);
-        }
+        get () const;
 
       private:
         std::mutex mutex;
         InputType sum;
         std::size_t n_samples;
     };
+
+
+    template <typename InputType>
+    MeanValue<InputType>::
+    MeanValue ()
+      :
+      n_samples (0)
+    {}
+
+
+
+    template <typename InputType>
+    void
+    MeanValue<InputType>::
+    process_sample (InputType sample, AuxiliaryData /*aux_data*/)
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+
+      if (n_samples == 0)
+        {
+          n_samples = 1;
+          sum = std::move(sample);
+        }
+      else
+        {
+          ++n_samples;
+          sum += sample;
+        }
+    }
+
+
+
+    template <typename InputType>
+    typename MeanValue<InputType>::value_type
+    MeanValue<InputType>::
+    get () const
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+
+      value_type mean = sum;
+      mean /= n_samples;
+      return std::move (mean);
+    }
 
   }
 }

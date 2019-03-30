@@ -21,7 +21,7 @@
 
 namespace SampleFlow
 {
-  using AuxiliaryData = std::map<std::string, boost::any>
+  using AuxiliaryData = std::map<std::string, boost::any>;
 }
 
 
