@@ -4,3 +4,10 @@ project (mcmc)
 include_directories(AFTER $ENV{HOME}/p/deal.II/1/dealii/bundled/boost-1.56.0/include)
 add_definitions("-std=c++0x")
 add_executable (mcmc_test mcmc_test.cc)
+
+# Provide "indent" target for indenting all headers and source files
+ADD_CUSTOM_TARGET(indent
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./doc/indent
+  COMMENT "Indenting all ASPECT header and source files..."
+  )
