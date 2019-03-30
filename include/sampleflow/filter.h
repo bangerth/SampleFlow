@@ -24,64 +24,64 @@
 namespace SampleFlow
 {
   template <typename InputType, typename OutputType>
-    class Filter : public Consumer<InputType>, public Producer<OutputType>
-    {
-      public:
-        virtual
-        void
-        process_sample (InputType sample,
-                        AuxiliaryData aux_data) override
-        {
-          boost::optional<std::pair<OutputType, AuxiliaryData>> maybe_sample =
-              filter (std::move (sampe), std::move (aux_data));
+  class Filter : public Consumer<InputType>, public Producer<OutputType>
+  {
+    public:
+      virtual
+      void
+      process_sample (InputType sample,
+                      AuxiliaryData aux_data) override
+      {
+        boost::optional<std::pair<OutputType, AuxiliaryData>> maybe_sample =
+                                                             filter (std::move (sampe), std::move (aux_data));
 
-          if (maybe_sample)
-            issue_sample (std::move (maybe_sample->first),
-                std::move (maybe_sample->second));
-        }
+        if (maybe_sample)
+          issue_sample (std::move (maybe_sample->first),
+                        std::move (maybe_sample->second));
+      }
 
-        virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
-        filter (InputType sample,
-                AuxiliaryData aux_data) = 0;
-    };
+      virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
+                                                                 filter (InputType sample,
+                                                                         AuxiliaryData aux_data) = 0;
+  };
 
   namespace Filters
   {
     // InputType==OutputType
     template <typename InputType>
-      class TakeEveryNth : public Filter<InputType, InputType>
-      {
-        public:
-          TakeEveryNth (const unsigned int every_nth)
-              : counter (0),
-                every_nth (every_nth)
-          {
-          }
+    class TakeEveryNth : public Filter<InputType, InputType>
+    {
+      public:
+        TakeEveryNth (const unsigned int every_nth)
+          : counter (0),
+            every_nth (every_nth)
+        {
+        }
 
-          virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
-          filter (InputType sample,
-                  AuxiliaryData aux_data) override
-          {
-            std::lock<std::mutex> lock(mutex);
+        virtual boost::optional<std::pair<OutputType, AuxiliaryData>>
+                                                                   filter (InputType sample,
+                                                                           AuxiliaryData aux_data) override
+        {
+          std::lock<std::mutex> lock(mutex);
 
-            ++counter;
-            if (counter % every_nth == 0)
-              {
-                counter = 0;
-                return
-                  { std::move(sample), std::move(aux_data)};
-              }
-            else
+          ++counter;
+          if (counter % every_nth == 0)
+            {
+              counter = 0;
               return
-                {};
-          }
+              { std::move(sample), std::move(aux_data)};
+            }
+          else
+            return
+              {};
+        }
 
-        private:
-          std::mutex mutex;
+      private:
+        std::mutex mutex;
 
-          unsigned int counter;
-          const unsigned int every_nth;
-      };
+        unsigned int counter;
+        const unsigned int every_nth;
+    };
   }
 }
 
