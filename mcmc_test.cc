@@ -1,13 +1,10 @@
 #include <iostream>
 #include <fstream>
 
-#include <sampleflow/filter.h>
-#include <sampleflow/producer.h>
-#include <sampleflow/consumer.h>
+#include <sampleflow/producers/metropolis_hastings.h>
+#include <sampleflow/filters/take_every_nth.h>
+#include <sampleflow/consumers/mean_value.h>
 
-
-#include "mcmc.h"
-#include "mcpmc.h"
 
 
 double log_likelihood (const double &x)
@@ -19,60 +16,27 @@ double log_likelihood (const double &x)
 double perturb (const double &x)
 {
   static std::mt19937 rng;
-  static std::uniform_real_distribution<> uniform_distribution(-0.01,0.01);
+  static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
   return x + uniform_distribution(rng);
-}
-
-
-template <typename T>
-void write_every_nth_sample (const unsigned int &sample_number,
-                             const T &sample,
-                             const unsigned int &every_n_samples,
-                             std::ostream &out)
-{
-  if (sample_number % every_n_samples == 0)
-    out << sample << std::endl;
 }
 
 
 
 int main ()
 {
-  /*
-  Observers::SampleStore<double> mh_sample_store;
-  Samplers::MetropolisHastings<double> mh_sampler;
-  mh_sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
-                                          std::ref(mh_sample_store),
-                                          std::placeholders::_1));
+  SampleFlow::Producers::MetropolisHastings<double> mh_sampler;
+
+  SampleFlow::Filters::TakeEveryNth<double> take_every_nth (1);
+  take_every_nth.connect_to_producer (mh_sampler);
+
+  SampleFlow::Consumers::MeanValue<double> mean_value;
+  mean_value.connect_to_producer (take_every_nth);
+
   mh_sampler.sample (0,
                      &log_likelihood,
                      &perturb,
                      100000);
 
-
-  Samplers::MCPMC<double> sampler;
-
-  std::ofstream o ("output");
-  Observers::StreamOutput<double> s(o);
-  sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
-                                       std::ref(s),
-                                       std::placeholders::_1));
-
-  std::ofstream o_m ("output.mean");
-  Observers::MeanValue<double> m;
-  sampler.register_listener (std::bind(&Observers::Base<double>::receive_sample,
-                                       std::ref(m),
-                                       std::placeholders::_1));
-  m.register_listener (std::bind (&write_every_nth_sample<double>,
-                                  std::placeholders::_1,
-                                  std::placeholders::_2,
-                                  1000,
-                                  std::ref(o_m)));
-
-  sampler.sample (mh_sample_store,
-                  &log_likelihood,
-                  &perturb,
-                  10,
-                  10000);
-  */
+  std::cout << "Computed mean value: "
+  << mean_value.get() << std::endl;
 }

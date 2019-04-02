@@ -60,7 +60,7 @@ namespace SampleFlow
       producer.connect_to_signal (
         [&](InputType sample, AuxiliaryData aux_data)
     {
-      this->process (std::move(sample), std::move(aux_data));
+      this->process_sample (std::move(sample), std::move(aux_data));
     }));
   }
 }

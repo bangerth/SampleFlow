@@ -67,7 +67,7 @@ namespace SampleFlow
         {
           counter = 0;
           return
-          { std::move(sample), std::move(aux_data)};
+          {{ std::move(sample), std::move(aux_data)}};
         }
       else
         return

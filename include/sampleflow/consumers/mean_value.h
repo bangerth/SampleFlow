@@ -40,7 +40,7 @@ namespace SampleFlow
         get () const;
 
       private:
-        std::mutex mutex;
+        mutable std::mutex mutex;
         InputType sum;
         std::size_t n_samples;
     };

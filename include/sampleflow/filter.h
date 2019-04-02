@@ -51,8 +51,8 @@ namespace SampleFlow
       filter (std::move (sample), std::move (aux_data));
 
     if (maybe_sample)
-      issue_sample (std::move (maybe_sample->first),
-                    std::move (maybe_sample->second));
+      this->issue_sample (std::move (maybe_sample->first),
+                          std::move (maybe_sample->second));
   }
 }
 

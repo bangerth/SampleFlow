@@ -27,14 +27,21 @@ namespace SampleFlow
   class Producer
   {
     public:
-      void connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f)
-      {
-        issue_sample.connect (f);
-      }
+      boost::signals2::connection
+      connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f);
 
     protected:
       boost::signals2::signal<void (OutputType, AuxiliaryData)> issue_sample;
   };
+
+
+  template <typename OutputType>
+  boost::signals2::connection
+  Producer<OutputType>::
+  connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f)
+  {
+    return issue_sample.connect (f);
+  }
 }
 
 
