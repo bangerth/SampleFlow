@@ -20,7 +20,6 @@
 #include <sampleflow/producer.h>
 #include <boost/signals2.hpp>
 #include <list>
-#include <mutex>
 
 
 namespace SampleFlow
@@ -63,77 +62,6 @@ namespace SampleFlow
     {
       this->process (std::move(sample), std::move(aux_data));
     }));
-  }
-
-
-
-
-  namespace Consumers
-  {
-    template <typename InputType>
-    class MeanValue : public Consumer<InputType>
-    {
-      public:
-        using value_type = InputType;
-
-        MeanValue ();
-
-        virtual
-        void
-        process_sample (InputType sample, AuxiliaryData /*aux_data*/) override;
-
-        value_type
-        get () const;
-
-      private:
-        std::mutex mutex;
-        InputType sum;
-        std::size_t n_samples;
-    };
-
-
-    template <typename InputType>
-    MeanValue<InputType>::
-    MeanValue ()
-      :
-      n_samples (0)
-    {}
-
-
-
-    template <typename InputType>
-    void
-    MeanValue<InputType>::
-    process_sample (InputType sample, AuxiliaryData /*aux_data*/)
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-
-      if (n_samples == 0)
-        {
-          n_samples = 1;
-          sum = std::move(sample);
-        }
-      else
-        {
-          ++n_samples;
-          sum += sample;
-        }
-    }
-
-
-
-    template <typename InputType>
-    typename MeanValue<InputType>::value_type
-    MeanValue<InputType>::
-    get () const
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-
-      value_type mean = sum;
-      mean /= n_samples;
-      return std::move (mean);
-    }
-
   }
 }
 

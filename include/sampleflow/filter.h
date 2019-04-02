@@ -54,61 +54,6 @@ namespace SampleFlow
       issue_sample (std::move (maybe_sample->first),
                     std::move (maybe_sample->second));
   }
-
-
-  namespace Filters
-  {
-    // InputType==OutputType
-    template <typename InputType>
-    class TakeEveryNth : public Filter<InputType, InputType>
-    {
-      public:
-        TakeEveryNth (const unsigned int every_nth);
-
-        virtual
-        boost::optional<std::pair<InputType, AuxiliaryData> >
-        filter (InputType sample,
-                AuxiliaryData aux_data) override;
-
-      private:
-        std::mutex mutex;
-
-        unsigned int counter;
-        const unsigned int every_nth;
-    };
-
-
-
-    template <typename InputType>
-    TakeEveryNth<InputType>::
-    TakeEveryNth (const unsigned int every_nth)
-      : counter (0),
-        every_nth (every_nth)
-    {}
-
-
-
-    template <typename InputType>
-    boost::optional<std::pair<InputType, AuxiliaryData> >
-    TakeEveryNth<InputType>::
-    filter (InputType sample,
-            AuxiliaryData aux_data)
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-
-      ++counter;
-      if (counter % every_nth == 0)
-        {
-          counter = 0;
-          return
-          { std::move(sample), std::move(aux_data)};
-        }
-      else
-        return
-          {};
-    }
-
-  }
 }
 
 #endif
