@@ -30,8 +30,8 @@ namespace SampleFlow
     public:
       virtual
       void
-      process_sample (InputType sample,
-                      AuxiliaryData aux_data) override;
+      consume (InputType sample,
+               AuxiliaryData aux_data) override;
 
       virtual
       boost::optional<std::pair<OutputType, AuxiliaryData> >
@@ -43,8 +43,8 @@ namespace SampleFlow
   template <typename InputType, typename OutputType>
   void
   Filter<InputType,OutputType>::
-  process_sample (InputType sample,
-                  AuxiliaryData aux_data)
+  consume (InputType sample,
+           AuxiliaryData aux_data)
   {
     boost::optional<std::pair<OutputType, AuxiliaryData> >
     maybe_sample =

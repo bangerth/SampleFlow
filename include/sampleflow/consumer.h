@@ -35,8 +35,8 @@ namespace SampleFlow
       connect_to_producer (Producer<InputType> &producer);
 
       virtual void
-      process_sample (InputType sample,
-                      AuxiliaryData aux_data) = 0;
+      consume (InputType sample,
+               AuxiliaryData aux_data) = 0;
 
     private:
       std::list<boost::signals2::connection> connections_to_producers;
@@ -60,7 +60,7 @@ namespace SampleFlow
       producer.connect_to_signal (
         [&](InputType sample, AuxiliaryData aux_data)
     {
-      this->process_sample (std::move(sample), std::move(aux_data));
+      this->consume (std::move(sample), std::move(aux_data));
     }));
   }
 }

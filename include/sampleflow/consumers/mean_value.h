@@ -34,7 +34,7 @@ namespace SampleFlow
 
         virtual
         void
-        process_sample (InputType sample, AuxiliaryData /*aux_data*/) override;
+        consume (InputType sample, AuxiliaryData /*aux_data*/) override;
 
         value_type
         get () const;
@@ -58,7 +58,7 @@ namespace SampleFlow
     template <typename InputType>
     void
     MeanValue<InputType>::
-    process_sample (InputType sample, AuxiliaryData /*aux_data*/)
+    consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       std::lock_guard<std::mutex> lock(mutex);
 
