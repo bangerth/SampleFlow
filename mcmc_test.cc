@@ -4,6 +4,7 @@
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/consumers/mean_value.h>
+#include <sampleflow/consumers/histogram.h>
 
 
 
@@ -32,11 +33,17 @@ int main ()
   SampleFlow::Consumers::MeanValue<double> mean_value;
   mean_value.connect_to_producer (take_every_nth);
 
+  SampleFlow::Consumers::Histogram<double> histogram (0.1, 5, 100,
+      SampleFlow::Consumers::Histogram<double>::SubdivisionScheme::logarithmic);
+  histogram.connect_to_producer (take_every_nth);
+
   mh_sampler.sample (0,
                      &log_likelihood,
                      &perturb,
-                     100000);
+                     1000000);
 
   std::cout << "Computed mean value: "
   << mean_value.get() << std::endl;
+
+  histogram.write_gnuplot (std::ofstream("hist.txt"));
 }
