@@ -3,7 +3,7 @@ project (mcmc)
 
 INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 INCLUDE_DIRECTORIES(AFTER $ENV{HOME}/p/deal.II/1/dealii/bundled/boost-1.62.0/include)
-ADD_DEFINITIONS("-std=c++11")
+ADD_DEFINITIONS("-std=c++11 -ggdb")
 ADD_EXECUTABLE (mcmc_test mcmc_test.cc)
 
 # Provide "indent" target for indenting all headers and source files
