@@ -1,0 +1,14 @@
+For the paper:
+
+Discuss data flow scheme:
+* Producers
+* Consumers
+* Filters
+
+Discuss additional data attached to samples
+Discuss threading model:
+* need to lock where appropriate
+* all data is passed around by value, not reference
+* expensive consume() operations can run on separate
+  task or thread
+Discuss efficiency by using move operations
