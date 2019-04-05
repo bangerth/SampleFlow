@@ -21,7 +21,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-if test ! -d source -o ! -d include ; then
+if test ! -d include ; then
   echo "*** This script must be run from the top-level directory of SampleFlow."
   exit
 fi
@@ -46,10 +46,10 @@ fi
 # with up to 10 in parallel
 echo "--- Indenting all SampleFlow header and source files"
 
-find include source \( -name '*.cc' -o -name '*.h' \) -print | xargs -n 50 -P 10 astyle --options=doc/astyle.rc
+find include \( -name '*.cc' -o -name '*.h' \) -print | xargs -n 50 -P 10 astyle --options=doc/astyle.rc
 
 # remove execute permission on source files:
-find include source \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 50 -P 10 chmod -x
+find include \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 50 -P 10 chmod -x
 
 # convert dos formatted files to unix file format by stripping out 
 # carriage returns (15=0x0D):
@@ -62,4 +62,4 @@ dos_to_unix()
 }
 export -f dos_to_unix
 
-find include source \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 1 -P 10 -I {} bash -c 'dos_to_unix "$@"' _ {} 
+find include \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 1 -P 10 -I {} bash -c 'dos_to_unix "$@"' _ {} 
