@@ -2,7 +2,7 @@ For the paper:
 
 Discuss data flow scheme:
 * Producers
-* Consumers
+* Consumers; generally have a get() function(s)
 * Filters
 
 Discuss additional data attached to samples
