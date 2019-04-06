@@ -81,11 +81,45 @@ namespace SampleFlow
          */
         using value_type = std::vector<std::tuple<double,double,std::size_t>>;
 
+        /**
+         * An enum type that describes how the subdivision of the interval
+         * over which one wants to generate a histogram should be split
+         * into bins:
+         * - `linear`: The range `min_value...max_value` will be split
+         *   into equal-sized bins.
+         * - `logarithmic`: The range `min_value...max_value` will be split
+         *   into bins so that they have equal size in logarithmic space. Put
+         *   differently, the range `log(min_value)...log(max_value)` will
+         *   be split into equal-sized intervals whose end points are then
+         *   transformed back into regular space. This means that for each
+         *   bin, the ratio of the right to the left end value is the same,
+         *   whereas for the `linear` option above, it is the *difference*
+         *   between the right and left end value of bins that is the same.
+         *   Clearly, this logarithmic subdivision option requires that
+         *   `min_value>0`.
+         */
         enum class SubdivisionScheme
         {
           linear, logarithmic
         };
 
+
+        /**
+         * Constructor.
+         *
+         * @param[in] min_value The left end point of the range over which the
+         *   histogram should be generated. Samples that have a value less than
+         *   this end point will simply not be counted.
+         * @param[in] max_value The right end point of the range over which the
+         *   histogram should be generated. Samples that have a value larger than
+         *   this end point will simply not be counted.
+         * @param[in] n_subdivisions The number of bins this class represents,
+         *   i.e., how many sub-intervals the range `min_value...max_value`
+         *   will be split in.
+         * @param[in] subdivision_scheme The way the range `min_value...max_value`
+         *   will be split into sub-intervals on which to count samples. See the
+         *   SubdivisionScheme type for an explanation of the options.
+         */
         Histogram (const double min_value,
                    const double max_value,
                    const unsigned int n_subdivisions,
@@ -113,6 +147,28 @@ namespace SampleFlow
         value_type
         get () const;
 
+        /**
+         * Write the histogram into a file in such a way that it can
+         * be visualized using the Gnuplot program. Internally, this function
+         * calls get() and then converts the result of that function into a
+         * format understandable by Gnuplot.
+         *
+         * In Gnuplot, you can then visualize the content of such a file using
+         * the commands
+         * @code
+         *   set style data lines
+         *   plot "histogram.txt"
+         * @endcode
+         * assuming that the data has been written into a file called
+         * `histogram.txt`.
+         *
+         * @param[in,out] output_stream An rvalue reference to a stream object
+         *   into which the data will be written. Because it is an rvalue, and
+         *   not an lvalue reference, it is possible to write code such as
+         *   @code
+         *     histogram.write_gnuplot(std::ofstream("histogram.txt"));
+         *   @endcode
+         */
         void
         write_gnuplot (std::ostream &&output_stream) const;
 
@@ -123,11 +179,19 @@ namespace SampleFlow
          */
         mutable std::mutex mutex;
 
-        const double min_value;
-        const double max_value;
-        const unsigned int n_subdivisions;
-        const SubdivisionScheme subdivision_scheme;
+        /**
+         * Variables describing the bins. See the constructor for a description
+         * of how they are interpreted.
+         */
+        const double             min_value;
+        const double             max_value;
+        const unsigned int       n_subdivisions;
+        const SubdivisionScheme  subdivision_scheme;
 
+        /**
+         * A vector storing the number of samples so far encountered in each
+         * of the bins of the histogram.
+         */
         std::vector<std::size_t> bins;
 
         /**
@@ -137,6 +201,7 @@ namespace SampleFlow
          */
         unsigned int bin_number (const double value) const;
     };
+
 
 
     template <typename InputType>
@@ -210,7 +275,8 @@ namespace SampleFlow
           std::get<1>(return_value[bin]) = bin_max;
         }
 
-      // Now fill the bin sizes under a lock
+      // Now fill the bin sizes under a lock as they are subject to
+      // change from other threads:
       std::lock_guard<std::mutex> lock(mutex);
       for (unsigned int bin=0; bin<n_subdivisions; ++bin)
         {
@@ -243,6 +309,7 @@ namespace SampleFlow
     }
 
 
+
     template <typename InputType>
     unsigned int
     Histogram<InputType>::
@@ -268,7 +335,6 @@ namespace SampleFlow
             return 0;
         }
     }
-
   }
 }
 
