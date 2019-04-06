@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 2.8.7)
-project (mcmc)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8.7)
+PROJECT (SampleFlow)
 
 INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 INCLUDE_DIRECTORIES(AFTER $ENV{HOME}/p/deal.II/1/dealii/bundled/boost-1.62.0/include)
