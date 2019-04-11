@@ -23,9 +23,9 @@ ADD_EXECUTABLE (mcmc_test mcmc_test.cc)
 
 
 #########################################
-# Provide "indent" target for indenting all headers and source files
+### Provide "indent" target for indenting all headers and source files
 ADD_CUSTOM_TARGET(indent
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND ./doc/indent
-  COMMENT "Indenting all ASPECT header and source files..."
+  COMMENT "Indenting all SampleFlow header and source files..."
   )
