@@ -29,6 +29,23 @@ namespace SampleFlow
      * over all samples seen so far. The last value so computed can be
      * obtained by calling the get() function.
      *
+     * This class uses the following formula to update the mean $\bar x_k$
+     * after seeing $k$ samples $x_1\ldots x_k$:
+     * @f{align*}{
+     *      \bar x_1 &= x_1,
+     *   \\ \bar x_k &= \bar x_{k-1} + \frac{1}{k} (x_k - \bar x_{k-1}).
+     * @f}
+     *
+     * This formula can be derived by considering the following relationships:
+     * @f{align*}{
+     *      \bar x_k &= \frac{1}{k} \sum_{j=1}^k x_j
+     *      \\       &= \frac{1}{k} \left( \sum_{j=1}^{k-1} x_j + x_k \right)
+     *      \\       &= \frac{1}{k} \left( (k-1)\bar x_{k-1} + x_k \right)
+     *      \\       &= \frac{k-1}{k} \bar x_{k-1} + \frac{1}{k} x_k
+     *      \\       &= \bar x_{k-1} - \frac{1}{k} \bar x_{k-1} + \frac{1}{k} x_k
+     *      \\       &= \bar x_{k-1} + \frac{1}{k} (x_k - \bar x_{k-1}).
+     * @f}
+     *
      *
      * ### Threading model ###
      *
@@ -87,7 +104,7 @@ namespace SampleFlow
          */
         mutable std::mutex mutex;
 
-        InputType sum;
+        InputType current_mean;
         std::size_t n_samples;
     };
 
@@ -112,12 +129,17 @@ namespace SampleFlow
       if (n_samples == 0)
         {
           n_samples = 1;
-          sum = std::move(sample);
+          current_mean = std::move(sample);
         }
       else
         {
           ++n_samples;
-          sum += sample;
+
+          InputType update = std::move(sample);
+          update -= current_mean;
+          update /= n_samples;
+
+          current_mean += update;
         }
     }
 
@@ -130,9 +152,7 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      value_type mean = sum;
-      mean /= n_samples;
-      return std::move (mean);
+      return current_mean;
     }
 
   }
