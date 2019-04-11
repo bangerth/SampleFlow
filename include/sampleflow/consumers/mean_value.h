@@ -105,7 +105,15 @@ namespace SampleFlow
          */
         mutable std::mutex mutex;
 
+        /**
+         * The current value of $\bar x_k$ as described in the introduction
+         * of this class.
+         */
         InputType           current_mean;
+
+        /**
+         * The number of samples processed so far.
+         */
         types::sample_index n_samples;
     };
 
