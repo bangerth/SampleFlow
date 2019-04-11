@@ -24,30 +24,87 @@ namespace SampleFlow
 {
   namespace Filters
   {
-    // InputType==OutputType
+    /**
+     * An implementation of the Filter interface in which every $n$th sample
+     * is passed on and all other samples are simply discarded. This filter
+     * is useful to reduce the amount of data produced by a sampling
+     * algorithm. This is often warranted in Markov Chain sampling algorithms
+     * in which samples are highly correlated and consequently not every sample
+     * individually carries a lot of information. Only samples separated by
+     * at least one "correlation length" carry independent information, and
+     * consequently skipping most samples does not reduce the amount of
+     * information available in a chain.
+     *
+     *
+     * ### Threading model ###
+     *
+     * The implementation of this class is thread-safe, i.e., its
+     * consume() member function can be called concurrently and from multiple
+     * threads.
+     *
+     *
+     * @tparam InputType The C++ type used to describe the incoming samples.
+     *   For the current class, this is of course also the type used for
+     *   the outgoing samples. Consequently, this class is a model of the
+     *   Filter base class where both input and output type use this
+     *   template type as template arguments.
+     */
     template <typename InputType>
     class TakeEveryNth : public Filter<InputType, InputType>
     {
       public:
-        TakeEveryNth (const unsigned int every_nth);
+        /**
+         * Constructor.
+         *
+         * @param every_nth The distance between samples that are to be
+         *  forwarded to downstream consumers of this filter.
+         */
+        TakeEveryNth (const std::size_t every_nth);
 
+        /**
+         * Process one sample by checking whether it is an $n$th sample
+         * and if so, pass it on to downstream consumers. If it isn't,
+         * return an empty object which the caller of this function in the
+         * base class will interpret as the instruction to discard the
+         * sample from further processing.
+         *
+         * @param[in] sample The sample to process.
+         * @param[in] aux_data Auxiliary data about this sample. The current
+         *   class does not know what to do with any such data and consequently
+         *   simply ignores it.
+         *
+         * @return The sample and its auxiliary data if this is the $k$th
+         *   sample and $k \mod n = 0$. Otherwise, an empty object.
+         */
         virtual
         boost::optional<std::pair<InputType, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
       private:
+        /**
+         * A mutex used to lock access to all member variables when running
+         * on multiple threads.
+         */
         std::mutex mutex;
 
-        unsigned int counter;
-        const unsigned int every_nth;
+        /**
+         * A counter counting how many samples we have seen so far.
+         */
+        std::size_t counter;
+
+        /**
+         * The variable storing how often we are to forward a received
+         * sample to downstream consumers.
+         */
+        const std::size_t every_nth;
     };
 
 
 
     template <typename InputType>
     TakeEveryNth<InputType>::
-    TakeEveryNth (const unsigned int every_nth)
+    TakeEveryNth (const std::size_t every_nth)
       : counter (0),
         every_nth (every_nth)
     {}
