@@ -49,8 +49,8 @@ namespace SampleFlow
      * Consumer objects connected to the corresponding signal (by calling
      * Producer::connect_to_signal() or using Consumer::connect_to_producer())
      * one at a time. The AuxiliaryData object associated with a sample
-     * $x_k$ stores an entry with name "relative likelihood" of type
-     * `double` that stores $\pi(x_k)$.
+     * $x_k$ stores an entry with name "relative log likelihood" of type
+     * `double` that stores $\log(pi(x_k))$.
      */
     template <typename OutputType>
     class MetropolisHastings : public Producer<OutputType>
@@ -127,7 +127,7 @@ namespace SampleFlow
 
           // Output the new sample (which may be equal to the old sample).
           this->issue_sample (current_sample,
-          {{"relative likelihood", boost::any(current_log_likelihood)}});
+          {{"relative log likelihood", boost::any(current_log_likelihood)}});
         }
     }
 
