@@ -39,7 +39,7 @@ namespace SampleFlow
      * ### Threading model ###
      *
      * The implementation of this class is thread-safe, i.e., its
-     * consume() member function can be called concurrently and from multiple
+     * filter() member function can be called concurrently and from multiple
      * threads.
      *
      *
@@ -56,7 +56,7 @@ namespace SampleFlow
         /**
          * Constructor.
          *
-         * @param every_nth The distance between samples that are to be
+         * @param[in] every_nth The distance between samples that are to be
          *  forwarded to downstream consumers of this filter.
          */
         TakeEveryNth (const std::size_t every_nth);
@@ -71,7 +71,7 @@ namespace SampleFlow
          * @param[in] sample The sample to process.
          * @param[in] aux_data Auxiliary data about this sample. The current
          *   class does not know what to do with any such data and consequently
-         *   simply ignores it.
+         *   simply passed it on.
          *
          * @return The sample and its auxiliary data if this is the $k$th
          *   sample and $k \mod n = 0$. Otherwise, an empty object.
