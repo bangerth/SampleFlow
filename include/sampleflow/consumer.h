@@ -19,7 +19,9 @@
 #include <sampleflow/auxiliary_data.h>
 #include <sampleflow/producer.h>
 #include <boost/signals2.hpp>
+
 #include <list>
+#include <utility>
 
 
 namespace SampleFlow
