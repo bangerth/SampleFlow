@@ -57,7 +57,27 @@ namespace SampleFlow
      *
      * @tparam InputType The C++ type used for the samples $x_k$. In
      *   order to compute mean values, this type must allow taking
-     *   the sum of samples, and division by a scalar.
+     *   the sum of samples, and division by an integer scalar. In practice
+     *   this means that if the `InputType` is an integer (or a vector over
+     *   integers, or more generally a module over the integers but not
+     *   a vector space or module over the rational numbers when expressed
+     *   in mathematical language), then the division by $k$ in the computation
+     *   of the update above will be performed in integer arithmetic
+     *   and will, consequently, not likely be what you expect. For example,
+     *   if the samples correspond to the number of dots on a dice and
+     *   are represented by integers, then computing the mean above will
+     *   correspond to computing $\frac{1}{k} (x_k - \bar x_{k-1})$ in
+     *   integer arithmetic and will yield no change at all once $k\ge 6$ since
+     *   $x_k - \bar x_{k-1}$ is always between $-5$ and $5$, and consequently
+     *   the integer division by a $k$ greater than 5 will yield a zero update.
+     *   This may not be what you want -- the mean value of the number of
+     *   dots you get when rolling a perfect dice is 3.5 -- but simply
+     *   reflects that this mean value is just not an element of the set
+     *   of possible outcomes and, more generally, an element in the set
+     *   used to represent the outcomes (the integers). To avoid this,
+     *   you will want to convert the sample type to one that can represent
+     *   these things, for example `double`. This can be done using the
+     *   Filters::Conversion filter class, for example.
      */
     template <typename InputType>
     class MeanValue : public Consumer<InputType>
