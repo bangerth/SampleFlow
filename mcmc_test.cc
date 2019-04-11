@@ -5,12 +5,13 @@
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/consumers/mean_value.h>
 #include <sampleflow/consumers/histogram.h>
+#include <sampleflow/consumers/maximum_probability_sample.h>
 
 
 
 double log_likelihood (const double &x)
 {
-  return -(x-1)*(x-1);
+  return -(x-1.5)*(x-1.5);
 }
 
 
@@ -37,13 +38,19 @@ int main ()
       SampleFlow::Consumers::Histogram<double>::SubdivisionScheme::logarithmic);
   histogram.connect_to_producer (take_every_nth);
 
+  SampleFlow::Consumers::MaximumProbabilitySample<double> MAP_point;
+  MAP_point.connect_to_producer (mh_sampler);
+
   mh_sampler.sample (0,
                      &log_likelihood,
                      &perturb,
                      1000000);
 
   std::cout << "Computed mean value: "
-  << mean_value.get() << std::endl;
+      << mean_value.get() << std::endl;
+
+  std::cout << "Computed MAP point: "
+      << MAP_point.get() << std::endl;
 
   histogram.write_gnuplot (std::ofstream("hist.txt"));
 }
