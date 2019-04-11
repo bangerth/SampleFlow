@@ -27,7 +27,7 @@ int main ()
 {
   SampleFlow::Producers::MetropolisHastings<double> mh_sampler;
 
-  SampleFlow::Filters::TakeEveryNth<double> take_every_nth (1);
+  SampleFlow::Filters::TakeEveryNth<double> take_every_nth (100);
   take_every_nth.connect_to_producer (mh_sampler);
 
   SampleFlow::Consumers::MeanValue<double> mean_value;
