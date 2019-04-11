@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_FILTERS_TAKE_EVERY_NTH_H
 
 #include <sampleflow/filter.h>
+#include <sampleflow/types.h>
 
 #include <mutex>
 
@@ -59,7 +60,7 @@ namespace SampleFlow
          * @param[in] every_nth The distance between samples that are to be
          *  forwarded to downstream consumers of this filter.
          */
-        TakeEveryNth (const std::size_t every_nth);
+        TakeEveryNth (const types::sample_index every_nth);
 
         /**
          * Process one sample by checking whether it is an $n$th sample
@@ -91,20 +92,20 @@ namespace SampleFlow
         /**
          * A counter counting how many samples we have seen so far.
          */
-        std::size_t counter;
+        types::sample_index counter;
 
         /**
          * The variable storing how often we are to forward a received
          * sample to downstream consumers.
          */
-        const std::size_t every_nth;
+        const types::sample_index every_nth;
     };
 
 
 
     template <typename InputType>
     TakeEveryNth<InputType>::
-    TakeEveryNth (const std::size_t every_nth)
+    TakeEveryNth (const types::sample_index every_nth)
       : counter (0),
         every_nth (every_nth)
     {}

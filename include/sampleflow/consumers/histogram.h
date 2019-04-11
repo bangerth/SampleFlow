@@ -17,6 +17,8 @@
 #define SAMPLEFLOW_CONSUMERS_HISTOGRAM_H
 
 #include <sampleflow/consumer.h>
+#include <sampleflow/types.h>
+
 #include <mutex>
 #include <type_traits>
 #include <vector>
@@ -76,10 +78,11 @@ namespace SampleFlow
          * @code
          *   const double left_end_point  = std::get<0>(histogram.get()[i]);
          *   const double right_end_point = std::get<1>(histogram.get()[i]);
-         *   const std::size_t n_samples_in_bin = std::get<2>(histogram.get()[i]);
+         *   const SampleFlow::types::sample_index
+         *                n_samples_in_bin = std::get<2>(histogram.get()[i]);
          * @endcode
          */
-        using value_type = std::vector<std::tuple<double,double,std::size_t>>;
+        using value_type = std::vector<std::tuple<double,double,types::sample_index>>;
 
         /**
          * An enum type that describes how the subdivision of the interval
@@ -192,7 +195,7 @@ namespace SampleFlow
          * A vector storing the number of samples so far encountered in each
          * of the bins of the histogram.
          */
-        std::vector<std::size_t> bins;
+        std::vector<types::sample_index> bins;
 
         /**
          * For a given `value`, compute the number of the bin it lies

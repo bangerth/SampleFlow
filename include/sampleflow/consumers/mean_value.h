@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_CONSUMERS_MEAN_VALUE_H
 
 #include <sampleflow/consumer.h>
+#include <sampleflow/types.h>
 #include <mutex>
 
 
@@ -104,8 +105,8 @@ namespace SampleFlow
          */
         mutable std::mutex mutex;
 
-        InputType current_mean;
-        std::size_t n_samples;
+        InputType           current_mean;
+        types::sample_index n_samples;
     };
 
 
