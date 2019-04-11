@@ -45,6 +45,19 @@ namespace SampleFlow
    * picked samples are then sent downstream to further consumers.
    *
    *
+   * ### Threading model ###
+   *
+   * Like Consumer classes, Filter classes can be attached to multiple
+   * producers. As a consequence, implementations of classes derived from the
+   * Filter base class need to expect that their member functions can be called
+   * from different threads, and, more importantly, concurrently. Thus, it
+   * is important that all member functions of derived classes use
+   * appropriate strategies for dealing with concurrency. Principally,
+   * this implies that all functions that access the current state of
+   * their object need to use `std::mutex` and `std::lock_guard` objects
+   * appropriately.
+   *
+   *
    * @tparam InputType The C++ type used to describe the incoming samples.
    *   For example, if one samples from a distribution over a continuous,
    *   vector-valued vector space, then an appropriate type may be

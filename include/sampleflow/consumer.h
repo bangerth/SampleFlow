@@ -56,7 +56,7 @@ namespace SampleFlow
    * producers may be running on separate threads. As a consequence,
    * implementations of classes derived from the Consumer base class need
    * to expect that their member functions can be called from different
-   * threads, and, more importantly, concurrently. As a consequence, it
+   * threads, and, more importantly, concurrently. Thus, it
    * is important that all member functions of derived classes use
    * appropriate strategies for dealing with concurrency. Principally,
    * this implies that all functions that access the current state of
