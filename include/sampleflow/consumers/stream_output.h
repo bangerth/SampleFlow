@@ -100,7 +100,7 @@ namespace SampleFlow
 
     template <typename InputType>
     void
-    MeanValue<InputType>::
+    StreamOutput<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       std::lock_guard<std::mutex> lock(mutex);
