@@ -68,7 +68,10 @@ namespace SampleFlow
          *   simple conversions such as from `int`
          */
         Conversion (const std::function<OutputType (const InputType &)> &conversion_function
-                    = [] (const InputType &in) { return static_cast<OutputType>(in); });
+                    = [] (const InputType &in)
+        {
+          return static_cast<OutputType>(in);
+        });
 
         /**
          * Process one sample by converting it to the output type using the function

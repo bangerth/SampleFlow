@@ -97,6 +97,56 @@ namespace SampleFlow
     {}
 
 
+    namespace internal
+    {
+      namespace StreamOutput
+      {
+        /**
+         * Write a sample to the stream. This template is used for all
+         * `SampleType` types not explicitly listed in the specializations
+         * of the function below.
+         */
+        template <typename SampleType>
+        void write (const SampleType &sample,
+                    std::ostream &output_stream)
+        {
+          output_stream << sample;
+        }
+
+
+        /**
+         * Write a sample to the stream. This template is used if the sample
+         * type is `std::valarray<T>`.
+         */
+        template <typename T>
+        void write (const std::valarray<T> &sample,
+                    std::ostream &output_stream)
+        {
+          for (auto el : sample)
+            {
+              write (el, output_stream);
+              output_stream << ' ';
+            }
+        }
+
+
+        /**
+         * Write a sample to the stream. This template is used if the sample
+         * type is `std::vector<T>`.
+         */
+        template <typename T>
+        void write (const std::vector<T> &sample,
+                    std::ostream &output_stream)
+        {
+          for (auto el : sample)
+            {
+              write (el, output_stream);
+              output_stream << ' ';
+            }
+        }
+      }
+    }
+
 
     template <typename InputType>
     void
@@ -105,7 +155,8 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      output_stream << sample << std::endl;
+      internal::StreamOutput::write (sample, output_stream);
+      output_stream << std::endl;
     }
   }
 }
