@@ -5,6 +5,7 @@
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/consumers/mean_value.h>
+#include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
@@ -115,6 +116,9 @@ namespace Test2
     SampleFlow::Consumers::MeanValue<SampleType> mean_value;
     mean_value.connect_to_producer (take_every_nth);
 
+    SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
+    covariance_matrix.connect_to_producer (take_every_nth);
+
 //    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
 //        SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
 //    histogram.connect_to_producer (take_every_nth);
@@ -130,10 +134,17 @@ namespace Test2
     mh_sampler.sample ({1,0},
         &log_likelihood,
         &perturb,
-        5000000);
+        500000);
 
     std::cout << "Computed mean value: "
         << mean_value.get()[0] << ' ' << mean_value.get()[1] << std::endl;
+
+    std::cout << "Computed covariance matrix: "
+        << covariance_matrix.get()(0,0) << ' '
+        << covariance_matrix.get()(1,0) << ' '
+        << covariance_matrix.get()(0,1) << ' '
+        << covariance_matrix.get()(1,1)
+        << std::endl;
 
     std::cout << "Computed MAP point: "
         << MAP_point.get()[0] << ' ' << MAP_point.get()[1] << std::endl;
