@@ -18,7 +18,11 @@ INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 FIND_PACKAGE(Boost
              REQUIRED
              COMPONENTS signals)
-
+INCLUDE(CheckIncludeFileCXX)
+CHECK_INCLUDE_FILE_CXX("boost/signals2.hpp" SF_HAVE_SIGNALS2)
+IF (NOT SF_HAVE_SIGNALS2)
+  MESSAGE(FATAL_ERROR "Could not find boost/signals2.hpp")
+ENDIF()
 
 #########################################
 ### Describe what is currently the only executable
