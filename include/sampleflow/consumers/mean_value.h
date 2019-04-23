@@ -155,6 +155,8 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
+      // If this is the first sample we see, initialize the current-mean with
+      // this sample.
       if (n_samples == 0)
         {
           n_samples = 1;
@@ -162,6 +164,8 @@ namespace SampleFlow
         }
       else
         {
+          // Otherwise update the previously computed mean by the current
+          // sample.
           ++n_samples;
 
           InputType update = std::move(sample);
