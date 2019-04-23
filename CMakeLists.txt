@@ -23,6 +23,11 @@ CHECK_INCLUDE_FILE_CXX("boost/signals2.hpp" SF_HAVE_SIGNALS2)
 IF (NOT SF_HAVE_SIGNALS2)
   MESSAGE(FATAL_ERROR "Could not find boost/signals2.hpp")
 ENDIF()
+CHECK_INCLUDE_FILE_CXX("boost/numeric/ublas/matrix.hpp" SF_HAVE_MATRIX)
+IF (NOT SF_HAVE_MATRIX)
+  MESSAGE(FATAL_ERROR "Could not find boost/numeric/ublas/matrix.hpp")
+ENDIF()
+
 
 #########################################
 ### Describe what is currently the only executable
