@@ -31,7 +31,8 @@ namespace SampleFlow
      * obtained by calling the get() function.
      *
      * This class uses the following formula to update the mean $\bar x_k$
-     * after seeing $k$ samples $x_1\ldots x_k$:
+     * after seeing $k$ samples $x_1\ldots x_k$ (see
+     * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm):
      * @f{align*}{
      *      \bar x_1 &= x_1,
      *   \\ \bar x_k &= \bar x_{k-1} + \frac{1}{k} (x_k - \bar x_{k-1}).
