@@ -64,7 +64,7 @@ namespace Test1
         << mean_value.get() << std::endl;
 
     std::cout << "Computed MAP point: "
-        << MAP_point.get() << std::endl;
+        << MAP_point.get().first << std::endl;
 
     histogram.write_gnuplot (std::ofstream("hist.txt"));
   }
@@ -147,7 +147,7 @@ namespace Test2
         << std::endl;
 
     std::cout << "Computed MAP point: "
-        << MAP_point.get()[0] << ' ' << MAP_point.get()[1] << std::endl;
+        << MAP_point.get().first[0] << ' ' << MAP_point.get().first[1] << std::endl;
 
 //    histogram.write_gnuplot (std::ofstream("hist.txt"));
   }

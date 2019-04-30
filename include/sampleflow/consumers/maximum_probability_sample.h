@@ -55,7 +55,7 @@ namespace SampleFlow
          * is a pair of InputType, the data type used to represent samples,
          * and the AuxiliaryData that was attached to this sample.
          */
-        using value_type = InputType;
+        using value_type = std::pair<InputType,AuxiliaryData>;
 
         /**
          * Constructor.
@@ -101,9 +101,14 @@ namespace SampleFlow
         mutable std::mutex mutex;
 
         /**
-         * The currently most likely sample
+         * The currently most likely sample.
          */
         InputType          current_most_likely_sample;
+
+        /**
+         * The auxiliary data associated with the currently most likely sample.
+         */
+        AuxiliaryData      current_most_likely_sample_data;
 
         /**
          * The log likelihood of the currently most likely sample. If we have
@@ -120,6 +125,7 @@ namespace SampleFlow
     MaximumProbabilitySample ()
       :
       current_most_likely_sample (),
+      current_most_likely_sample_data (),
       current_highest_log_likelihood(std::numeric_limits<double>::lowest())
     {}
 
@@ -142,14 +148,16 @@ namespace SampleFlow
           if (current_highest_log_likelihood == std::numeric_limits<double>::lowest())
             {
               current_most_likely_sample = std::move (sample);
+              current_most_likely_sample_data = std::move (aux_data);
               current_highest_log_likelihood = log_likelihood;
             }
           else
             {
               // We had seen samples before, so check whether this one is better.
-              if (current_highest_log_likelihood < log_likelihood)
+              if (log_likelihood > current_highest_log_likelihood)
                 {
                   current_most_likely_sample = std::move (sample);
+                  current_most_likely_sample_data = std::move (aux_data);
                   current_highest_log_likelihood = log_likelihood;
                 }
             }
@@ -165,7 +173,7 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      return current_most_likely_sample;
+      return {current_most_likely_sample, current_most_likely_sample_data};
     }
 
   }
