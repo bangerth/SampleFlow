@@ -1,0 +1,54 @@
+[section Changelog]
+
+[master]
+
+* Removed Python bindings, will be developed in separate repository
+  github.com/hdembinski/histogram-python
+
+[heading 3.2 (not in boost)]
+
+* Allocator support everywhere
+* Internal refactoring
+
+[heading 3.1 (not in boost)]
+
+* Renamed `bincount` method to `size`
+* Support for axes with only overflow and no underflow bin
+* category axis now by default has bin for "other" input that does not fall
+  into the predefined categories, making it consistent with other axes
+* NaN is now consistently put into overflow bin for all axes
+* Eliminated warnings about safe internal conversions on MSVC
+* Established a cpp house style with corresponding .clang-format file
+* Better detection of Python library on all systems
+* Improved code coverage by testing more input errors
+* Raise ValueError instead of generic RuntimeError in Python on input errors
+
+[heading 3.0 (not in boost)]
+
+* Support for efficient adding of multiple histograms and scaling
+* Re-design of category axis as a general mapping between unique values and bins
+* Re-design of the bin description an axis returns upon element access
+* Interface cleanup and simplification, more consistency between Python and C++ interface
+* Iterators for histogram and axes for STL compatibility
+* Regular axis in C++: Allowing transforms with state
+* Regular axis in Python: Support for all C++ transforms
+* Polymorphic axis::any type
+* Internal refactoring from boost::mpl and boost::fusion to std::tuple and boost::mp11
+* Windows support
+
+[heading 2.0 (not in boost)]
+
+* Added static_histogram (v1.0 only had dynamic_histogram).
+* Merged wfill(...) and fill(...) interface.
+* Support custom allocators in storage classes.
+* Replaced static_storage with array_storage.
+* Replaced dynamic_storage with adaptive_storage, which adds the capability to grow the bin counter into a cpp_int, thus avoiding integer overflow completely.
+* Serialization uses binary_archive instead of text_archive. The latter is portable, but the performance is terrible.
+* Python interface changed: histograms are now iterable, returning axis classes
+* Support reduction (removing a subset of axes and returning the equivalent histogram; in other words, those axes are integrated over)
+
+[heading 1.0 (not in boost)]
+
+* First stable version.
+
+[endsect]

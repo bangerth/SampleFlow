@@ -1,0 +1,26 @@
+# Copyright 2017 Hans Dembinski
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at http://boost.org/LICENSE_1_0.txt)
+
+shallow_clone: true
+
+image: Visual Studio 2015
+
+branches:
+  only:
+    - master
+    - develop
+
+build: off
+
+environment:
+  # MSVC_DEFAULT_OPTIONS: ON
+  BOOST_ROOT: C:\Libraries\boost_1_67_0
+
+test_script:
+  # - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - cd build
+  - cmake .
+    -DBOOST_ROOT="%BOOST_ROOT%" -DBoost_USE_STATIC_LIBS="ON"
+  - cmake --build .
+  - ctest -V
