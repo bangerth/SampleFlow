@@ -45,7 +45,7 @@ namespace SampleFlow
      *
      *
      * @tparam InputType The C++ type used for the samples $x_k$ processed
-     *   by this class. In order to compute mean values, this type must allow
+     *   by this class. In order to compute a histogram, this type must allow
      *   an ordering, or more specifically, putting values into bins. As a
      *   consequence, it needs to be *scalar*, i.e., it cannot be a vector of
      *   values. This is asserted by ensuring that the type satisfies the
