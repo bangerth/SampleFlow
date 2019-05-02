@@ -36,21 +36,23 @@ namespace SampleFlow
      * function.
      *
      * This class uses the following formula to update the covariance matrix
-     * after seeing $k$ samples $x_1\ldots x_k$ (see
+     * after seeing $k$ samples $x_1\ldots x_k$:
+     * @f{align*}{
+     *     C_1 &= 0,
+     *  \\ C_k &= C_{k-1}
+     *           + \frac{1}{k} \left( (x_k-\bar x_k)(x_k-\bar x_k)^T - C_{k-1} \right)
+     *           + \frac{1}{k(k-1)^2} (x_k-\bar x_k)(x_k-\bar x_k)^T.
+     * @f}
+     * This formula is a symmetric variation of the one by Welford (1962), see
      * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm)
      * and
-     * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online):
-     * @f{align*}{
-     *      ...
-     * @f}
-     * This formula can be derived as follows, assuming one also keeps track
+     * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online .
+     * The formula can be derived as follows, assuming one also keeps track
      * of the running mean ${\bar x}_k$ as discussed in the MeanValue
      * class:
      * @f{align*}{
      *     C_k &= \frac{1}{k} \sum_{j=1}^k (x_j-{\bar x}_j)(x_j-{\bar x}_j)^T
-     *      \\ &= \frac{1}{k} \left[
-     *           \sum_{j=1}^{k-1} (x_j-{\bar x}_j)(x_j-{\bar x}_j)^T
-     *          +  (x_j-{\bar x}_k)(x_k-{\bar x}_k)^T
+     *      \\ &= x
      * @f}
      *
      *
@@ -155,6 +157,9 @@ namespace SampleFlow
       // If this is the first sample we see, initialize the matrix with
       // this sample. After the first sample, the covariance matrix
       // is the zero matrix since a single sample has a zero variance.
+      //
+      // For the overall algorithm, we also have to keep track of the mean.
+      // For this, we use the same algorithm as in the MeanValues class.
       if (n_samples == 0)
         {
           n_samples = 1;
@@ -164,21 +169,21 @@ namespace SampleFlow
       else
         {
           // Otherwise update the previously computed covariance by the current
-          // sample.
+          // sample; this also requires updating the current running mean.
           ++n_samples;
 
-          InputType delta = sample;
+          InputType mean_update = sample;
+          mean_update -= current_mean;
+          mean_update /= n_samples;
+          current_mean += mean_update;
+
+          InputType delta = std::move(sample);
           delta -= current_mean;
           for (unsigned int i=0; i<sample.size(); ++i)
             for (unsigned int j=0; j<sample.size(); ++j)
-              current_covariance_matrix(i,j) += delta[i]*delta[j]/n_samples;
-
-          // Then also update the running mean:
-          InputType update = std::move(sample);
-          update -= current_mean;
-          update /= n_samples;
-
-          current_mean += update;
+              current_covariance_matrix(i,j) += (delta[i]*delta[j] - current_covariance_matrix(i,j))/n_samples
+              +
+              (delta[i]*delta[j])/n_samples/(n_samples-1)/(n_samples-1);
         }
     }
 
