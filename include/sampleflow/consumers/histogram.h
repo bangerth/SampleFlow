@@ -26,6 +26,7 @@
 #include <cmath>
 #include <algorithm>
 #include <ostream>
+#include <functional>
 
 
 namespace SampleFlow
@@ -103,7 +104,43 @@ namespace SampleFlow
                    const unsigned int n_bins);
 
         /**
-         * Move constructor.
+         * Constructor for a histogram that is equally spaced in some pre-image
+         * space of a function and whose bins are then transformed using the
+         * function provided by the user as the last argument. The way this
+         * function works is by building a set of bins equally spaced between
+         * `min_pre_value` and `max_pre_value` (with the number of bins given
+         * by `n_bins`), and then transforming the left and right end points
+         * of the bin intervals using the function `f`. For example, if one
+         * called this constructor with arguments `(-3,3,4,&exp10)`, then
+         * the bins to be used for the samples would be as follows given
+         * that `exp10(x)` equals $10^x$:
+         * `[0.001,10^{-1.5}]`, `[10^{-1.5},0]`, `[0,10^{1.5}]`, `[10^{1.5}, 1000]`.
+         * Such bins would show up equispaced when plotted on a logarithmic
+         * $x$ axis.
+         *
+         * @param[in] min_pre_value The left end point of the range over which the
+         *   histogram should be generated, before transformation with the function
+         *   `f`. Samples that have a value less than
+         *   `f(min_pre_value)` will simply not be counted.
+         * @param[in] max_pre_value The right end point of the range over which the
+         *   histogram should be generated, before transformation with the function
+         *   `f`. Samples that have a value larger than
+         *   `f(max_pre_value)` will simply not be counted.
+         * @param[in] n_bins The number of bins this class represents,
+         *   i.e., how many sub-intervals the range `min_value...max_value`
+         *   will be split in.
+         * @param[in] f The function used in the transformation. For this
+         *   set up of bins to make sense, `f` needs to be a strictly
+         *   monotonically increasing function on the range
+         *   `[min_pre_values,max_pre_values]`.
+         */
+        Histogram (const double min_pre_value,
+                   const double max_pre_value,
+                   const unsigned int n_bins,
+                   const std::function<double (const double)> &f);
+
+        /**
+         * Copy constructor.
          */
         Histogram (const Histogram<InputType> &o);
 
@@ -206,6 +243,36 @@ namespace SampleFlow
 
       // And add the past-the-end interval's left end point as well:
       interval_points[n_bins] = max_value;
+    }
+
+
+    template <typename InputType>
+    Histogram<InputType>::
+    Histogram (const double min_pre_value,
+               const double max_pre_value,
+               const unsigned int n_bins,
+               const std::function<double (const double)> &f)
+      :
+      interval_points(n_bins+1),
+      bins (n_bins)
+    {
+      assert (min_pre_value < max_pre_value);
+
+      // Set up the break points between the bins:
+      const double delta = (max_pre_value - min_pre_value) / (n_bins);
+      for (unsigned int bin=0; bin<n_bins; ++bin)
+        interval_points[bin] = f(min_pre_value + bin*delta);
+
+      // And add the past-the-end interval's left end point as well:
+      interval_points[n_bins] = f(max_pre_value);
+
+
+      // Double check that the mapping used was indeed strictly
+      // increasing:
+      for (unsigned int bin=0; bin<n_bins; ++bin)
+        {
+          assert (interval_points[bin] < interval_points[bin+1]);
+        }
     }
 
 
