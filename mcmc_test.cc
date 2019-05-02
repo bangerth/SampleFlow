@@ -43,8 +43,7 @@ namespace Test1
     SampleFlow::Consumers::MeanValue<SampleType> mean_value;
     mean_value.connect_to_producer (take_every_nth);
 
-    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
-        SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
+    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100);
     histogram.connect_to_producer (take_every_nth);
 
     SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
