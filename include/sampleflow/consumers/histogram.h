@@ -24,6 +24,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <algorithm>
 #include <ostream>
 
 
@@ -85,30 +86,7 @@ namespace SampleFlow
         using value_type = std::vector<std::tuple<double,double,types::sample_index>>;
 
         /**
-         * An enum type that describes how the subdivision of the interval
-         * over which one wants to generate a histogram should be split
-         * into bins:
-         * - `linear`: The range `min_value...max_value` will be split
-         *   into equal-sized bins.
-         * - `logarithmic`: The range `min_value...max_value` will be split
-         *   into bins so that they have equal size in logarithmic space. Put
-         *   differently, the range `log(min_value)...log(max_value)` will
-         *   be split into equal-sized intervals whose end points are then
-         *   transformed back into regular space. This means that for each
-         *   bin, the ratio of the right to the left end value is the same,
-         *   whereas for the `linear` option above, it is the *difference*
-         *   between the right and left end value of bins that is the same.
-         *   Clearly, this logarithmic subdivision option requires that
-         *   `min_value>0`.
-         */
-        enum class SubdivisionScheme
-        {
-          linear, logarithmic
-        };
-
-
-        /**
-         * Constructor.
+         * Constructor for a histogram that is equally spaced in real space.
          *
          * @param[in] min_value The left end point of the range over which the
          *   histogram should be generated. Samples that have a value less than
@@ -116,17 +94,18 @@ namespace SampleFlow
          * @param[in] max_value The right end point of the range over which the
          *   histogram should be generated. Samples that have a value larger than
          *   this end point will simply not be counted.
-         * @param[in] n_subdivisions The number of bins this class represents,
+         * @param[in] n_bins The number of bins this class represents,
          *   i.e., how many sub-intervals the range `min_value...max_value`
          *   will be split in.
-         * @param[in] subdivision_scheme The way the range `min_value...max_value`
-         *   will be split into sub-intervals on which to count samples. See the
-         *   SubdivisionScheme type for an explanation of the options.
          */
         Histogram (const double min_value,
                    const double max_value,
-                   const unsigned int n_subdivisions,
-                   const SubdivisionScheme subdivision_scheme = SubdivisionScheme::linear);
+                   const unsigned int n_bins);
+
+        /**
+         * Move constructor.
+         */
+        Histogram (const Histogram<InputType> &o);
 
         /**
          * Process one sample by computing which bin it lies in, and then
@@ -183,13 +162,11 @@ namespace SampleFlow
         mutable std::mutex mutex;
 
         /**
-         * Variables describing the bins. See the constructor for a description
-         * of how they are interpreted.
+         * A variable that describes the left end points of each of the
+         * intervals that make up each bin. The vector contains one additional
+         * element that denotes the right end point of the last interval.
          */
-        const double             min_value;
-        const double             max_value;
-        const unsigned int       n_subdivisions;
-        const SubdivisionScheme  subdivision_scheme;
+        std::vector<double> interval_points;
 
         /**
          * A vector storing the number of samples so far encountered in each
@@ -201,6 +178,10 @@ namespace SampleFlow
          * For a given `value`, compute the number of the bin it lies
          * in, taking into account the way the bins subdivide the
          * range for which a histogram is to be computed.
+         *
+         * If the given value lies to the left of the left-most interval,
+         * or the right of the right-most interval, then this function will
+         * abort.
          */
         unsigned int bin_number (const double value) const;
     };
@@ -211,14 +192,30 @@ namespace SampleFlow
     Histogram<InputType>::
     Histogram (const double min_value,
                const double max_value,
-               const unsigned int n_subdivisions,
-               const SubdivisionScheme subdivision_scheme)
+               const unsigned int n_bins)
       :
-      min_value (min_value),
-      max_value (max_value),
-      n_subdivisions (n_subdivisions),
-      subdivision_scheme (subdivision_scheme),
-      bins (n_subdivisions)
+      interval_points(n_bins+1),
+      bins (n_bins)
+    {
+      assert (min_value < max_value);
+
+      // Set up the break points between the bins:
+      const double delta = (max_value - min_value) / (n_bins);
+      for (unsigned int bin=0; bin<n_bins; ++bin)
+        interval_points[bin] = min_value + bin*delta;
+
+      // And add the past-the-end interval's left end point as well:
+      interval_points[n_bins] = max_value;
+    }
+
+
+
+    template <typename InputType>
+    Histogram<InputType>::
+    Histogram (const Histogram<InputType> &o)
+      :
+      interval_points(o.interval_points),
+      bins (o.bins)
     {}
 
 
@@ -229,14 +226,17 @@ namespace SampleFlow
     consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       // If a sample lies outside the bounds, just discard it:
-      if (sample<min_value || sample>max_value)
+      if (sample<interval_points.front() || sample>=interval_points.back())
         return;
 
-      // Otherwise we need to update the histogram bins
+      // Otherwise we need to update the appropriate histogram bin:
       const unsigned int bin = bin_number(sample);
 
-      std::lock_guard<std::mutex> lock(mutex);
-      ++bins[bin];
+      if (bin >= 0  &&  bin < bins.size())
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          ++bins[bin];
+        }
     }
 
 
@@ -247,41 +247,17 @@ namespace SampleFlow
     get () const
     {
       // First create the output table and breakpoints
-      value_type return_value (n_subdivisions);
-      for (unsigned int bin=0; bin<n_subdivisions; ++bin)
+      value_type return_value (bins.size());
+      for (unsigned int bin=0; bin<bins.size(); ++bin)
         {
-          double bin_min, bin_max;
-
-          switch (subdivision_scheme)
-            {
-              case SubdivisionScheme::linear:
-              {
-                bin_min = min_value + bin*(max_value-min_value)/n_subdivisions;
-                bin_max = min_value + (bin+1)*(max_value-min_value)/n_subdivisions;
-
-                break;
-              }
-
-              case SubdivisionScheme::logarithmic:
-              {
-                bin_min = std::exp(std::log(min_value) + bin*(std::log(max_value)-std::log(min_value))/n_subdivisions);
-                bin_max = std::exp(std::log(min_value) + (bin+1)*(std::log(max_value)-std::log(min_value))/n_subdivisions);
-
-                break;
-              }
-
-              default:
-                bin_min = bin_max = 0;
-            }
-
-          std::get<0>(return_value[bin]) = bin_min;
-          std::get<1>(return_value[bin]) = bin_max;
+          std::get<0>(return_value[bin]) = interval_points[bin];
+          std::get<1>(return_value[bin]) = interval_points[bin+1];
         }
 
       // Now fill the bin sizes under a lock as they are subject to
       // change from other threads:
       std::lock_guard<std::mutex> lock(mutex);
-      for (unsigned int bin=0; bin<n_subdivisions; ++bin)
+      for (unsigned int bin=0; bin<bins.size(); ++bin)
         {
           std::get<2>(return_value[bin]) = bins[bin];
         }
@@ -318,25 +294,9 @@ namespace SampleFlow
     Histogram<InputType>::
     bin_number (const double value) const
     {
-      assert (value>=min_value);
-      assert (value<=max_value);
-      switch (subdivision_scheme)
-        {
-          case SubdivisionScheme::linear:
-            return std::max(0,
-                            std::min(static_cast<int>(n_subdivisions)-1,
-                                     static_cast<int>((value-min_value)/
-                                                      ((max_value-min_value)/n_subdivisions))));
-
-          case SubdivisionScheme::logarithmic:
-            return std::max(0,
-                            std::min(static_cast<int>(n_subdivisions)-1,
-                                     static_cast<int>((std::log(value)-std::log(min_value))/
-                                                      ((std::log(max_value)-std::log(min_value))/n_subdivisions))));
-
-          default:
-            return 0;
-        }
+      assert (value >= interval_points.front() && value < interval_points.back());
+      const auto p = std::lower_bound(interval_points.begin(), interval_points.end(), value);
+      return (p-interval_points.begin());
     }
   }
 }
