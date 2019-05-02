@@ -182,8 +182,8 @@ namespace SampleFlow
           for (unsigned int i=0; i<sample.size(); ++i)
             for (unsigned int j=0; j<sample.size(); ++j)
               current_covariance_matrix(i,j) += (delta[i]*delta[j] - current_covariance_matrix(i,j))/n_samples
-              +
-              (delta[i]*delta[j])/n_samples/(n_samples-1)/(n_samples-1);
+                                                +
+                                                (delta[i]*delta[j])/n_samples/(n_samples-1)/(n_samples-1);
         }
     }
 
