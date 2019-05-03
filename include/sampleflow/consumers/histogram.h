@@ -341,13 +341,14 @@ namespace SampleFlow
     {
       const auto histogram = get();
 
-      // For each bin, draw three sides of a rectangle over the x-axis
+      // For each bin, draw the top of the histogram box. Without extra
+      // line breaks, gnuplot will then also draw vertical lines up/down
+      // between bins so that we get a stairstep curve over the whole
+      // histogram.
       for (const auto &bin : histogram)
         {
-          output_stream << std::get<0>(bin) << ' ' << 0 << '\n';
           output_stream << std::get<0>(bin) << ' ' << std::get<2>(bin) << '\n';
           output_stream << std::get<1>(bin) << ' ' << std::get<2>(bin) << '\n';
-          output_stream << std::get<1>(bin) << ' ' << 0 << '\n';
           output_stream << '\n';
         }
 
