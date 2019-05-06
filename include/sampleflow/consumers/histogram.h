@@ -349,7 +349,6 @@ namespace SampleFlow
         {
           output_stream << std::get<0>(bin) << ' ' << std::get<2>(bin) << '\n';
           output_stream << std::get<1>(bin) << ' ' << std::get<2>(bin) << '\n';
-          output_stream << '\n';
         }
 
       output_stream << std::flush;
