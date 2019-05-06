@@ -4,11 +4,13 @@
 
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/filters/take_every_nth.h>
+#include <sampleflow/filters/component_splitter.h>
 #include <sampleflow/consumers/mean_value.h>
-#include <sampleflow/consumers/covariance_matrix.h>
+#include <sampleflow/consumers/count_samples.h>
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
+#include <sampleflow/consumers/covariance_matrix.h>
 
 
 namespace Test1
@@ -153,8 +155,97 @@ namespace Test2
 }
 
 
-int main ()
+
+namespace Test3
+{
+  using SampleType = std::valarray<double>;
+
+  class ReadFromFile : public SampleFlow::Producer<SampleType>
+  {
+    public:
+      void
+      read_from (std::istream &input);
+  };
+
+
+  void
+  ReadFromFile::
+  read_from (std::istream &input)
+  {
+    while (input)
+      {
+        double log_likelihood;
+        unsigned independent_sample;
+        std::valarray<double> sample(64);
+
+        input >> log_likelihood >> independent_sample;
+        for (auto &el : sample)
+          input >> el;
+
+        if (!input)
+          return;
+
+        this->issue_sample (sample,
+        {{"relative log likelihood", boost::any(log_likelihood)}});
+      }
+  }
+
+
+  void test (const std::string &base_name)
+  {
+    ReadFromFile reader;
+
+    SampleFlow::Consumers::MeanValue<SampleType> mean_value;
+    mean_value.connect_to_producer (reader);
+
+    SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
+    MAP_point.connect_to_producer (reader);
+
+    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
+    sample_count.connect_to_producer (reader);
+
+    std::vector<SampleFlow::Filters::ComponentSplitter<SampleType>> component_splitters;
+    std::vector<SampleFlow::Consumers::Histogram<SampleType::value_type>> histograms;
+    component_splitters.reserve(64);
+    histograms.reserve(64);
+    for (unsigned int c=0; c<64; ++c)
+      {
+        component_splitters.emplace_back (c);
+        component_splitters.back().connect_to_producer (reader);
+
+        histograms.emplace_back(-3, 3, 1000, &exp10);
+        histograms.back().connect_to_producer (component_splitters[c]);
+      }
+
+    std::cout << "Reading from <" << base_name << ".txt>" << std::endl;
+    {
+      std::ifstream input(base_name + ".txt");
+      reader.read_from(input);
+    }
+
+    std::cout << "Number of samples: " << sample_count.get() << std::endl;
+
+    {
+      std::ofstream output (base_name + ".mean");
+      for (const auto &el : mean_value.get())
+        output << el << '\n';
+    }
+
+    {
+      std::ofstream output (base_name + ".MAP");
+      for (const auto &el : MAP_point.get().first)
+        output << el << '\n';
+    }
+
+    for (unsigned int c=0; c<64; ++c)
+      histograms[c].write_gnuplot (std::ofstream(base_name + ".histogram." + std::to_string(c)));
+  }
+}
+
+
+int main (int argc, char **argv)
 {
   Test2::test ();
+  //  Test3::test (argv[1]);
 }
 
