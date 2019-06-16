@@ -25,282 +25,265 @@
 
 namespace SampleFlow
 {
-  namespace Consumers
-  {
-    /**
-     * NOTICE: We call results as spurious autocovariance, because by definition it is not autocovariance.
-     * A Consumer class that implements computing the running sample spurious autocovariance function:
-     * \hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x})(bm{x}_{t}-\bar\bm{x})}
-     *
-     *This code for every new sample updates \hat\gamma(k), l=1,2,3...,k. Choice of k can be done
-     *by setting it below.
-     *%%%%%%%%%%%%Manty's comment: It would be great to set k in mcmc_test.cc, not here. I don't know
-     *how to set it globally.
-     *
-     *Algorithm:
-     *There are three parts: 1) When amount of samples (sample_n) is equal 0 2) When k>sample_n 3) Otherwise
-     *Second and third parts are almost identical, just for "l" bigger than sample_n it is not possible to
-     *get \gamma(l) estimation. Further description focus on third part (case with big enough sample_n)
-     *
-     *Let expand formula above and then denote some of its parts as \alpha and \beta:
-     *\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x_n})^T(bm{x}_{t}-\bar\bm{x_n})}=
-     *=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l})^T(bm{x}_{t})}-
-     *-(\bar\bm{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{\bm{x}_{t+l}+(bm{x}_{t}}+
-     * +\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n})=
-     * =\alpha_n(l)-(\bar\bm{x_n}^T)\bm{beta_n(l)}+\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n}).
-     *
-     * During calculation, we need to update \alpha_{n+1}(l) (scalar),
-     * \bm{beta_{n+1}(l)} (same dimension as sample) and sample mean \bar\bm{x_{n+1}
-     *
-     * Notice, that for each l, \alpha_{n}(l) and \bm{beta_{n}(l)} probably is different. So to save \alpha values
-     * we need to have vector, while for \bm{\beta} - matrix.
-     *
-     * Updating algorithm for all these terms are equivalent to means update.
-     *
-     * %%%%%%%%%%%%Manty's comment: Almost all vector calculations is done element by element. I had
-     * problems to get full row from matrix as valarray. After getting some knowledge in programming, it should
-     * be updated to more efficient algorithms.
-     *
-     *
-     * ### Threading model ###
-     *
-     * The implementation of this class is thread-safe, i.e., its
-     * consume() member function can be called concurrently and from multiple
-     * threads.
-     *
-     *
-     * @tparam InputType The C++ type used for the samples $x_k$. In
-     *   order to compute covariances, the same kind of requirements
-     *   have to hold as listed for the Covariance class.
-     */
-    template <typename InputType>
-    class Spurious_Autocovariance: public Consumer<InputType>
-    {
-      public:
-        /**
-         * The data type of the elements of the input type.
-         */
+namespace Consumers
+{
+/**
+ * NOTICE: We can only say, that this algorithm calculates "spurious autocovariance", because by definition
+ * autocovariance function is much more complex it is not (except if we work samples of one dimension). Anyway, later in this code we use word autocovariance as
+ * we refer to spurious autocovariance.
+ *
+ * This is a Consumer class that implements computing the running sample autocovariance function:
+ * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x})(bm{x}_{t}-\bar\bm{x})}$
+ *
+ * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k.$ Choice of $autocovariance_length can be done
+ * by setting it in mcmc_test.cc
+ *
+ * Algorithm:
+ * There are three parts: 1) When amount of samples (sample_n) is equal 0 2) When k>sample_n 3) Otherwise
+ * Second and third parts are almost identical, just for "l" bigger than sample_n it is not possible to
+ * get \gamma(l) estimation. Further description focus on part 3) (case with big enough sample_n)
+ *
+ * Let expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
+ * \hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x_n})^T(bm{x}_{t}-\bar\bm{x_n})}=
+ * =\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l})^T(bm{x}_{t})}-
+ * -(\bar\bm{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{\bm{x}_{t+l}+(bm{x}_{t}}+
+ * +\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n})=
+ * =\alpha_n(l)-(\bar\bm{x_n}^T)\bm{beta_n(l)}+\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n}).$
+ *
+ * During calculation, we need to update $\alpha_{n+1}(l) (scalar),
+ * \bm{beta_{n+1}(l)}$ (same dimension as sample) and sample mean $\bar\bm{x_{n+1}$
+ *
+ * Notice, that for each l, $\alpha_{n}(l)$ and $\bm{beta_{n}(l)}$ is different. So to save $\alpha$ values
+ * we need to have vector, while for $\bm{\beta}$ - matrix.
+ *
+ * Principle of this updating algorithm is equivalent as in mean_value.h
+ *
+ * ### Threading model ###
+ *
+ * The implementation of this class is thread-safe, i.e., its
+ * consume() member function can be called concurrently and from multiple
+ * threads.
+ *
+ *
+ * @tparam InputType The C++ type used for the samples $x_k$. In
+ *   order to compute auto covariances, the same kind of requirements
+ *   have to hold as listed for the Covariance class (we need to be able to
+ *   calculate mean, divide by positive integer ant etc)
+ */
 
-       using scalar_type = typename InputType::value_type;
+template <typename InputType>
+class Spurious_Autocovariance: public Consumer<InputType>
+{
+public:
+	/**
+	 * The data type of the elements of the input type.
+	 * MANTYS COMMENT: IF InputType is scalar by itself, this part gives error and I couldnt find the way to solve this.
+	 */
+	using scalar_type = typename InputType::value_type;
 
-       /**
-         * The type of the information generated by this class, i.e., in which
-         * the autocovariance function is computed. By itself, for autocovariance there should
-         * be enough to use vector. However, because we keep updating autocovariance, we need to save
-         * parts used in calculation
-         */
+	/**
+	 * The data type, where we save multiple set of samples
+	 */
 
-       using value_type = boost::numeric::ublas::matrix<scalar_type>;
+	using value_type = boost::numeric::ublas::matrix<scalar_type>;
 
-        /**
-         * Constructor.
-         */
+	/**
+	 * Constructor
+	 *
+	 * @param[in] parameter lag_lenght refers to how many autocovariance function values we want
+	 * to calculate
+	 */
+	Spurious_Autocovariance(unsigned int lag_length);
 
-        Spurious_Autocovariance();
+	/**
+	 * Process one sample by updating the previously computed covariance
+	 * matrix using this one sample.
+	 *
+	 * @param[in] sample The sample to process.
+	 * @param[in] aux_data Auxiliary data about this sample. The current
+	 *   class does not know what to do with any such data and consequently
+	 *   simply ignores it.
+	 */
+	virtual
+	void
+	consume (InputType     sample,
+			AuxiliaryData aux_data) override;
 
-        /**
-         * Process one sample by updating the previously computed covariance
-         * matrix using this one sample.
-         *
-         * @param[in] sample The sample to process.
-         * @param[in] aux_data Auxiliary data about this sample. The current
-         *   class does not know what to do with any such data and consequently
-         *   simply ignores it.
-         */
-        virtual
-        void
-        consume (InputType     sample,
-                 AuxiliaryData aux_data) override;
+	/**
+	 * A function that returns the autocovariance vector computed from the
+	 * samples seen so far. If no samples have been processed so far, then
+	 * a default-constructed object of type InputType will be returned.
+	 *
+	 * @return The computed autocovariance vector of length leg_length.
+	 */
+	std::vector<scalar_type> get() const;
 
-        /**
-         * A function that returns the covariance matrix computed from the
-         * samples seen so far. If no samples have been processed so far, then
-         * a default-constructed object of type InputType will be returned.
-         *
-         * @return The computed covariance matrix.
-         */
-        value_type
-        get () const;
+private:
+	/**
+	 * A mutex used to lock access to all member variables when running
+	 * on multiple threads.
+	 */
+	mutable std::mutex mutex;
 
-      private:
-        /**
-         * A mutex used to lock access to all member variables when running
-         * on multiple threads.
-         */
+	/**
+	 * Describes how many values of autocovariance function we calculate.
+	 */
+	unsigned int autocovariance_length;
 
-      mutable std::mutex mutex;
+	/**
+	 * The current value of $\bar x_k$ as described in the introduction
+	 * of this class. For more detailed description of calculation, check mean_value.h
+	 */
+	InputType current_mean;
 
-        /**
-         * The current value of $\bar x_k$ as described in the introduction
-         * of this class.
-         */
+	/**
+	 * Parts for running autocovariation calculations.
+	 * Description of these parts is given at this class description above.
+	 * We should notice, that alpha and current_autocovariation is vectors, while beta is matrix.
+	 * That happens, because if we want to update beta for each new sample, we need to know mean
+	 * summed vector values (sum numbers depends from lag parameter). There might be other ways how
+	 * to update this member, but this one appears the most stable.
+	 */
+	std::vector<scalar_type> alpha;//First dot product of autocovariation
+	value_type beta; //Sum of vectors for innerproduct
 
-        InputType           current_mean;
+	/**
+	 * Save previous sample value needed to do calculations then new sample comes.
+	 *
+	 */
+	value_type past_sample;
+	value_type past_sample_replace;
 
-        /**
-         * Parts for running autocovariation
-         * Description of these parts is given above
-         */
+	/**
+	 * The number of samples processed so far.
+	 */
+	types::sample_index n_samples;
+};
 
-        boost::numeric::ublas::matrix<scalar_type> alpha;//First dot product of autocovariation
-        boost::numeric::ublas::matrix<scalar_type> beta; //Sum of vectors for innerproduct
-        boost::numeric::ublas::matrix<scalar_type> current_autocovariation;//Current autocovariaton
-
-        /**
-        * Save previous sample value
-        * %%%%%%%%%%%%Manty's comment: I didn't find (I'm 100% there are) better way to save last k sample values
-        * as just using one more object and assign i'th row of past_sample to i+1'th row of past_sample_replace
-        *
-        */
-
-        boost::numeric::ublas::matrix<scalar_type> past_sample;
-        boost::numeric::ublas::matrix<scalar_type> past_sample_replace;
-
-        /**
-         * The number of samples processed so far.
-         */
-
-        types::sample_index n_samples;
-    };
-
-    template <typename InputType>
-    Spurious_Autocovariance<InputType>::
-	Spurious_Autocovariance ()
-      :
-      n_samples (0)
-    {}
+template <typename InputType>
+Spurious_Autocovariance<InputType>::
+Spurious_Autocovariance (unsigned int lag_length)
+:
+autocovariance_length(lag_length),
+n_samples (0)
+{}
 
 
-    template <typename InputType>
-    void
-	Spurious_Autocovariance<InputType>::
-    consume (InputType sample, AuxiliaryData /*aux_data*/)
-    {
-      std::lock_guard<std::mutex> lock(mutex);
+template <typename InputType>
+void
+Spurious_Autocovariance<InputType>::
+consume (InputType sample, AuxiliaryData /*aux_data*/)
+{
+	std::lock_guard<std::mutex> lock(mutex);
 
-      // If this is the first sample we see, initialize all components
-      //. After the first sample, the autocovariance matrix
-      // is the zero matrix since a single sample does not have any friends yet.
+	// If this is the first sample we see, initialize all components
+	// After the first sample, the autocovariance vector
+	// is the zero vector since a single sample does not have any friends yet.
 
-      //   %%%%%%%%%%%%Manty's comment: It would be great to set k in mcmc_test.cc, not here. I don't know
-      //  Set how long is our autocovariance tail
-      double k=10;
+	if (n_samples == 0)
+	{
+		n_samples = 1;
+		alpha.resize(autocovariance_length);
+		beta.resize(autocovariance_length,sample.size());
 
-      if (n_samples == 0)
-        {
-          n_samples = 1;
-          current_autocovariation.resize (k,1);
-          alpha.resize(k,1);
-          beta.resize(k,sample.size());
-          for (unsigned int i=0; i<k; ++i){
-        	  current_autocovariation(i,0) = 0;
-          	  alpha(i,0) = 0;
-          	  for (unsigned int j=0; j<sample.size(); ++j){
-                  beta(i,j) = 0;
-                  }
-          	  }
-          current_mean = sample;
-          past_sample.resize(k,sample.size());
-          past_sample_replace.resize(k,sample.size());
-          for (unsigned int i=0; i<sample.size(); ++i) past_sample(0,i) = sample[i];
-        }
-      else if(n_samples < k)
-		{
-     	 ++n_samples;
-    	for (unsigned int i=0; i<n_samples-1; ++i){
-
-    		//Update first dot product (alpha)
-    		    double alphaupd = 0;
-    		    for (unsigned int j=0; j<sample.size(); ++j){
-    		    	alphaupd += sample[j]*past_sample(i,j);
-    		    	}
-    		    alphaupd -= alpha(i,0);
-    		    alphaupd /= n_samples;
-    		    alpha(i,0) += alphaupd;
-
-    		//Update second value (beta)
-    		    InputType betaupd = sample;
-    		    for (unsigned int j=0; j<sample.size(); ++j){
-    		    	betaupd[j] += past_sample(i,j);
-    		    	betaupd[j] -= beta(i,j);
-    		    	betaupd[j] /= n_samples;
-    		    	beta(i,j) += betaupd[j];
-    		        }
-    		}
-
-    		//Save needed past values
-    	for (unsigned int i=0; i<n_samples-1; ++i){
-    		for (unsigned int j=0; j<sample.size(); ++j){
-    			past_sample_replace(i+1,j)=past_sample(i,j);
-    			}
-    	}
-    	for (unsigned int j=0; j<sample.size(); ++j) past_sample_replace(0,j) = sample[j];
-    	past_sample = past_sample_replace;
-
-    	// Then also update the running mean:
-    	 InputType update = sample;
-    	          update -= current_mean;
-    	          update /= n_samples;
-    	          current_mean += update;
+		for (unsigned int i=0; i<autocovariance_length; ++i){
+			alpha[i] = 0;
+			for (unsigned int j=0; j<sample.size(); ++j){
+				beta(i,j) = 0;
+			}
 		}
-     else
-     {
-        ++n_samples;
-         	for (unsigned int i=0; i<k; ++i){
-         		//Update first dot product (alpha)
-         		   double alphaupd = 0;
-         		   for (unsigned int j=0; j<sample.size(); ++j){
-         			   alphaupd += sample[j]*past_sample(i,j);//Nuo cia reikia pradeti keisti ir ivedineti ciklus
-         		       }
-         		   alphaupd -= alpha(i,0);
-         		   alphaupd /= n_samples;
-         		   alpha(i,0) += alphaupd;
+		current_mean = sample;
+		past_sample.resize(autocovariance_length,sample.size());
+		past_sample_replace.resize(autocovariance_length,sample.size());
 
-         		//Update second value (beta)
-         		    InputType betaupd = sample;
-         		    for (unsigned int j=0; j<sample.size(); ++j){
-         		    	betaupd[j] += past_sample(i,j);
-         		    	betaupd[j] -= beta(i,j);
-         		    	betaupd[j] /= n_samples;
-         		    	beta(i,j) += betaupd[j];
-         		    	}
-         		    }
-    		//Save needed past values
-    	for (unsigned int i=0; i<k-1; ++i){
-    		for (unsigned int j=0; j<sample.size(); ++j){
-    			past_sample_replace(i+1,j)=past_sample(i,j);
-    			}
-    	}
-    	for (unsigned int j=0; j<sample.size(); ++j) past_sample_replace(0,j) = sample[j];
-    	past_sample = past_sample_replace;
+		for (unsigned int i=0; i<sample.size(); ++i) past_sample(0,i) = sample[i];
+	}
 
-    	// Then also update the running mean:
-    	 InputType update = sample;
-    	          update -= current_mean;
-    	          update /= n_samples;
-    	          current_mean += update;
+	else
+	{
+		/*
+		 * In the start of updating algorithm, there is no enough samples already seen, to be able to
+		 * calculate autocovariance function values for argument bigger than sample size. In order to avoid errors, we need
+		 * to use minimum function. However, we need slightly different minimums for calculation of autocovariance parts and for saving
+		 * past values.
+		 * length1 refers to how many samples were already seen before a new one and if it is more
+		 * than our desired autocovariance function length, it sets to that value. In this sense, it restricts how "long" our
+		 * calculations should or can be.
+		 * length2 refers to saving past values. It refers to, that at most we can save autocovariance_length-1 values(making space
+		 * to save the newest one.
+		 */
 
-          //Calculate autocovariance value using formula described above
-        for (unsigned int i=0; i<k; ++i){
-         	current_autocovariation(i,0) = alpha(i,0);
-         	for (unsigned int j=0; j<sample.size(); ++j) current_autocovariation(i,0) -= current_mean[j]* beta(i,j);
-         	current_autocovariation(i,0) += ((n_samples-1)/(n_samples))*(current_mean*current_mean).sum();
-         }
-     }
-    }
+		unsigned int length1=std::min(static_cast<unsigned int>(n_samples),autocovariance_length);
+		unsigned int length2=std::min(static_cast<unsigned int>(n_samples),autocovariance_length-1);
 
+		++n_samples;
+		for (unsigned int i=0; i<length1; ++i){
 
-    template <typename InputType>
-    typename Spurious_Autocovariance<InputType>::value_type
-	Spurious_Autocovariance<InputType>::
-    get () const
-    {
-      std::lock_guard<std::mutex> lock(mutex);
+			//Update first dot product (alpha)
+			double alphaupd = 0;
+			for (unsigned int j=0; j<sample.size(); ++j){
+				alphaupd += sample[j]*past_sample(i,j);
+			}
+			alphaupd -= alpha[i];
+			alphaupd /= n_samples;
+			alpha[i] += alphaupd;
 
-      return current_autocovariation;
-    }
+			//Update second value (beta)
+			InputType betaupd = sample;
+			for (unsigned int j=0; j<sample.size(); ++j){
+				betaupd[j] += past_sample(i,j);
+				betaupd[j] -= beta(i,j);
+				betaupd[j] /= n_samples;
+				beta(i,j) += betaupd[j];
+			}
+		}
 
-  }
+		//Save needed past values
+		for (unsigned int i=0; i<length2; ++i){
+			for (unsigned int j=0; j<sample.size(); ++j){
+				past_sample_replace(i+1,j)=past_sample(i,j);
+			}
+		}
+
+		for (unsigned int j=0; j<sample.size(); ++j) past_sample_replace(0,j) = sample[j];
+		past_sample = past_sample_replace;
+
+		// Then also update the running mean:
+		InputType update = sample;
+		update -= current_mean;
+		update /= n_samples;
+		current_mean += update;
+	}
+}
+
+template <typename InputType>
+std::vector<typename InputType::value_type>
+Spurious_Autocovariance<InputType>::
+get () const
+{
+	std::lock_guard<std::mutex> lock(mutex);
+	std::vector<scalar_type> current_autocovariation;
+	current_autocovariation.resize(autocovariance_length);
+	for (unsigned int i=0; i<autocovariance_length; ++i){
+		current_autocovariation[i] = 0;
+	}
+
+	if(n_samples==0) {
+		std::cout << "There are n any samples yet, returning zero";
+	} else {
+
+		unsigned int length1=std::min(static_cast<unsigned int>(n_samples),autocovariance_length);
+
+		for (int i=0; i<length1; ++i){
+			current_autocovariation[i] = alpha[i];
+			//current_mean.size() is equal to sample.size(). While we don't get samples here, alpha.size helps to
+			for (int j=0; j<current_mean.size(); ++j) current_autocovariation[i] -= current_mean[j]* beta(i,j);
+			current_autocovariation[i] += static_cast<scalar_type>((n_samples-i))*(current_mean*current_mean).sum()/(n_samples);
+		}
+	}
+	return current_autocovariation;
+}
+}
 }
 
 #endif
