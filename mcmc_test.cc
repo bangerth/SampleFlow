@@ -6,12 +6,12 @@
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/consumers/mean_value.h>
 #include <sampleflow/consumers/covariance_matrix.h>
-#include <sampleflow/consumers/autocovariance_dim_1.h>//Autocovariance function for samples with dimension 1
 #include <sampleflow/consumers/spurious_autocovariance_dim_n.h>//Spuriuos autocovariance for not one dimensional sample
+#include <sampleflow/consumers/acceptance_ratio.h>
+#include <sampleflow/consumers/average_cosinus.h>
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
-
 
 namespace Test1
 {
@@ -27,7 +27,7 @@ namespace Test1
   SampleType perturb (const SampleType &x)
   {
     static std::mt19937 rng;
-    static std::uniform_real_distribution<> uniform_distribution(-1,1);
+    static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
     return x + uniform_distribution(rng);
   }
 
@@ -43,8 +43,8 @@ namespace Test1
     SampleFlow::Consumers::MeanValue<SampleType> mean_value;
     mean_value.connect_to_producer (take_every_nth);
 
-    SampleFlow::Consumers::autocovariancedim1<SampleType> autocovariancedim1;
-    		autocovariancedim1.connect_to_producer (take_every_nth);
+   /*SampleFlow::Consumers::AutocovarianceDim1<SampleType> autocovariance_dim1(15);
+    		autocovariance_dim1.connect_to_producer (take_every_nth);*/
 
     SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
         SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
@@ -66,18 +66,20 @@ namespace Test1
     std::cout << "Computed mean value: "
         << mean_value.get() << std::endl;
 
-   std::cout << "Computed autocovariance matrix: "
-               << autocovariancedim1.get()(0,2) << ' '
-               << autocovariancedim1.get()(1,2) << ' '
-               << autocovariancedim1.get()(2,2) << ' '
-               << autocovariancedim1.get()(3,2) << ' '
-               << autocovariancedim1.get()(4,2) << ' '
-               << autocovariancedim1.get()(5,2) << ' '
-               << autocovariancedim1.get()(6,2) << ' '
-               << autocovariancedim1.get()(7,2) << ' '
-               << autocovariancedim1.get()(8,2) << ' '
-               << autocovariancedim1.get()(9,2)
-               << std::endl;
+   /*std::cout << "Computed autocovariance matrix: "
+               << autocovariance_dim1.get()(0,2) << ' '
+               << autocovariance_dim1.get()(1,2) << ' '
+               << autocovariance_dim1.get()(2,2) << ' '
+               << autocovariance_dim1.get()(3,2) << ' '
+               << autocovariance_dim1.get()(4,2) << ' '
+               << autocovariance_dim1.get()(5,2) << ' '
+               << autocovariance_dim1.get()(6,2) << ' '
+               << autocovariance_dim1.get()(7,2) << ' '
+               << autocovariance_dim1.get()(8,2) << ' '
+               << autocovariance_dim1.get()(9,2)
+               << std::endl;*/
+
+
     std::cout << "Computed MAP point: "
         << MAP_point.get() << std::endl;
 
@@ -96,8 +98,11 @@ namespace Test2
 
     const double sigma = 0.1;
 
-    for (auto el : x)
-      likelihood += std::log ( std::exp(-(el)*(el)/2));
+//    for (auto el : x)
+//      likelihood += std::log ( std::exp(-(el)*(el)/2));
+
+    for (unsigned int i=0; i<x.size(); ++i)
+    	likelihood += -(x[i])*(x[i])/(2);
 
     return likelihood;
   }
@@ -106,13 +111,18 @@ namespace Test2
   SampleType perturb (const SampleType &x)
   {
     static std::mt19937 rng;
-    static std::uniform_real_distribution<> uniform_distribution(-1,1);
+    static std::uniform_real_distribution<> uniform_distribution(-2,2);
+    static std::uniform_real_distribution<> tst_distribution(-0.00005,0.00005);
 
     SampleType y = x;
 
-    for (auto &el : y)
-      el += uniform_distribution(rng);
-
+    for (unsigned int i=0; i<y.size(); ++i){
+      if(i!=1) {
+      y[i] += uniform_distribution(rng);
+      } else {
+      y[i] += tst_distribution(rng);
+      }
+    }
     return y;
   }
 
@@ -121,7 +131,7 @@ namespace Test2
   {
     SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-    SampleFlow::Filters::TakeEveryNth<SampleType> take_every_nth (50);
+    SampleFlow::Filters::TakeEveryNth<SampleType> take_every_nth (5);
     take_every_nth.connect_to_producer (mh_sampler);
 
     SampleFlow::Consumers::MeanValue<SampleType> mean_value;
@@ -130,9 +140,15 @@ namespace Test2
     SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
     covariance_matrix.connect_to_producer (take_every_nth);
 
-    SampleFlow::Consumers::Spurious_Autocovariance<SampleType> autocovariance;
+    const unsigned int AC_length = 10;
+    SampleFlow::Consumers::Spurious_Autocovariance<SampleType> autocovariance(AC_length);
     autocovariance.connect_to_producer (take_every_nth);
 
+    SampleFlow::Consumers::AverageCosinus<SampleType> average_cosinus(AC_length);
+    average_cosinus.connect_to_producer (take_every_nth);
+
+    SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
+    acceptance_ratio.connect_to_producer (mh_sampler);
 
 //    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
 //        SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
@@ -145,11 +161,10 @@ namespace Test2
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(samples);
     stream_output.connect_to_producer(take_every_nth);
 
-
     mh_sampler.sample ({0,1},
         &log_likelihood,
         &perturb,
-        500000);
+        100000);
 
     std::cout << "Computed mean value: "
         << mean_value.get()[0] << ' ' << mean_value.get()[1] << std::endl;
@@ -161,21 +176,33 @@ namespace Test2
         << covariance_matrix.get()(1,1)
         << std::endl;
 
-    std::cout << "Computed spurious autocovariance matrix: "
-                << autocovariance.get()(0,0) << ' '
-                << autocovariance.get()(1,0) << ' '
-                << autocovariance.get()(2,0) << ' '
-                << autocovariance.get()(3,0) << ' '
-                << autocovariance.get()(4,0) << ' '
-                << autocovariance.get()(5,0) << ' '
-                << autocovariance.get()(6,0) << ' '
-                << autocovariance.get()(7,0) << ' '
-                << autocovariance.get()(8,0) << ' '
-                << autocovariance.get()(9,0)
-                << std::endl;
+    std::cout << "Computed spurious autocovariance vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << autocovariance.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
+
+    std::cout << "Computed average cosinus vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << average_cosinus.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
+
+    std::ofstream AC_file ("AC.txt");
+    for (unsigned int k=0; k<AC_length; ++k)
+    	AC_file << autocovariance.get()[k] << '\n';
+
+    std::ofstream AvgCos_file ("AvgCos.txt");
+        for (unsigned int k=0; k<AC_length; ++k)
+        	AvgCos_file << average_cosinus.get()[k] << '\n';
 
     std::cout << "Computed MAP point: "
         << MAP_point.get()[0] << ' ' << MAP_point.get()[1] << std::endl;
+
+    std::cout << "Computed Acceptance ratio: "
+            << acceptance_ratio.get() << std::endl;
 
 //    histogram.write_gnuplot (std::ofstream("hist.txt"));
   }
@@ -186,4 +213,8 @@ int main ()
 {
   Test2::test ();
 }
+
+
+
+
 
