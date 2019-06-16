@@ -141,7 +141,7 @@ namespace Test2
     covariance_matrix.connect_to_producer (take_every_nth);
 
     const unsigned int AC_length = 10;
-    SampleFlow::Consumers::Spurious_Autocovariance<SampleType> autocovariance(AC_length);
+    SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
     autocovariance.connect_to_producer (take_every_nth);
 
     SampleFlow::Consumers::AverageCosinus<SampleType> average_cosinus(AC_length);

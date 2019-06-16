@@ -72,7 +72,7 @@ namespace Consumers
  */
 
 template <typename InputType>
-class Spurious_Autocovariance: public Consumer<InputType>
+class SpuriousAutocovariance: public Consumer<InputType>
 {
 public:
 	/**
@@ -93,7 +93,7 @@ public:
 	 * @param[in] parameter lag_lenght refers to how many autocovariance function values we want
 	 * to calculate
 	 */
-	Spurious_Autocovariance(unsigned int lag_length);
+	SpuriousAutocovariance(unsigned int lag_length);
 
 	/**
 	 * Process one sample by updating the previously computed covariance
@@ -161,8 +161,8 @@ private:
 };
 
 template <typename InputType>
-Spurious_Autocovariance<InputType>::
-Spurious_Autocovariance (unsigned int lag_length)
+SpuriousAutocovariance<InputType>::
+SpuriousAutocovariance (unsigned int lag_length)
 :
 autocovariance_length(lag_length),
 n_samples (0)
@@ -171,7 +171,7 @@ n_samples (0)
 
 template <typename InputType>
 void
-Spurious_Autocovariance<InputType>::
+SpuriousAutocovariance<InputType>::
 consume (InputType sample, AuxiliaryData /*aux_data*/)
 {
 	std::lock_guard<std::mutex> lock(mutex);
@@ -258,7 +258,7 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 
 template <typename InputType>
 std::vector<typename InputType::value_type>
-Spurious_Autocovariance<InputType>::
+SpuriousAutocovariance<InputType>::
 get () const
 {
 	std::lock_guard<std::mutex> lock(mutex);
