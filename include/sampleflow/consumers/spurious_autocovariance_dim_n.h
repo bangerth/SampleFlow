@@ -35,7 +35,7 @@ namespace Consumers
  * This is a Consumer class that implements computing the running sample autocovariance function:
  * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x})(bm{x}_{t}-\bar\bm{x})}$
  *
- * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k.$ Choice of $autocovariance_length can be done
+ * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k$. The value of $n$ is set
  * by setting it in mcmc_test.cc
  *
  * Algorithm:
