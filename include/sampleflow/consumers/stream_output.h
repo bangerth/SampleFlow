@@ -18,6 +18,7 @@
 
 #include <sampleflow/consumer.h>
 #include <mutex>
+#include <valarray>
 #include <ostream>
 
 
