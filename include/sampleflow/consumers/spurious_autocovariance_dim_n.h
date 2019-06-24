@@ -93,7 +93,7 @@ public:
 	 * @param[in] parameter lag_lenght refers to how many autocovariance function values we want
 	 * to calculate
 	 */
-	SpuriousAutocovariance(unsigned int lag_length);
+	SpuriousAutocovariance(const unsigned int lag_length);
 
 	/**
 	 * Process one sample by updating the previously computed covariance
