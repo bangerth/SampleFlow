@@ -28,7 +28,7 @@ namespace SampleFlow
  * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
  * Working this way, updating algorithm becomes very similar to mean_value.h algorithm.
  *
- * Everytime, for updation we calculate corresponding fractions. There numerator is dot product, while denominator -
+ * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
  * multiplied those two vector norms
  *
  * ### Threading model ###
