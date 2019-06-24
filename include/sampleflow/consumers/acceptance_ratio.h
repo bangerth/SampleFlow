@@ -110,7 +110,6 @@ namespace SampleFlow
          * Previous sample
          */
         InputType past_sample;
-
     };
 
 
