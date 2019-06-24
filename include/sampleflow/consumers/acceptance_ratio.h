@@ -66,7 +66,7 @@ namespace SampleFlow
         AcceptanceRatio();
 
         /**
-         * Process one sample by updating the previously computed mean value
+         * Process one sample by updating the previously computed acceptance ratio
          * using this one sample.
          *
          * @param[in] sample The sample to process.
