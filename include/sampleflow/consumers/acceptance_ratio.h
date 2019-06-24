@@ -84,7 +84,7 @@ namespace SampleFlow
          * seen so far. If no samples have been processed so far, then a
          * zero will be returned.
          *
-         * @return Acceptance ration
+         * @return Acceptance ratio.
          */
         double get () const;
 
