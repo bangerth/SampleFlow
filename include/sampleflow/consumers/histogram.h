@@ -155,7 +155,7 @@ namespace SampleFlow
          */
         virtual
         void
-        consume (InputType sample, AuxiliaryData /*aux_data*/) override;
+        consume (InputType sample, AuxiliaryData aux_data) override;
 
         /**
          * Return the histogram in the format discussed in the documentation
