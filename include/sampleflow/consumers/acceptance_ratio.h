@@ -161,7 +161,7 @@ namespace SampleFlow
     get () const
     {
       std::lock_guard<std::mutex> lock(mutex);
-      double ratio = static_cast<double>(accept) / (double)(n_samples);
+      const double ratio = static_cast<double>(accept) / static_cast<double>(n_samples);
       return (ratio);
     }
   }
