@@ -82,7 +82,7 @@ namespace SampleFlow
         /**
          * A function that returns the ratio computed from the samples
          * seen so far. If no samples have been processed so far, then a
-         * default-constructed object of type InputType will be returned.
+         * zero will be returned.
          *
          * @return Acceptance ration
          */
