@@ -29,7 +29,7 @@ namespace SampleFlow
      * over all samples seen so far. The last value so computed can be
      * obtained by calling the get() function.
      *
-     * This code works if our sample have the form of vector
+     * This code works if our sample have the form of vector.
      *
      * Acceptance/rejection of sample idea is explained metropoly_hasting.h. This calculation uses
      * assumption, that every new generated value inside metropoly hasting algorithm is different from last one.
