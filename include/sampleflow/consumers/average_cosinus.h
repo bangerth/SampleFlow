@@ -19,7 +19,7 @@ namespace SampleFlow
   * angles between vectors value. This calculation, similarly to autocovariance, compares samples, that are
   * apart by specific index. In this sense, we get function where domain is bounded unsigned int and for
   * each value we calculate cosinus average.
-  * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Than formula can be written as:
+  * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Then the formula can be written as:
  * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}^T\bar\bm{x})(||bm{x}_{t}||*||\bar\bm{x}||)}.
  *
  * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
