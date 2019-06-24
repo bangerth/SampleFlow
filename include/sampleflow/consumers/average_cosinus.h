@@ -29,7 +29,7 @@ namespace SampleFlow
  * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
  *
  * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
- * multiplied those two vector norms
+ * multiplied those two vector norms.
  *
  * ### Threading model ###
  *
