@@ -128,7 +128,7 @@ private:
 	/**
 	 * Describes how many values of autocovariance function we calculate.
 	 */
-	unsigned int autocovariance_length;
+	const unsigned int autocovariance_length;
 
 	/**
 	 * The current value of $\bar x_k$ as described in the introduction
