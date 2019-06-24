@@ -22,7 +22,7 @@ namespace SampleFlow
   * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Than formula can be written as:
  * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}^T\bar\bm{x})(||bm{x}_{t}||*||\bar\bm{x}||)}.
  *
- * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,cosinus_length. Choice of
+ * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
  * cosinus length can done by setting it in mcmc_test.cc.
  *
  * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
