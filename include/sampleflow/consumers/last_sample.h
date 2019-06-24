@@ -88,7 +88,7 @@ namespace SampleFlow
 
     template <typename InputType>
     void
-    MeanValue<InputType>::
+    LastSample<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       std::lock_guard<std::mutex> lock(mutex);
@@ -99,8 +99,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    typename MeanValue<InputType>::value_type
-    MeanValue<InputType>::
+    typename LastSample<InputType>::value_type
+    LastSample<InputType>::
     get () const
     {
       std::lock_guard<std::mutex> lock(mutex);
