@@ -31,7 +31,8 @@ namespace SampleFlow
      *
      * This code works if our sample have the form of vector.
      *
-     * Acceptance/rejection of sample idea is explained metropoly_hasting.h. This calculation uses
+     * The concept of acceptance/rejection of a sample is explained in the documentation of
+     * the Producers::MetropolisHastings class. This calculation uses the
      * assumption, that every new generated value inside metropoly hasting algorithm is different from last one.
      *
      *With every new sample, this algorithm checks if it differs from last one. If it differs, it adds
