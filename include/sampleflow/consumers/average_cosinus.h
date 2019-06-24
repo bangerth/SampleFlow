@@ -26,7 +26,7 @@ namespace SampleFlow
  * cosinus length can done by setting it in mcmc_test.cc.
  *
  * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
- * Working this way, updating algorithm becomes very similar to mean_value.h algorithm.
+ * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
  *
  * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
  * multiplied those two vector norms
