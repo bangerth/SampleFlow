@@ -57,7 +57,7 @@ namespace SampleFlow
          * Constructor.
          */
 
-        AverageCosinus(unsigned int length);
+        AverageCosinus(const unsigned int length);
 
         /**
          * Process one sample by updating the previously computed covariance
