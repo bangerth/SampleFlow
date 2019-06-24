@@ -30,7 +30,7 @@ namespace SampleFlow
      *
      * Here is an example of how to use this class:
      * @code
-     *   Producers::Range<double> range_producer;
+     *   SampleFlow::Producers::Range<double> range_producer;
      *
      *   ...connect consumers and filters to this producer...
      *
@@ -41,7 +41,7 @@ namespace SampleFlow
      * of the `samples` variable. The code can be simplified to read as
      * follows:
      * @code
-     *   Producers::Range<double> range_producer;
+     *   SampleFlow::Producers::Range<double> range_producer;
      *
      *   ...connect consumers and filters to this producer...
      *
