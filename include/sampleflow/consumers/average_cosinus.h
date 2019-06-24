@@ -119,7 +119,7 @@ namespace SampleFlow
 
     template <typename InputType>
     AverageCosinus<InputType>::
-	AverageCosinus (unsigned int length)
+	AverageCosinus (const unsigned int length)
       :
 		avg_cosinus_length(length),
       n_samples (0)
