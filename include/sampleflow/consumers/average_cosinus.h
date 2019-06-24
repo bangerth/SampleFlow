@@ -37,7 +37,6 @@ namespace SampleFlow
  * consume() member function can be called concurrently and from multiple
  * threads.
    **/
-
     template <typename InputType>
     class AverageCosinus: public Consumer<InputType>
     {
