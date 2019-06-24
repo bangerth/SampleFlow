@@ -46,7 +46,6 @@ namespace SampleFlow
      * threads.
      *
      * @tparam InputType The C++ type used for the samples $x_k$. So far, implementation let us work
-     * with only those types, that are vectors.
      */
     template <typename InputType>
     class AcceptanceRatio : public Consumer<InputType>
