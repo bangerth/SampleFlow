@@ -149,7 +149,8 @@ namespace SampleFlow
             	  break;
               	  }
           	  }
-          if(truth) accept++;
+          if (truth) 
+            ++accept;
           past_sample = sample;
         }
     }
