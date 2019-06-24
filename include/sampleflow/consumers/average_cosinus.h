@@ -25,7 +25,7 @@ namespace SampleFlow
  * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
  * $L$ is provided to the constructor of this class.
  *
- * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
+ * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}$).
  * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
  *
  * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
