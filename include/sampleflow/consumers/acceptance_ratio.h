@@ -35,7 +35,7 @@ namespace SampleFlow
      * the Producers::MetropolisHastings class. This calculation uses the
      * assumption that every *accepted* sample in the sampling algorithm is *different* from last one.
      *
-     *With every new sample, this algorithm checks if it differs from last one. If it differs, it adds
+     * With every new sample, this algorithm checks if it differs from the last one. If it differs, it adds
      *one to value Accept. Function get() returns Accept divided by overall number of samples.
      *
      * ### Threading model ###
