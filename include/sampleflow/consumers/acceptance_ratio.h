@@ -45,7 +45,10 @@ namespace SampleFlow
      * consume() member function can be called concurrently and from multiple
      * threads.
      *
-     * @tparam InputType The C++ type used for the samples $x_k$. So far, implementation let us work
+     * @tparam InputType The C++ type used for the samples $x_k$. All this class requires of
+     *    the data type is that the comparison operator between two objects returns a `bool`. This
+     *    is true for most classes, but not all. (For example, `std::valarray` returns a vector of
+     *    bool values.)
      */
     template <typename InputType>
     class AcceptanceRatio : public Consumer<InputType>
