@@ -23,7 +23,7 @@ namespace SampleFlow
  * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}^T\bar\bm{x})(||bm{x}_{t}||*||\bar\bm{x}||)}.
  *
  * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
- * cosinus length can done by setting it in mcmc_test.cc.
+ * $L$ is provided to the constructor of this class.
  *
  * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
  * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
