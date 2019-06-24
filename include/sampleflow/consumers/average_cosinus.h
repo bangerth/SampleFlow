@@ -151,7 +151,8 @@ namespace SampleFlow
           past_sample.resize(avg_cosinus_length,sample.size());
           past_sample_replace.resize(avg_cosinus_length,sample.size());
 
-          for (unsigned int j=0; j<sample.size(); ++j) past_sample(0,j) = sample[j];
+          for (unsigned int j=0; j<sample.size(); ++j) 
+            past_sample(0,j) = sample[j];
         }
 
       else
