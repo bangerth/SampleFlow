@@ -11,7 +11,6 @@
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
 #include <sampleflow/consumers/covariance_matrix.h>
-#include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/spurious_autocovariance_dim_n.h>
 #include <sampleflow/consumers/acceptance_ratio.h>
 #include <sampleflow/consumers/average_cosinus.h>
@@ -120,6 +119,16 @@ namespace Test2
 
     SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
     covariance_matrix.connect_to_producer (take_every_nth);
+
+    const unsigned int AC_length = 10;
+    SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+    autocovariance.connect_to_producer (take_every_nth);
+
+    SampleFlow::Consumers::AverageCosineBetweenSuccessiveSamples<SampleType> average_cosinus(AC_length);
+    average_cosinus.connect_to_producer (take_every_nth);
+
+    SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
+    acceptance_ratio.connect_to_producer (mh_sampler);
 
 //    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
 //        SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
