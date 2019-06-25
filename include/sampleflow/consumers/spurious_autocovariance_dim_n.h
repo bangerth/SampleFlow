@@ -35,8 +35,8 @@ namespace Consumers
  * This is a Consumer class that implements computing the running sample autocovariance function:
  * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x})(bm{x}_{t}-\bar\bm{x})}$
  *
- * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k.$ Choice of $autocovariance_length can be done
- * by setting it in mcmc_test.cc
+ * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k$. The value of $n$ is set
+ * in the constructor.
  *
  * Algorithm:
  * There are three parts: 1) When amount of samples (sample_n) is equal 0 2) When k>sample_n 3) Otherwise
@@ -93,7 +93,7 @@ public:
 	 * @param[in] parameter lag_lenght refers to how many autocovariance function values we want
 	 * to calculate
 	 */
-	SpuriousAutocovariance(unsigned int lag_length);
+	SpuriousAutocovariance(const unsigned int lag_length);
 
 	/**
 	 * Process one sample by updating the previously computed covariance
@@ -128,7 +128,7 @@ private:
 	/**
 	 * Describes how many values of autocovariance function we calculate.
 	 */
-	unsigned int autocovariance_length;
+	const unsigned int autocovariance_length;
 
 	/**
 	 * The current value of $\bar x_k$ as described in the introduction

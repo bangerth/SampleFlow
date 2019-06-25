@@ -19,17 +19,17 @@ namespace SampleFlow
   * angles between vectors value. This calculation, similarly to autocovariance, compares samples, that are
   * apart by specific index. In this sense, we get function where domain is bounded unsigned int and for
   * each value we calculate cosinus average.
-  * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Than formula can be written as:
+  * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Then the formula can be written as:
  * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}^T\bar\bm{x})(||bm{x}_{t}||*||\bar\bm{x}||)}.
  *
- * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,cosinus_length. Choice of
- * cosinus length can done by setting it in mcmc_test.cc.
+ * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
+ * $L$ is provided to the constructor of this class.
  *
- * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}).
- * Working this way, updating algorithm becomes very similar to mean_value.h algorithm.
+ * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}$).
+ * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
  *
- * Everytime, for updation we calculate corresponding fractions. There numerator is dot product, while denominator -
- * multiplied those two vector norms
+ * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
+ * multiplied those two vector norms.
  *
  * ### Threading model ###
  *
@@ -37,7 +37,6 @@ namespace SampleFlow
  * consume() member function can be called concurrently and from multiple
  * threads.
    **/
-
     template <typename InputType>
     class AverageCosinus: public Consumer<InputType>
     {
@@ -58,7 +57,7 @@ namespace SampleFlow
          * Constructor.
          */
 
-        AverageCosinus(unsigned int length);
+        AverageCosinus(const unsigned int length);
 
         /**
          * Process one sample by updating the previously computed covariance
@@ -120,7 +119,7 @@ namespace SampleFlow
 
     template <typename InputType>
     AverageCosinus<InputType>::
-	AverageCosinus (unsigned int length)
+	AverageCosinus (const unsigned int length)
       :
 		avg_cosinus_length(length),
       n_samples (0)
@@ -152,7 +151,8 @@ namespace SampleFlow
           past_sample.resize(avg_cosinus_length,sample.size());
           past_sample_replace.resize(avg_cosinus_length,sample.size());
 
-          for (unsigned int j=0; j<sample.size(); ++j) past_sample(0,j) = sample[j];
+          for (unsigned int j=0; j<sample.size(); ++j) 
+            past_sample(0,j) = sample[j];
         }
 
       else
