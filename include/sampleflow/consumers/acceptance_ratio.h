@@ -109,7 +109,7 @@ namespace SampleFlow
         /**
          * Previous sample
          */
-        InputType past_sample;
+        InputType previous_sample;
     };
 
 
@@ -136,7 +136,7 @@ namespace SampleFlow
       if (n_samples == 0) {
           n_samples=1;
           accept=1;
-          past_sample = sample;
+          previous_sample = sample;
         }
       //Check if new sample is not equal to previous sample and if that is true add one to accept.
       else
@@ -144,14 +144,14 @@ namespace SampleFlow
           ++n_samples;
           bool truth=false;
           for(int i = 0; i < sample.size(); i++) {
-              if(past_sample[i]!=sample[i]){
+              if(previous_sample[i]!=sample[i]){
             	  truth=true;
             	  break;
               	  }
           	  }
           if (truth) 
             ++accept;
-          past_sample = sample;
+          previous_sample = sample;
         }
     }
 
