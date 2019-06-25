@@ -4,7 +4,9 @@
 
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/filters/take_every_nth.h>
+#include <sampleflow/filters/component_splitter.h>
 #include <sampleflow/consumers/mean_value.h>
+#include <sampleflow/consumers/count_samples.h>
 #include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/spurious_autocovariance_dim_n.h>
 #include <sampleflow/consumers/acceptance_ratio.h>
@@ -119,7 +121,7 @@ namespace Test2
     SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
     autocovariance.connect_to_producer (take_every_nth);
 
-    SampleFlow::Consumers::AverageCosinus<SampleType> average_cosinus(AC_length);
+    SampleFlow::Consumers::AverageCosineBetweenSuccessiveSamples<SampleType> average_cosinus(AC_length);
     average_cosinus.connect_to_producer (take_every_nth);
 
     SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
