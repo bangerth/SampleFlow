@@ -11,7 +11,10 @@
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
 #include <sampleflow/consumers/covariance_matrix.h>
-
+#include <sampleflow/consumers/covariance_matrix.h>
+#include <sampleflow/consumers/spurious_autocovariance_dim_n.h>
+#include <sampleflow/consumers/acceptance_ratio.h>
+#include <sampleflow/consumers/average_cosinus.h>
 
 namespace Test1
 {
@@ -26,14 +29,13 @@ namespace Test1
   }
 
 
+
   SampleType perturb (const SampleType &x)
   {
     static std::mt19937 rng;
     static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
     return x + uniform_distribution(rng);
   }
-
-
 
   void test ()
   {
@@ -54,7 +56,6 @@ namespace Test1
     std::ofstream samples ("samples.txt");
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(samples);
     stream_output.connect_to_producer(take_every_nth);
-
 
     mh_sampler.sample (0,
         &log_likelihood,
@@ -241,6 +242,35 @@ namespace Test3
       histograms[c].write_gnuplot (std::ofstream(base_name + ".histogram." + std::to_string(c)));
   }
 }
+
+
+    SampleFlow::Consumers::MeanValue<SampleType> mean_value;
+    mean_value.connect_to_producer (reader);
+
+    SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
+    MAP_point.connect_to_producer (reader);
+
+    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
+    sample_count.connect_to_producer (reader);
+
+    std::vector<SampleFlow::Filters::ComponentSplitter<SampleType>> component_splitters;
+    std::vector<SampleFlow::Consumers::Histogram<SampleType::value_type>> histograms;
+    component_splitters.reserve(64);
+    histograms.reserve(64);
+    for (unsigned int c=0; c<64; ++c)
+      {
+        component_splitters.emplace_back (c);
+        component_splitters.back().connect_to_producer (reader);
+
+        histograms.emplace_back(-3, 3, 1000, &exp10);
+        histograms.back().connect_to_producer (component_splitters[c]);
+      }
+
+    std::cout << "Reading from <" << base_name << ".txt>" << std::endl;
+    {
+      std::ifstream input(base_name + ".txt");
+      reader.read_from(input);
+    }
 
 
 int main (int argc, char **argv)
