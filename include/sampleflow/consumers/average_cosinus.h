@@ -96,9 +96,8 @@ private:
 	/**
 	 * Save previous sample value
 	 */
-	std::list<InputType> previous_sample;
-	std::list<InputType> previous_sample_replace;
-	std::list<std::string>::iterator it;
+	matrix_type previous_sample;
+	matrix_type previous_sample_replace;
 
 	/**
 	 * The number of samples processed so far.
@@ -142,9 +141,10 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 			current_avg_cosine[i] = 0;
 		}
 
-		previous_sample.resize(history_length);
-		previous_sample_replace.resize(history_length);
-		previous_sample.push_front(sample);
+		previous_sample.resize(history_length,sample.size());
+		previous_sample_replace.resize(history_length,sample.size());
+
+		for (unsigned int i=0; i<sample.size(); ++i) previous_sample(0,i) = sample[i];
 
 	}
 
@@ -154,16 +154,14 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 		unsigned int length2=std::min(static_cast<unsigned int>(n_samples),history_length-1);
 
 		++n_samples;
-		it = previous_sample.begin();
 		for (unsigned int i=0; i<length1; ++i){
 
 			//Update first dot product (alpha)
-			std::advance(it, i);
 			double update=0,norm1=0, norm2=0;
 			for (unsigned int j=0; j<sample.size(); ++j){
-				update += sample[j]*(*it[j]);
+				update += sample[j]*previous_sample(i,j);
 				norm1 += sample[j]*sample[j];
-				norm2 += previous_sample[i][j]*previous_sample[i][j];
+				norm2 += previous_sample(i,j)*previous_sample(i,j);
 			}
 			update = update/(std::sqrt(norm1*norm2));
 			update -= current_avg_cosine[i];
@@ -171,7 +169,15 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 			current_avg_cosine[i] += update;
 		}
 
-		previous_sample.push_front(sample);
+		//Save needed previous values
+		for (unsigned int i=0; i<length2; ++i){
+			for (unsigned int j=0; j<sample.size(); ++j){
+				previous_sample_replace(i+1,j)=previous_sample(i,j);
+			}
+		}
+
+		for (unsigned int j=0; j<sample.size(); ++j) previous_sample_replace(0,j) = sample[j];
+		previous_sample = previous_sample_replace;
 
 	}
 }
