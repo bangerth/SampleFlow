@@ -151,8 +151,8 @@ private:
 	 * Save previous sample value needed to do calculations then new sample comes.
 	 *
 	 */
-	value_type past_sample;
-	value_type past_sample_replace;
+	value_type previous_sample;
+	value_type previous_sample_replace;
 
 	/**
 	 * The number of samples processed so far.
@@ -193,10 +193,10 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 			}
 		}
 		current_mean = sample;
-		past_sample.resize(autocovariance_length,sample.size());
-		past_sample_replace.resize(autocovariance_length,sample.size());
+		previous_sample.resize(autocovariance_length,sample.size());
+		previous_sample_replace.resize(autocovariance_length,sample.size());
 
-		for (unsigned int i=0; i<sample.size(); ++i) past_sample(0,i) = sample[i];
+		for (unsigned int i=0; i<sample.size(); ++i) previous_sample(0,i) = sample[i];
 	}
 
 	else
@@ -205,11 +205,11 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 		 * In the start of updating algorithm, there is no enough samples already seen, to be able to
 		 * calculate autocovariance function values for argument bigger than sample size. In order to avoid errors, we need
 		 * to use minimum function. However, we need slightly different minimums for calculation of autocovariance parts and for saving
-		 * past values.
+		 * previous values.
 		 * length1 refers to how many samples were already seen before a new one and if it is more
 		 * than our desired autocovariance function length, it sets to that value. In this sense, it restricts how "long" our
 		 * calculations should or can be.
-		 * length2 refers to saving past values. It refers to, that at most we can save autocovariance_length-1 values(making space
+		 * length2 refers to saving previous values. It refers to, that at most we can save autocovariance_length-1 values(making space
 		 * to save the newest one.
 		 */
 
@@ -222,7 +222,7 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 			//Update first dot product (alpha)
 			double alphaupd = 0;
 			for (unsigned int j=0; j<sample.size(); ++j){
-				alphaupd += sample[j]*past_sample(i,j);
+				alphaupd += sample[j]*previous_sample(i,j);
 			}
 			alphaupd -= alpha[i];
 			alphaupd /= n_samples;
@@ -231,22 +231,22 @@ consume (InputType sample, AuxiliaryData /*aux_data*/)
 			//Update second value (beta)
 			InputType betaupd = sample;
 			for (unsigned int j=0; j<sample.size(); ++j){
-				betaupd[j] += past_sample(i,j);
+				betaupd[j] += previous_sample(i,j);
 				betaupd[j] -= beta(i,j);
 				betaupd[j] /= n_samples;
 				beta(i,j) += betaupd[j];
 			}
 		}
 
-		//Save needed past values
+		//Save needed previous values
 		for (unsigned int i=0; i<length2; ++i){
 			for (unsigned int j=0; j<sample.size(); ++j){
-				past_sample_replace(i+1,j)=past_sample(i,j);
+				previous_sample_replace(i+1,j)=previous_sample(i,j);
 			}
 		}
 
-		for (unsigned int j=0; j<sample.size(); ++j) past_sample_replace(0,j) = sample[j];
-		past_sample = past_sample_replace;
+		for (unsigned int j=0; j<sample.size(); ++j) previous_sample_replace(0,j) = sample[j];
+		previous_sample = previous_sample_replace;
 
 		// Then also update the running mean:
 		InputType update = sample;
