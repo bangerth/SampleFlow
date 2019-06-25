@@ -6,10 +6,12 @@
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/filters/component_splitter.h>
 #include <sampleflow/consumers/mean_value.h>
+
 #include <sampleflow/consumers/count_samples.h>
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
+
 #include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/spurious_autocovariance_dim_n.h>
 #include <sampleflow/consumers/acceptance_ratio.h>
@@ -211,8 +213,8 @@ namespace Test3
     SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
     MAP_point.connect_to_producer (reader);
 
-    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
-    sample_count.connect_to_producer (reader);
+//    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
+//    sample_count.connect_to_producer (reader);
 
     std::vector<SampleFlow::Filters::ComponentSplitter<SampleType>> component_splitters;
     std::vector<SampleFlow::Consumers::Histogram<SampleType::value_type>> histograms;
@@ -233,7 +235,7 @@ namespace Test3
       reader.read_from(input);
     }
 
-    std::cout << "Number of samples: " << sample_count.get() << std::endl;
+//    std::cout << "Number of samples: " << sample_count.get() << std::endl;
 
     {
       std::ofstream output (base_name + ".mean");
