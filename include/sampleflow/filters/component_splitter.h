@@ -46,12 +46,17 @@ namespace SampleFlow
     {
       public:
         /**
-         * Constructor
+         * Constructor.
          *
          * @param[in] selected_component The index of the component that is to
          *   be selected.
          */
         ComponentSplitter (const unsigned int selected_component);
+
+        /**
+         * Copy constructor.
+         */
+        ComponentSplitter (const ComponentSplitter<InputType> &o);
 
         /**
          * Process one sample by extracting a given component and passing
@@ -66,7 +71,7 @@ namespace SampleFlow
          *   originally associated with the sample.
          */
         virtual
-        boost::optional<std::pair<InputType, AuxiliaryData> >
+        boost::optional<std::pair<typename InputType::value_type, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
@@ -88,15 +93,23 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<InputType, AuxiliaryData> >
+    ComponentSplitter<InputType>::
+    ComponentSplitter (const ComponentSplitter<InputType> &o)
+      : selected_component(o.selected_component)
+    {}
+
+
+
+    template <typename InputType>
+    boost::optional<std::pair<typename InputType::value_type, AuxiliaryData> >
     ComponentSplitter<InputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)
     {
       assert (selected_component < sample.size());
 
-      return
-      { std::move(sample[selected_component]), std::move(aux_data)};
+      return std::make_pair(std::move(sample[selected_component]),
+                            std::move(aux_data));
     }
 
   }

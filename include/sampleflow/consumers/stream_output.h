@@ -18,6 +18,7 @@
 
 #include <sampleflow/consumer.h>
 #include <mutex>
+#include <valarray>
 #include <ostream>
 
 
@@ -71,7 +72,7 @@ namespace SampleFlow
          */
         virtual
         void
-        consume (InputType sample, AuxiliaryData /*aux_data*/) override;
+        consume (InputType sample, AuxiliaryData aux_data) override;
 
       private:
         /**
