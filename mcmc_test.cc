@@ -118,7 +118,7 @@ namespace Test2
     mean_value.connect_to_producer (take_every_nth);
 
     SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
-    covariance_matrix.connect_to_producer (take_every_nth);
+    covariance_matrix.connect_to_producer (mh_sampler);
 
     const unsigned int AC_length = 10;
     SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
@@ -155,6 +155,7 @@ namespace Test2
         << covariance_matrix.get()(0,1) << ' '
         << covariance_matrix.get()(1,1)
         << std::endl;
+
     std::cout << "Computed spurious autocovariance vector: ";
     for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
     	std::cout << autocovariance.get()[k] << ' ';
