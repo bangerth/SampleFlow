@@ -6,8 +6,8 @@
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/filters/component_splitter.h>
 #include <sampleflow/consumers/mean_value.h>
+//#include <sampleflow/consumers/count_samples.h>
 
-#include <sampleflow/consumers/count_samples.h>
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
@@ -23,13 +23,11 @@ namespace Test1
 
 
   double log_likelihood (const SampleType &x)
-  {
-    return std::log ( std::exp(-(x-1.5)*(x-1.5)*10)
-    +
-    std::exp(-(x-0.5)*(x-0.5)*10));
-  }
-
-
+    {
+      return std::log ( std::exp(-(x-1.5)*(x-1.5)*10)
+      +
+      std::exp(-(x-0.5)*(x-0.5)*10));
+    }
 
   SampleType perturb (const SampleType &x)
   {
@@ -143,7 +141,6 @@ namespace Test2
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(samples);
     stream_output.connect_to_producer(take_every_nth);
 
-
     mh_sampler.sample ({1,0},
         &log_likelihood,
         &perturb,
@@ -162,11 +159,13 @@ namespace Test2
     std::cout << "Computed MAP point: "
         << MAP_point.get().first[0] << ' ' << MAP_point.get().first[1] << std::endl;
 
+    
+    std::cout << "Computed Acceptance ratio: "
+        << acceptance_ratio.get() << std::endl;
+
 //    histogram.write_gnuplot (std::ofstream("hist.txt"));
   }
 }
-
-
 
 namespace Test3
 {
@@ -193,6 +192,7 @@ namespace Test3
         input >> log_likelihood >> independent_sample;
         for (auto &el : sample)
           input >> el;
+
 
         if (!input)
           return;
@@ -253,35 +253,6 @@ namespace Test3
       histograms[c].write_gnuplot (std::ofstream(base_name + ".histogram." + std::to_string(c)));
   }
 }
-
-
-    SampleFlow::Consumers::MeanValue<SampleType> mean_value;
-    mean_value.connect_to_producer (reader);
-
-    SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
-    MAP_point.connect_to_producer (reader);
-
-    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
-    sample_count.connect_to_producer (reader);
-
-    std::vector<SampleFlow::Filters::ComponentSplitter<SampleType>> component_splitters;
-    std::vector<SampleFlow::Consumers::Histogram<SampleType::value_type>> histograms;
-    component_splitters.reserve(64);
-    histograms.reserve(64);
-    for (unsigned int c=0; c<64; ++c)
-      {
-        component_splitters.emplace_back (c);
-        component_splitters.back().connect_to_producer (reader);
-
-        histograms.emplace_back(-3, 3, 1000, &exp10);
-        histograms.back().connect_to_producer (component_splitters[c]);
-      }
-
-    std::cout << "Reading from <" << base_name << ".txt>" << std::endl;
-    {
-      std::ifstream input(base_name + ".txt");
-      reader.read_from(input);
-    }
 
 
 int main (int argc, char **argv)

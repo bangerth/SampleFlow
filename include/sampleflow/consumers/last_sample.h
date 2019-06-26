@@ -290,10 +290,14 @@ namespace SampleFlow
     template <typename InputType>
     void
 <<<<<<< HEAD
+<<<<<<< HEAD
     LastSample<InputType>::
 =======
     Histogram<InputType>::
 >>>>>>> Trying to resolve conflicts from upstream
+=======
+    Histogram<InputType>::
+>>>>>>> 24acea37fb545c344cc67c090e4d3f9fbf81dbdb
     consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       // If a sample lies outside the bounds, just discard it:
@@ -314,12 +318,17 @@ namespace SampleFlow
 
     template <typename InputType>
 <<<<<<< HEAD
+<<<<<<< HEAD
     typename LastSample<InputType>::value_type
     LastSample<InputType>::
 =======
     typename Histogram<InputType>::value_type
     Histogram<InputType>::
 >>>>>>> Trying to resolve conflicts from upstream
+=======
+    typename Histogram<InputType>::value_type
+    Histogram<InputType>::
+>>>>>>> 24acea37fb545c344cc67c090e4d3f9fbf81dbdb
     get () const
     {
       // First create the output table and breakpoints
