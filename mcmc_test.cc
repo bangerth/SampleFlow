@@ -155,7 +155,27 @@ namespace Test2
         << covariance_matrix.get()(0,1) << ' '
         << covariance_matrix.get()(1,1)
         << std::endl;
+    std::cout << "Computed spurious autocovariance vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << autocovariance.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
 
+    std::cout << "Computed average cosinus vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << average_cosinus.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
+
+    std::ofstream AC_file ("AC.txt");
+    for (unsigned int k=0; k<AC_length; ++k)
+    	AC_file << autocovariance.get()[k] << '\n';
+
+    std::ofstream AvgCos_file ("AvgCos.txt");
+        for (unsigned int k=0; k<AC_length; ++k)
+        	AvgCos_file << average_cosinus.get()[k] << '\n';
     std::cout << "Computed MAP point: "
         << MAP_point.get().first[0] << ' ' << MAP_point.get().first[1] << std::endl;
 
