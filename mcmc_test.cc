@@ -13,9 +13,9 @@
 #include <sampleflow/consumers/stream_output.h>
 
 #include <sampleflow/consumers/covariance_matrix.h>
-#include <sampleflow/consumers/spurious_autocovariance_dim_n.h>
 #include <sampleflow/consumers/acceptance_ratio.h>
 #include <sampleflow/consumers/average_cosinus.h>
+#include <sampleflow/consumers/spurious_autocovariance.h>
 
 namespace Test1
 {
