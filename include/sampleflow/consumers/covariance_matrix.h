@@ -172,18 +172,15 @@ namespace SampleFlow
           // sample; this also requires updating the current running mean.
           ++n_samples;
 
+          InputType delta = sample;
+          delta -= current_mean;
+          for (unsigned int i=0; i<sample.size(); ++i)
+            for (unsigned int j=0; j<sample.size(); ++j)
+              current_covariance_matrix(i,j) += ((delta[i]*delta[j])/n_samples) - current_covariance_matrix(i,j)/(n_samples-1);
           InputType mean_update = sample;
           mean_update -= current_mean;
           mean_update /= n_samples;
           current_mean += mean_update;
-
-          InputType delta = std::move(sample);
-          delta -= current_mean;
-          for (unsigned int i=0; i<sample.size(); ++i)
-            for (unsigned int j=0; j<sample.size(); ++j)
-              current_covariance_matrix(i,j) += (delta[i]*delta[j] - current_covariance_matrix(i,j))/n_samples
-                                                +
-                                                (delta[i]*delta[j])/n_samples/(n_samples-1)/(n_samples-1);
         }
     }
 

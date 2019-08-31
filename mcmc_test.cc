@@ -6,12 +6,16 @@
 #include <sampleflow/filters/take_every_nth.h>
 #include <sampleflow/filters/component_splitter.h>
 #include <sampleflow/consumers/mean_value.h>
-#include <sampleflow/consumers/count_samples.h>
+//#include <sampleflow/consumers/count_samples.h>
+
 #include <sampleflow/consumers/histogram.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
 #include <sampleflow/consumers/stream_output.h>
-#include <sampleflow/consumers/covariance_matrix.h>
 
+#include <sampleflow/consumers/covariance_matrix.h>
+#include <sampleflow/consumers/acceptance_ratio.h>
+#include <sampleflow/consumers/average_cosinus.h>
+#include <sampleflow/consumers/spurious_autocovariance.h>
 
 namespace Test1
 {
@@ -19,12 +23,11 @@ namespace Test1
 
 
   double log_likelihood (const SampleType &x)
-  {
-    return std::log ( std::exp(-(x-1.5)*(x-1.5)*10)
-    +
-    std::exp(-(x-0.5)*(x-0.5)*10));
-  }
-
+    {
+      return std::log ( std::exp(-(x-1.5)*(x-1.5)*10)
+      +
+      std::exp(-(x-0.5)*(x-0.5)*10));
+    }
 
   SampleType perturb (const SampleType &x)
   {
@@ -32,8 +35,6 @@ namespace Test1
     static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
     return x + uniform_distribution(rng);
   }
-
-
 
   void test ()
   {
@@ -54,7 +55,6 @@ namespace Test1
     std::ofstream samples ("samples.txt");
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(samples);
     stream_output.connect_to_producer(take_every_nth);
-
 
     mh_sampler.sample (0,
         &log_likelihood,
@@ -118,7 +118,17 @@ namespace Test2
     mean_value.connect_to_producer (take_every_nth);
 
     SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
-    covariance_matrix.connect_to_producer (take_every_nth);
+    covariance_matrix.connect_to_producer (mh_sampler);
+
+    const unsigned int AC_length = 10;
+    SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+    autocovariance.connect_to_producer (take_every_nth);
+
+    SampleFlow::Consumers::AverageCosineBetweenSuccessiveSamples<SampleType> average_cosinus(AC_length);
+    average_cosinus.connect_to_producer (take_every_nth);
+
+    SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
+    acceptance_ratio.connect_to_producer (mh_sampler);
 
 //    SampleFlow::Consumers::Histogram<SampleType> histogram (0.1, 5, 100,
 //        SampleFlow::Consumers::Histogram<SampleType>::SubdivisionScheme::logarithmic);
@@ -130,7 +140,6 @@ namespace Test2
     std::ofstream samples ("samples.txt");
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(samples);
     stream_output.connect_to_producer(take_every_nth);
-
 
     mh_sampler.sample ({1,0},
         &log_likelihood,
@@ -147,14 +156,37 @@ namespace Test2
         << covariance_matrix.get()(1,1)
         << std::endl;
 
+    std::cout << "Computed spurious autocovariance vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << autocovariance.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
+
+    std::cout << "Computed average cosinus vector: ";
+    for (unsigned int k=0; k<std::min(AC_length, 10u); ++k)
+    	std::cout << average_cosinus.get()[k] << ' ';
+    if (AC_length > 10)
+    	std::cout << "...";
+    std::cout << std::endl;
+
+    std::ofstream AC_file ("AC.txt");
+    for (unsigned int k=0; k<AC_length; ++k)
+    	AC_file << autocovariance.get()[k] << '\n';
+
+    std::ofstream AvgCos_file ("AvgCos.txt");
+        for (unsigned int k=0; k<AC_length; ++k)
+        	AvgCos_file << average_cosinus.get()[k] << '\n';
     std::cout << "Computed MAP point: "
         << MAP_point.get().first[0] << ' ' << MAP_point.get().first[1] << std::endl;
+
+    
+    std::cout << "Computed Acceptance ratio: "
+        << acceptance_ratio.get() << std::endl;
 
 //    histogram.write_gnuplot (std::ofstream("hist.txt"));
   }
 }
-
-
 
 namespace Test3
 {
@@ -182,6 +214,7 @@ namespace Test3
         for (auto &el : sample)
           input >> el;
 
+
         if (!input)
           return;
 
@@ -201,8 +234,8 @@ namespace Test3
     SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
     MAP_point.connect_to_producer (reader);
 
-    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
-    sample_count.connect_to_producer (reader);
+//    SampleFlow::Consumers::CountSamples<SampleType> sample_count;
+//    sample_count.connect_to_producer (reader);
 
     std::vector<SampleFlow::Filters::ComponentSplitter<SampleType>> component_splitters;
     std::vector<SampleFlow::Consumers::Histogram<SampleType::value_type>> histograms;
@@ -223,7 +256,7 @@ namespace Test3
       reader.read_from(input);
     }
 
-    std::cout << "Number of samples: " << sample_count.get() << std::endl;
+//    std::cout << "Number of samples: " << sample_count.get() << std::endl;
 
     {
       std::ofstream output (base_name + ".mean");
@@ -248,4 +281,3 @@ int main (int argc, char **argv)
   Test2::test ();
   //  Test3::test (argv[1]);
 }
-
