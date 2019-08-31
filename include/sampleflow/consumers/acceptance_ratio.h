@@ -19,6 +19,7 @@
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
 #include <mutex>
+#include <valarray>
 
 namespace SampleFlow
 {
@@ -28,8 +29,6 @@ namespace SampleFlow
      * A Consumer class that implements computing the acceptance ratio
      * over all samples seen so far. The last value so computed can be
      * obtained by calling the get() function.
-     *
-     * This code works if our sample have the form of vector.
      *
      * The concept of acceptance/rejection of a sample is explained in the documentation of
      * the Producers::MetropolisHastings class. This calculation uses the
@@ -48,7 +47,9 @@ namespace SampleFlow
      * @tparam InputType The C++ type used for the samples $x_k$. All this class requires of
      *    the data type is that the comparison operator between two objects returns a `bool`. This
      *    is true for most classes, but not all. (For example, `std::valarray` returns a vector of
-     *    bool values.)
+     *    bool values; however, this class makes sure this works nonetheless by
+     *    working around this restriction for this particular
+     *    class.)
      */
     template <typename InputType>
     class AcceptanceRatio : public Consumer<InputType>
@@ -99,7 +100,7 @@ namespace SampleFlow
          * The current value of accepted values as described in the introduction
          * of this class.
          */
-        types::sample_index accept;
+        types::sample_index n_accepted_samples;
 
         /**
          * The number of samples processed so far.
@@ -121,8 +122,54 @@ namespace SampleFlow
     AcceptanceRatio ()
       :
       n_samples (0),
-      accept (0)
+      n_accepted_samples (0)
     {}
+
+
+    namespace internal
+    {
+      namespace AcceptanceRatio
+      {
+        /**
+         * A function that compares two objects of arbitrary type for
+         * equality. It does so by using `operator==`.
+         *
+         * There are specializations of this function below that are used
+         * for certain types for which `operator==` does not, in fact,
+         * return a single boolean.
+         */
+        template <typename T>
+        bool is_equal (const T &t1,
+                       const T &t2)
+        {
+          return (t1==t2);
+        }
+
+
+        /**
+         * A function that compares two `std::valarray` objects for
+         * equality. This function works around the fact that `std::valarray`'s
+         * `operator==` doesn't just return a single boolean, but in fact
+         * a `std::valarray<bool>` -- for reasons that are probably lost
+         * to history given how bad a choice that is.
+         */
+        template <typename T>
+        bool is_equal (const std::valarray<T> &t1,
+                       const std::valarray<T> &t2)
+        {
+          if (t1.size() != t2.size())
+            return false;
+
+          for (unsigned int i=0; i<t1.size(); ++i)
+            if (t1[i] != t2[i])
+              return false;
+
+          return true;
+        }
+
+      }
+    }
+
 
 
     template <typename InputType>
@@ -135,28 +182,32 @@ namespace SampleFlow
       // If this is the first sample we see, naturally, this sample is accepted.
       if (n_samples == 0)
         {
-          n_samples=1;
-          accept=1;
-          previous_sample = sample;
+          n_samples          = 1;
+          n_accepted_samples = 1;
+          previous_sample    = sample;
         }
-      //Check if new sample is not equal to previous sample and if that is true add one to accept.
       else
+        // Check if new sample is not equal to previous sample and
+        // if that is true add one to accept.
         {
-          ++n_samples;
-          bool truth=false;
-          for (int i = 0; i < sample.size(); i++)
+          if (internal::AcceptanceRatio::is_equal(sample, previous_sample))
             {
-              if (previous_sample[i]!=sample[i])
-                {
-                  truth=true;
-                  break;
-                }
+              // The two samples are equal. That is, we have not received
+              // a new "accepted" sample and don't need to update either
+              // the stored sample or the number of accepted samples.
+              ++n_samples;
             }
-          if (truth)
-            ++accept;
-          previous_sample = sample;
+          else
+            {
+              // The new sample is different. Update the counter and store
+              // the new sample.
+              ++n_accepted_samples;
+              previous_sample = sample;
+            }
         }
     }
+
+
 
     template <typename InputType>
     double
@@ -164,8 +215,13 @@ namespace SampleFlow
     get () const
     {
       std::lock_guard<std::mutex> lock(mutex);
-      const double ratio = static_cast<double>(accept) / static_cast<double>(n_samples);
-      return (ratio);
+
+      if (n_samples > 0)
+        return (static_cast<double>(n_accepted_samples)
+                /
+                static_cast<double>(n_samples));
+      else
+        return 0.0;
     }
   }
 }
