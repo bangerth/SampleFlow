@@ -203,6 +203,7 @@ namespace SampleFlow
               // the new sample.
               ++n_accepted_samples;
               previous_sample = sample;
+              ++n_samples;
             }
         }
     }
