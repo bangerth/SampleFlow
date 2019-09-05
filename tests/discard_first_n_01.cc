@@ -27,17 +27,17 @@
 
 int main ()
 {
-	using SampleType = double;
+  using SampleType = double;
 
-	SampleFlow::Producers::Range<SampleType> range_producer;
+  SampleFlow::Producers::Range<SampleType> range_producer;
 
-	SampleFlow::Filters::DiscardFirstN<SampleType> discard_first_n(5);
-	discard_first_n.connect_to_producer(range_producer);
+  SampleFlow::Filters::DiscardFirstN<SampleType> discard_first_n(5);
+  discard_first_n.connect_to_producer(range_producer);
 
-	SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
-	stream_output.connect_to_producer(discard_first_n);
+  SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
+  stream_output.connect_to_producer(discard_first_n);
 
-	// Producer gives us 9 samples, but this filter should drop first 5 samples and just return 6,7,8 and 9.
-	const auto samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-	range_producer.sample (samples);
+  // Producer gives us 9 samples, but this filter should drop first 5 samples and just return 6,7,8 and 9.
+  const auto samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  range_producer.sample (samples);
 }
