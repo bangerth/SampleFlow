@@ -288,10 +288,9 @@ namespace SampleFlow
           for (int i=0; i<length1; ++i)
             {
               current_autocovariation[i] = alpha[i];
-              //current_mean.size() is equal to sample.size(). While we don't get samples here, alpha.size helps to
+              // current_mean.size() is equal to sample.size(). While we don't get samples here, alpha.size helps to
               for (int j=0; j<current_mean.size(); ++j) current_autocovariation[i] -= current_mean[j]* beta(i,j);
               current_autocovariation[i] += (current_mean*current_mean).sum();
-              //current_autocovariation[i] += static_cast<scalar_type>((n_samples-i-1))*(current_mean*current_mean).sum()/(n_samples); Leave it, it might be needed later.
             }
         }
       return current_autocovariation;
