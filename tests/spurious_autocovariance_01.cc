@@ -15,9 +15,6 @@
 
 
 // Check the SpuriousAutocovariance consumer
-// So far, we couldn't use Ranger producer because of insufficiency in spurious_autocovariance.h,
-// where code expects input as vallaray, vector, array or etc. However, metropolis_hasting algorithm with some
-// modifications in perturb function is totally fine to do this job.
 
 
 #include <iostream>

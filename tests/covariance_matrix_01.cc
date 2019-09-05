@@ -15,8 +15,6 @@
 
 
 // Check the CovarianceMatrix consumer
-// So far, we couldn't use Ranger producer because of insufficiency in Covariance_matrix.h, where code expects
-// input as vallaray, vector, array or etc.
 
 
 #include <iostream>
