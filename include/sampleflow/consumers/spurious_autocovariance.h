@@ -270,19 +270,15 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
       std::vector<scalar_type> current_autocovariation;
+
       current_autocovariation.resize(autocovariance_length);
       for (unsigned int i=0; i<autocovariance_length; ++i)
         {
           current_autocovariation[i] = 0;
         }
 
-      if (n_samples==0)
+      if (n_samples!=0)
         {
-          std::cout << "There are n any samples yet, returning zero";
-        }
-      else
-        {
-
           unsigned int length1=std::min(static_cast<unsigned int>(n_samples),autocovariance_length);
 
           for (int i=0; i<length1; ++i)
