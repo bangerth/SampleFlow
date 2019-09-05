@@ -31,36 +31,36 @@ using SampleType = std::valarray<double>;
 
 double log_likelihood (const SampleType &x)
 {
-	return 1;
+  return 1;
 }
 
 SampleType perturb (const SampleType &x)
 {
-	SampleType y = x;
+  SampleType y = x;
 
-	for (auto &el : y)
-		el += 1;
+  for (auto &el : y)
+    el += 1;
 
-	return y;
+  return y;
 }
 
 int main ()
 {
 
-	SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-	SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
-	covariance_matrix.connect_to_producer(mh_sampler);
+  SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
+  covariance_matrix.connect_to_producer(mh_sampler);
 
-	mh_sampler.sample ({0,1},
-			&log_likelihood,
-			&perturb,
-			8);
+  mh_sampler.sample ({0,1},
+                     &log_likelihood,
+                     &perturb,
+                     8);
 
-	// At this point, we have sampled two sets: first starts from 1 and goes to 8, second - starts from 2 and
-	// goes to 9. Sample variance for both vector is 6 as covariance too. Output whatever we got:
-	std::cout << covariance_matrix.get()(0,0) << std::endl;
-	std::cout << covariance_matrix.get()(0,1) << std::endl;
-	std::cout << covariance_matrix.get()(0,1) << std::endl;
-	std::cout << covariance_matrix.get()(1,1) << std::endl;
+  // At this point, we have sampled two sets: first starts from 1 and goes to 8, second - starts from 2 and
+  // goes to 9. Sample variance for both vector is 6 as covariance too. Output whatever we got:
+  std::cout << covariance_matrix.get()(0,0) << std::endl;
+  std::cout << covariance_matrix.get()(0,1) << std::endl;
+  std::cout << covariance_matrix.get()(0,1) << std::endl;
+  std::cout << covariance_matrix.get()(1,1) << std::endl;
 }

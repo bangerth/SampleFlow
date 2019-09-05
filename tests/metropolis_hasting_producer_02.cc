@@ -32,31 +32,31 @@ using SampleType = double;
 
 double log_likelihood (const SampleType &x)
 {
-	return x+1;
+  return x+1;
 }
 
 SampleType perturb (const SampleType &x)
 {
-	return x+1;
+  return x+1;
 }
 
 int main ()
 {
 
-	SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-	SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
-	MAP_point.connect_to_producer (mh_sampler);
+  SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
+  MAP_point.connect_to_producer (mh_sampler);
 
-	/*Sampler should sample numbers from 1 to 10000*/
+  /*Sampler should sample numbers from 1 to 10000*/
 
-	mh_sampler.sample ({0},
-			&log_likelihood,
-			&perturb,
-			10000);
+  mh_sampler.sample ({0},
+                     &log_likelihood,
+                     &perturb,
+                     10000);
 
-	/*Consumer should print out number 10000*/
+  /*Consumer should print out number 10000*/
 
-	std::cout << MAP_point.get().first << std::endl;
+  std::cout << MAP_point.get().first << std::endl;
 
 }

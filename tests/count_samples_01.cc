@@ -25,16 +25,16 @@
 
 int main ()
 {
-	using SampleType = double;
+  using SampleType = double;
 
-	SampleFlow::Producers::Range<SampleType> range_producer;
+  SampleFlow::Producers::Range<SampleType> range_producer;
 
-	SampleFlow::Consumers::CountSamples<SampleType> sample_count;
-	sample_count.connect_to_producer(range_producer);
+  SampleFlow::Consumers::CountSamples<SampleType> sample_count;
+  sample_count.connect_to_producer(range_producer);
 
-	const auto samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-	range_producer.sample (samples);
+  const auto samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  range_producer.sample (samples);
 
-	//There are 9 samples. So answer should be 9.
-	std::cout << sample_count.get() << std::endl;
+  //There are 9 samples. So answer should be 9.
+  std::cout << sample_count.get() << std::endl;
 }

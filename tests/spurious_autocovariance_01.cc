@@ -33,52 +33,52 @@ using SampleType = std::valarray<double>;
 
 double log_likelihood (const SampleType &x)
 {
-	return 1;
+  return 1;
 }
 
 SampleType perturb (const SampleType &x)
 {
-	SampleType y = x;
+  SampleType y = x;
 
-	for (auto &el : y)
-		el += 1;
+  for (auto &el : y)
+    el += 1;
 
-	return y;
+  return y;
 }
 
 int main ()
 {
 
-	SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-	const unsigned int AC_length = 10;
-	SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
-	autocovariance.connect_to_producer (mh_sampler);
+  const unsigned int AC_length = 10;
+  SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+  autocovariance.connect_to_producer (mh_sampler);
 
-	mh_sampler.sample ({0,1},
-			&log_likelihood,
-			&perturb,
-			20);
+  mh_sampler.sample ({0,1},
+                     &log_likelihood,
+                     &perturb,
+                     20);
 
-	//Due to division by not very nice numbers, we might expect answers with long decimal numbers,
-	//in which we are not that much interested in. So set precision 3 would help us to avoid unnecessary problems.
-	std::cout << std::fixed;
-	std::cout << std::setprecision(3);
+  //Due to division by not very nice numbers, we might expect answers with long decimal numbers,
+  //in which we are not that much interested in. So set precision 3 would help us to avoid unnecessary problems.
+  std::cout << std::fixed;
+  std::cout << std::setprecision(3);
 
-	// At this point, we have sampled two dimensional vectors - (1,2), (2,3), ..., (20,21).
-	// After doing calculations in statistical software R, we expect result to be as it is at output file.
-	// Whatever we got, we print it out
+  // At this point, we have sampled two dimensional vectors - (1,2), (2,3), ..., (20,21).
+  // After doing calculations in statistical software R, we expect result to be as it is at output file.
+  // Whatever we got, we print it out
 
 
-	std::cout << autocovariance.get()[0] << std::endl;
-	std::cout << autocovariance.get()[1] << std::endl;
-	std::cout << autocovariance.get()[2] << std::endl;
-	std::cout << autocovariance.get()[3] << std::endl;
-	std::cout << autocovariance.get()[4] << std::endl;
-	std::cout << autocovariance.get()[5] << std::endl;
-	std::cout << autocovariance.get()[6] << std::endl;
-	std::cout << autocovariance.get()[7] << std::endl;
-	std::cout << autocovariance.get()[8] << std::endl;
-	std::cout << autocovariance.get()[9] << std::endl;
+  std::cout << autocovariance.get()[0] << std::endl;
+  std::cout << autocovariance.get()[1] << std::endl;
+  std::cout << autocovariance.get()[2] << std::endl;
+  std::cout << autocovariance.get()[3] << std::endl;
+  std::cout << autocovariance.get()[4] << std::endl;
+  std::cout << autocovariance.get()[5] << std::endl;
+  std::cout << autocovariance.get()[6] << std::endl;
+  std::cout << autocovariance.get()[7] << std::endl;
+  std::cout << autocovariance.get()[8] << std::endl;
+  std::cout << autocovariance.get()[9] << std::endl;
 
 }

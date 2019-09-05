@@ -30,27 +30,27 @@ using SampleType = double;
 
 double log_likelihood (const SampleType &x)
 {
-	return x+1;
+  return x+1;
 }
 
 SampleType perturb (const SampleType &x)
 {
-	return x+1;
+  return x+1;
 }
 
 int main ()
 {
 
-	SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-	SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
+  SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
 
-	stream_output.connect_to_producer(mh_sampler);
+  stream_output.connect_to_producer(mh_sampler);
 
-	/*Sampler should return numbers from 1 to 10*/
+  /*Sampler should return numbers from 1 to 10*/
 
-	mh_sampler.sample ({0},
-			&log_likelihood,
-			&perturb,
-			10);
+  mh_sampler.sample ({0},
+                     &log_likelihood,
+                     &perturb,
+                     10);
 }
