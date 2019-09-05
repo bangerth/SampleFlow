@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_CONSUMERS_COUNT_SAMPLES_H
 
 #include <sampleflow/consumer.h>
+#include <sampleflow/types.h>
 #include <mutex>
 
 
