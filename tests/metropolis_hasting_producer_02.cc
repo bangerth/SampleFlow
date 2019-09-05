@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the Metropolis-Hasting producer using the simple example builded in the beginning of
+// A simple test for the Metropolis-Hasting producer using the simple example built in the beginning of the
 // code. After that, it uses MaximumProbabilitySample consumer and prints out sample with the biggest likelihood.
 
 
