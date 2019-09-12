@@ -57,16 +57,17 @@ int main ()
                      &perturb,
                      20);
 
-  //Due to division by not very nice numbers, we might expect answers with long decimal numbers,
-  //in which we are not that much interested in. So set precision 3 would help us to avoid unnecessary problems.
+  // Due to division by not very nice numbers, we might expect answers
+  // with long decimal numbers, in which we are not that much
+  // interested in. So set precision 3 would help us to avoid
+  // unnecessary problems.
   std::cout << std::fixed;
   std::cout << std::setprecision(3);
 
-  // At this point, we have sampled two dimensional vectors - (1,2), (2,3), ..., (20,21).
-  // After doing calculations in statistical software R, we expect result to be as it is at output file.
+  // At this point, we have sampled two dimensional vectors - (1,2),
+  // (2,3), ..., (20,21).  After doing calculations in statistical
+  // software R, we expect result to be as it is at output file.
   // Whatever we got, we print it out
-
-
   std::cout << autocovariance.get()[0] << std::endl;
   std::cout << autocovariance.get()[1] << std::endl;
   std::cout << autocovariance.get()[2] << std::endl;
