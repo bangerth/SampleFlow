@@ -27,11 +27,14 @@ FOREACH(_testfile ${_testfiles})
   STRING(REPLACE ".cc" "" _testname ${_testfile})
   STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" _testname ${_testname})
   MESSAGE(STATUS "  ${_testname}")
-  
+
   # For each test, add the corresponding executable and the commands
   # necessary to run the test
   ADD_EXECUTABLE(${_testname} EXCLUDE_FROM_ALL ${_testfile})
 
+  # Then specify what it means to run a test:
+  # - execute the test and write the output to a .result file
+  # - compare the .result file to the .output file
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.result
     COMMAND ${_testname} > ${_testname}.result
@@ -40,8 +43,9 @@ FOREACH(_testfile ${_testfiles})
     COMMENT "Running test <${_testname}>...")
   ADD_CUSTOM_TARGET(run_${_testname}
                     DEPENDS ${_testname}.result)
-                    
-  # Define running the test as executing the 
+
+  # Define running the test as executing the cmake program
+  # with the given target.
   ADD_TEST(NAME ${_testname} 
            COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target run_${_testname})
 
