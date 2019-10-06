@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_TYPES_H
 
 #include <cstddef>
+#include <sampleflow/element_access.h>
 
 namespace SampleFlow
 {
@@ -41,6 +42,22 @@ namespace SampleFlow
      *   different semantics to a variable, but it makes code *easier to read*.
      */
     using sample_index = std::size_t;
+
+
+    /**
+     * Declaration of a type that represents the scalar type underlying
+     * a given `SampleType`. The way this is determined is that if it
+     * is an array type of some kind, i.e., if one can form the
+     * expression `sample[0]` where `sample` is an (rvalue) object of
+     * type `SampleType`, then the type of `sample[0]` is used as the
+     * one to be used for `ScalarType`.
+     *
+     * On the other hand, for types for which `sample[0]` does not
+     * make sense, the type `SampleType` itself is used under the assumption
+     * that `SampleType` is then considered the scalar itself.
+     */
+    template <typename SampleType>
+    using ScalarType = decltype(Utilities::get_nth_element(std::declval<SampleType>(), 0));
   }
 }
 
