@@ -1,0 +1,4 @@
+double: 3.1415
+double[8]: 1 5
+std::vector<double>(4): 1 3
+std::valarray<double>(4): 1 3

@@ -1,0 +1,4 @@
+double: 1
+double[8]: 8
+std::vector<double>(32): 32
+std::valarray<double>(64): 64
