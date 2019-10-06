@@ -22,7 +22,6 @@
 #include <valarray>
 
 #include <sampleflow/producers/metropolis_hastings.h>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <sampleflow/consumers/covariance_matrix.h>
 
 using SampleType = std::valarray<double>;
