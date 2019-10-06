@@ -163,7 +163,7 @@ namespace SampleFlow
       if (n_samples == 0)
         {
           n_samples = 1;
-          current_covariance_matrix.resize (sample.size(), sample.size());
+          current_covariance_matrix.resize (Utilities::size(sample), Utilities::size(sample));
           current_mean = std::move(sample);
         }
       else
@@ -174,9 +174,15 @@ namespace SampleFlow
 
           InputType delta = sample;
           delta -= current_mean;
-          for (unsigned int i=0; i<sample.size(); ++i)
-            for (unsigned int j=0; j<sample.size(); ++j)
-              current_covariance_matrix(i,j) += ((delta[i]*delta[j])/n_samples) - current_covariance_matrix(i,j)/(n_samples-1);
+          for (unsigned int i=0; i<Utilities::size(sample); ++i)
+            {
+              const auto delta_i = Utilities::get_nth_element(sample, i);
+              for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                {
+                  const auto delta_j = Utilities::get_nth_element(sample, j);
+                  current_covariance_matrix(i,j) += ((delta_i*delta_j)/n_samples) - current_covariance_matrix(i,j)/(n_samples-1);
+                }
+            }
           InputType mean_update = sample;
           mean_update -= current_mean;
           mean_update /= n_samples;
