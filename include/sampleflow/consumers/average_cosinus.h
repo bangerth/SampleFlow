@@ -168,7 +168,7 @@ namespace SampleFlow
                 }
               update = update/(std::sqrt(norm1*norm2));
               update -= current_avg_cosine[i];
-              update /= static_cast<double>(n_samples-i);
+              update /= static_cast<double>(n_samples-i-1);
               current_avg_cosine[i] += update;
             }
 
