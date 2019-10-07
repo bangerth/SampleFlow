@@ -29,34 +29,34 @@ using SampleType = std::valarray<double>;
 
 double log_likelihood (const SampleType &x)
 {
-	return 1;
+  return 1;
 }
 
 SampleType perturb (const SampleType &x)
 {
-	SampleType y = x;
+  SampleType y = x;
 
-	for (auto &el : y)
-		if(el!=8) el += 1;
+  for (auto &el : y)
+    if (el!=8) el += 1;
 
-	return y;
+  return y;
 }
 
 int main ()
 {
 
-	SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-	SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
-	acceptance_ratio.connect_to_producer(mh_sampler);;
+  SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
+  acceptance_ratio.connect_to_producer(mh_sampler);;
 
-	mh_sampler.sample ({0},
-			&log_likelihood,
-			&perturb,
-			10);
+  mh_sampler.sample ({0},
+                     &log_likelihood,
+                     &perturb,
+                     10);
 
-	// At this point, we have sampled 1,2,3,4,5,6,7,8,8,8. Three samples are the samples, so ratio should be
-	//equal to 0.8.
-	//Output whatever we got:
-	std::cout << acceptance_ratio.get() << std::endl;
+  // At this point, we have sampled 1,2,3,4,5,6,7,8,8,8. Three samples are the samples, so ratio should be
+  //equal to 0.8.
+  //Output whatever we got:
+  std::cout << acceptance_ratio.get() << std::endl;
 }
