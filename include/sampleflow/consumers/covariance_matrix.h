@@ -176,10 +176,10 @@ namespace SampleFlow
           delta -= current_mean;
           for (unsigned int i=0; i<Utilities::size(sample); ++i)
             {
-              const auto delta_i = Utilities::get_nth_element(sample, i);
+              const auto delta_i = Utilities::get_nth_element(delta, i);
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  const auto delta_j = Utilities::get_nth_element(sample, j);
+                  const auto delta_j = Utilities::get_nth_element(delta, j);
                   current_covariance_matrix(i,j) += ((delta_i*delta_j)/n_samples) - current_covariance_matrix(i,j)/(n_samples-1);
                 }
             }
