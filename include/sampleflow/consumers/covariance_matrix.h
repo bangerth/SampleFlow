@@ -29,31 +29,19 @@ namespace SampleFlow
   {
     /**
      * A Consumer class that implements computing the running covariance matrix
-     * $C_k = \frac{1}{k} \sum_{j=1}^k (x_j-{\bar x}_j)(x_j-{\bar x}_j)^T$
+     * $C_k = \frac{1}{k-1} \sum_{j=1}^k (x_j-{\bar x}_j)(x_j-{\bar x}_j)^T$
      * over all samples seen so far. Here, $x_k$ is the sample and
      * ${\bar x}_k=\frac{1}{k} \sum x_k$ the running mean up to sample $k$.
      * The last value $C_k$ so computed can be obtained by calling the get()
      * function.
      *
-     * This class uses the following formula to update the covariance matrix
-     * after seeing $k$ samples $x_1\ldots x_k$:
-     * @f{align*}{
-     *     C_1 &= 0,
-     *  \\ C_k &= C_{k-1}
-     *           + \frac{1}{k} \left( (x_k-\bar x_k)(x_k-\bar x_k)^T - C_{k-1} \right)
-     *           + \frac{1}{k(k-1)^2} (x_k-\bar x_k)(x_k-\bar x_k)^T.
-     * @f}
+     * This class uses a formula to update the covariance matrix
+     * in each step, rather than storing all samples and computing the matrix
+     * from scratch in each step.
      * This formula is a symmetric variation of the one by Welford (1962), see
      * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm)
      * and
      * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online .
-     * The formula can be derived as follows, assuming one also keeps track
-     * of the running mean ${\bar x}_k$ as discussed in the MeanValue
-     * class:
-     * @f{align*}{
-     *     C_k &= \frac{1}{k} \sum_{j=1}^k (x_j-{\bar x}_j)(x_j-{\bar x}_j)^T
-     *      \\ &= x
-     * @f}
      *
      *
      * ### Threading model ###
