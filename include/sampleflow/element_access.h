@@ -103,51 +103,6 @@ namespace SampleFlow
 
     /**
      * A function that, for types `SampleType` for which one can build
-     * expressions of the form `sample[i]`, returns the `index`th
-     * element of the sample. This is used in classes such as
-     * Consumers::CovarianceMatrix to compute expressions that require
-     * indexing into the sample type -- assuming this is possible.
-     * In case a `SampleType` represents a scalar that can not be decomposed
-     * into smaller pieces, there is a separate function that allows
-     * the expression `get_nth_element(sample,0)` returning the
-     * entire sample itself.
-     */
-    template <typename SampleType>
-    auto get_nth_element (const SampleType &sample,
-                          const std::size_t index)
-    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == true,
-    typename std::remove_cv<
-    typename std::remove_reference<
-    decltype(std::declval<SampleType>()[index])>::type>::type>::type
-    {
-      return sample[index];
-    }
-
-
-    /**
-     * A function that, for types `SampleType` for which one can not build
-     * expressions of the form `sample[i]`, simply returns the object itself.
-     * This is meant to make it possible to access scalar `SampleType` objects
-     * in the same way as one does with arrays of objects (or
-     * `std::vector<T>` or `std::valarray<T>`, or similar things).
-     *
-     * If an object does not allow accessing array elements, then clearly
-     * the only valid value for the `index` argument to this function is zero.
-     */
-    template <typename SampleType>
-    auto get_nth_element (const SampleType &sample,
-                          const std::size_t index)
-    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == false,
-    SampleType>::type
-    {
-      assert (index == 0);
-      return sample;
-    }
-
-
-
-    /**
-     * A function that, for types `SampleType` for which one can build
      * expressions of the form `sample.size()`, returns the size of the
      * object. This is used in classes such as
      * Consumers::CovarianceMatrix that need to size a matrix corresponding
@@ -202,6 +157,51 @@ namespace SampleFlow
       // We now know that SampleType is an array type of the form
       // `scalar[size]`. We just need to return `size`.
       return std::extent<SampleType>::value;
+    }
+
+
+    /**
+     * A function that, for types `SampleType` for which one can build
+     * expressions of the form `sample[i]`, returns the `index`th
+     * element of the sample. This is used in classes such as
+     * Consumers::CovarianceMatrix to compute expressions that require
+     * indexing into the sample type -- assuming this is possible.
+     * In case a `SampleType` represents a scalar that can not be decomposed
+     * into smaller pieces, there is a separate function that allows
+     * the expression `get_nth_element(sample,0)` returning the
+     * entire sample itself.
+     */
+    template <typename SampleType>
+    auto get_nth_element (const SampleType &sample,
+                          const std::size_t index)
+    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == true,
+    typename std::remove_cv<
+    typename std::remove_reference<
+    decltype(std::declval<SampleType>()[index])>::type>::type>::type
+    {
+      assert (index < size(sample));
+      return sample[index];
+    }
+
+
+    /**
+     * A function that, for types `SampleType` for which one can not build
+     * expressions of the form `sample[i]`, simply returns the object itself.
+     * This is meant to make it possible to access scalar `SampleType` objects
+     * in the same way as one does with arrays of objects (or
+     * `std::vector<T>` or `std::valarray<T>`, or similar things).
+     *
+     * If an object does not allow accessing array elements, then clearly
+     * the only valid value for the `index` argument to this function is zero.
+     */
+    template <typename SampleType>
+    auto get_nth_element (const SampleType &sample,
+                          const std::size_t index)
+    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == false,
+    SampleType>::type
+    {
+      assert (index == 0);
+      return sample;
     }
   }
 }
