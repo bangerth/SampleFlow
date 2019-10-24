@@ -82,10 +82,9 @@ namespace SampleFlow
         using scalar_type = typename InputType::value_type;
 
         /**
-         * The data type, where we save multiple set of samples
+         * The data type returned by the get() function.
          */
-
-        using value_type = boost::numeric::ublas::matrix<scalar_type>;
+        using value_type = std::vector<scalar_type>;
 
         /**
          * Constructor
@@ -116,7 +115,7 @@ namespace SampleFlow
          *
          * @return The computed autocovariance vector of length leg_length.
          */
-        std::vector<scalar_type> get() const;
+        value_type get() const;
 
       private:
         /**
@@ -137,6 +136,11 @@ namespace SampleFlow
         InputType current_mean;
 
         /**
+         * A data type used to store the past few samples.
+         */
+        using PreviousSamples = boost::numeric::ublas::matrix<scalar_type>;
+
+        /**
          * Parts for running autocovariation calculations.
          * Description of these parts is given at this class description above.
          * We should notice, that alpha and current_autocovariation is vectors, while beta is matrix.
@@ -145,20 +149,22 @@ namespace SampleFlow
          * to update this member, but this one appears the most stable.
          */
         std::vector<scalar_type> alpha;//First dot product of autocovariation
-        value_type beta; //Sum of vectors for innerproduct
+        PreviousSamples beta; //Sum of vectors for innerproduct
 
         /**
          * Save previous sample value needed to do calculations then new sample comes.
          *
          */
-        value_type previous_sample;
-        value_type previous_sample_replace;
+        PreviousSamples previous_sample;
+        PreviousSamples previous_sample_replace;
 
         /**
          * The number of samples processed so far.
          */
         types::sample_index n_samples;
     };
+
+
 
     template <typename InputType>
     SpuriousAutocovariance<InputType>::
@@ -264,31 +270,32 @@ namespace SampleFlow
     }
 
     template <typename InputType>
-    std::vector<typename InputType::value_type>
+    typename SpuriousAutocovariance<InputType>::value_type
     SpuriousAutocovariance<InputType>::
     get () const
     {
       std::lock_guard<std::mutex> lock(mutex);
-      std::vector<scalar_type> current_autocovariation;
 
-      current_autocovariation.resize(autocovariance_length);
-      for (unsigned int i=0; i<autocovariance_length; ++i)
-        {
-          current_autocovariation[i] = 0;
-        }
+      std::vector<scalar_type> current_autocovariation(autocovariance_length,
+                                                       scalar_type(0));
 
       if (n_samples!=0)
         {
-          unsigned int length1=std::min(static_cast<unsigned int>(n_samples),autocovariance_length);
+          const types::sample_index length1 = std::min(n_samples,
+                                                       static_cast<types::sample_index>(autocovariance_length));
 
           for (int i=0; i<length1; ++i)
             {
               current_autocovariation[i] = alpha[i];
+
               // current_mean.size() is equal to sample.size(). While we don't get samples here, alpha.size helps to
-              for (int j=0; j<current_mean.size(); ++j) current_autocovariation[i] -= current_mean[j]* beta(i,j);
+              for (int j=0; j<current_mean.size(); ++j)
+                current_autocovariation[i] -= current_mean[j] * beta(i,j);
+
               current_autocovariation[i] += (current_mean*current_mean).sum();
             }
         }
+
       return current_autocovariation;
     }
   }
