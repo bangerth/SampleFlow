@@ -14,8 +14,10 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the Metropolis-Hasting producer using the simple example built in the beginning of the
-// code. After that, it uses MaximumProbabilitySample consumer and prints out sample with the biggest likelihood.
+// A simple test for the Metropolis-Hasting producer using the simple
+// example built in the beginning of the code. After that, it uses
+// MaximumProbabilitySample consumer and prints out sample with the
+// biggest likelihood.
 
 
 #include <iostream>
@@ -27,9 +29,10 @@
 
 using SampleType = double;
 
-//Simplified version of functions log_likelihood and perturb. These two doesn't have any random parts to
-//initialize testing.
-
+//Simplified version of functions log_likelihood and perturb. These
+//two don't have any random parts to initialize testing: We always
+//move to the right, and the probability distribution also increases
+//left to right -- so we will accept every trial sample.
 double log_likelihood (const SampleType &x)
 {
   return x+1;
@@ -48,15 +51,17 @@ int main ()
   SampleFlow::Consumers::MaximumProbabilitySample<SampleType> MAP_point;
   MAP_point.connect_to_producer (mh_sampler);
 
-  /*Sampler should sample numbers from 1 to 10000*/
-
+  // Sample, starting at zero. Because the probability distribution
+  // increases left to right, and because trial samples always lie to
+  // the right of the previous sample, the sampler will accept every
+  // sample and should return numbers from 1 to 10000
   mh_sampler.sample ({0},
                      &log_likelihood,
                      &perturb,
                      10000);
 
-  /*Consumer should print out number 10000*/
-
+  // The highest likelihood should have been attained at the last
+  // (right-most) sample, which is what the MAP_point object should
+  // output:
   std::cout << MAP_point.get().first << std::endl;
-
 }
