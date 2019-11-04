@@ -17,8 +17,8 @@
 #define SAMPLEFLOW_CONSUMERS_STREAM_OUTPUT_H
 
 #include <sampleflow/consumer.h>
+#include <sampleflow/element_access.h>
 #include <mutex>
-#include <valarray>
 #include <ostream>
 
 
@@ -45,7 +45,15 @@ namespace SampleFlow
      *   @code
      *      stream << sample;
      *   @endcode
-     *   where `sample` is of type `InputType`.
+     *   where `sample` is of type `InputType`. Alternatively, if one can
+     *   call `sample.size()` and `sample[i]` with an integer index `i`,
+     *   then this class only requires that one can write
+     *   @code
+     *      stream << sample[i];
+     *   @endcode
+     *   and writes all elements of the sample separated by spaces.
+     *   In particular, this allows using this class for `InputType`
+     *   equal to `std::vector<T>` and `std::valarray<T>`.
      */
     template <typename InputType>
     class StreamOutput : public Consumer<InputType>
@@ -104,12 +112,20 @@ namespace SampleFlow
       {
         /**
          * Write a sample to the stream. This template is used for all
-         * `SampleType` types not explicitly listed in the specializations
-         * of the function below.
+         * `SampleType` types that don't have an `operator[]`, i.e.,
+         * for things where we can assume that they are scalar or,
+         * if compound, have an appropriate `operator<<` for output.
+         *
+         * For class types that have an `operator[]`, we use the
+         * specialization below to output each component separately.
          */
         template <typename SampleType>
-        void write (const SampleType &sample,
+        auto write (const SampleType &sample,
                     std::ostream &output_stream)
+        -> typename std::enable_if<Utilities::internal::has_size_function<SampleType>::value == false
+        ||
+        Utilities::internal::has_subscript_operator<SampleType>::value == false,
+                  void>::type
         {
           output_stream << sample;
         }
@@ -117,31 +133,20 @@ namespace SampleFlow
 
         /**
          * Write a sample to the stream. This template is used if the sample
-         * type is `std::valarray<T>`.
+         * type has an operator `operator[]`. In that case, just output
+         * each component separated by spaces.
          */
-        template <typename T>
-        void write (const std::valarray<T> &sample,
+        template <typename SampleType>
+        auto write (const SampleType &sample,
                     std::ostream &output_stream)
+        -> typename std::enable_if<Utilities::internal::has_size_function<SampleType>::value == true
+        &&
+        Utilities::internal::has_subscript_operator<SampleType>::value == true,
+                  void>::type
         {
-          for (auto el : sample)
+          for (unsigned int i=0; i<Utilities::size(sample); ++i)
             {
-              write (el, output_stream);
-              output_stream << ' ';
-            }
-        }
-
-
-        /**
-         * Write a sample to the stream. This template is used if the sample
-         * type is `std::vector<T>`.
-         */
-        template <typename T>
-        void write (const std::vector<T> &sample,
-                    std::ostream &output_stream)
-        {
-          for (auto el : sample)
-            {
-              write (el, output_stream);
+              write (Utilities::get_nth_element(sample, i), output_stream);
               output_stream << ' ';
             }
         }
