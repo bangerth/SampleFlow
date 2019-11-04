@@ -14,9 +14,9 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the Metropolis-Hasting producer using the first example syntax
-// used in the documentation of the SampleFlow::Producers::MetropolisHastings
-// class.
+// A simple test for the Metropolis-Hasting producer using the first
+// example syntax used in the documentation of the
+// SampleFlow::Producers::MetropolisHastings class.
 
 
 #include <iostream>
@@ -28,11 +28,16 @@
 
 using SampleType = double;
 
+
+// Use a (non-normalized) probability distribution that increases left
+// to right.
 double log_likelihood (const SampleType &x)
 {
   return x+1;
 }
 
+
+// Always move to the right when trying to find a new trial sample.
 SampleType perturb (const SampleType &x)
 {
   return x+1;
@@ -47,8 +52,10 @@ int main ()
 
   stream_output.connect_to_producer(mh_sampler);
 
-  /*Sampler should return numbers from 1 to 10*/
-
+  // Sample, starting at zero. Because the probability distribution
+  // increases left to right, and because trial samples always lie to
+  // the right of the previous sample, the sampler will accept every
+  // sample and should return numbers from 1 to 10
   mh_sampler.sample ({0},
                      &log_likelihood,
                      &perturb,
