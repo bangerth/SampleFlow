@@ -48,9 +48,15 @@ namespace SampleFlow
      * samples $x_k$ approximating $\pi(x)$ and that are passed to all
      * Consumer objects connected to the corresponding signal (by calling
      * Producer::connect_to_signal() or using Consumer::connect_to_producer())
-     * one at a time. The AuxiliaryData object associated with a sample
-     * $x_k$ stores an entry with name "relative log likelihood" of type
-     * `double` that stores $\log(pi(x_k))$.
+     * one at a time. The AuxiliaryData object associated with each sample
+     * $x_k$ stores two entries:
+     * - An entry with name "relative log likelihood" of type
+     *   `double` that stores $\log(pi(x_k))$;
+     * - An entry with name "sample is repeated" that stores a `bool`
+     *   indicating whether the algorithm has chosen the current
+     *   sample as an accepted trial sample (if `false`) or whether
+     *   it is a repeated sample because the trial sample has been
+     *   rejected (if `true`).
      */
     template <typename OutputType>
     class MetropolisHastings : public Producer<OutputType>
@@ -117,17 +123,25 @@ namespace SampleFlow
           //
           // If the sample is not accepted, then we simply stick with (i.e.,
           // repeat) the previous sample.
+          bool repeated_sample;
           if ((trial_log_likelihood > current_log_likelihood)
               ||
               (std::exp(trial_log_likelihood - current_log_likelihood) >= uniform_distribution(rng)))
             {
               current_sample         = trial_sample;
               current_log_likelihood = trial_log_likelihood;
+
+              repeated_sample = false;
             }
+          else
+            repeated_sample = true;
 
           // Output the new sample (which may be equal to the old sample).
           this->issue_sample (current_sample,
-          {{"relative log likelihood", boost::any(current_log_likelihood)}});
+          {
+            {"relative log likelihood", boost::any(current_log_likelihood)},
+            {"sample is repeated", boost::any(repeated_sample)}
+          });
         }
     }
 
