@@ -19,6 +19,7 @@
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
 #include <mutex>
+#include <deque>
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -146,7 +147,7 @@ namespace SampleFlow
         /**
          * A data type used to store the past few samples.
          */
-        using PreviousSamples = boost::numeric::ublas::matrix<scalar_type>;
+        using PreviousSamples = std::deque<InputType>;
 
         /**
          * Parts for running autocovariation calculations.
@@ -157,14 +158,17 @@ namespace SampleFlow
          * to update this member, but this one appears the most stable.
          */
         std::vector<scalar_type> alpha;//First dot product of autocovariation
-        PreviousSamples beta; //Sum of vectors for innerproduct
+        boost::numeric::ublas::matrix<scalar_type> beta; //Sum of vectors for innerproduct
 
         /**
-         * Save previous sample value needed to do calculations then new sample comes.
+         * Save previous samples needed to do calculations when a new sample
+         * comes in.
          *
+         * These samples are stored in a double-ended queue (`std::deque`) so
+         * that it is efficient to push a new sample to the front of the list
+         * as well as to remove one from the end of the list.
          */
-        PreviousSamples previous_sample;
-        PreviousSamples previous_sample_replace;
+        PreviousSamples previous_samples;
 
         /**
          * The number of samples processed so far.
@@ -198,7 +202,7 @@ namespace SampleFlow
         {
           n_samples = 1;
           alpha.resize(autocovariance_length);
-          beta.resize(autocovariance_length,sample.size());
+          beta.resize(autocovariance_length, sample.size());
 
           for (unsigned int i=0; i<autocovariance_length; ++i)
             {
@@ -209,13 +213,10 @@ namespace SampleFlow
                 }
             }
           current_mean = sample;
-          previous_sample.resize(autocovariance_length,sample.size());
-          previous_sample_replace.resize(autocovariance_length,sample.size());
 
-          for (unsigned int i=0; i<sample.size(); ++i)
-            previous_sample(0,i) = sample[i];
+          // Push the first sample to the front of the list of samples:
+          previous_samples.push_front (sample);
         }
-
       else
         {
           /*
@@ -229,48 +230,35 @@ namespace SampleFlow
            * length2 refers to saving previous values. It refers to, that at most we can save autocovariance_length-1 values(making space
            * to save the newest one.
            */
-
-          const unsigned int length1 = std::min(static_cast<unsigned int>(n_samples),
-                                                autocovariance_length);
-          const unsigned int length2 = std::min(static_cast<unsigned int>(n_samples),
-                                                autocovariance_length-1);
-
           ++n_samples;
-          for (unsigned int i=0; i<length1; ++i)
+          for (unsigned int i=0; i<previous_samples.size(); ++i)
             {
-
-              //Update first dot product (alpha)
+              // Update first dot product (alpha)
               double alphaupd = 0;
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
-                  alphaupd += sample[j]*previous_sample(i,j);
+                  alphaupd += sample[j] * previous_samples[i][j];
                 }
               alphaupd -= alpha[i];
               alphaupd /= n_samples-(i+1);
               alpha[i] += alphaupd;
 
-              //Update second value (beta)
+              // Update second value (beta)
               InputType betaupd = sample;
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
-                  betaupd[j] += previous_sample(i,j);
+                  betaupd[j] += previous_samples[i][j];
                   betaupd[j] -= beta(i,j);
                   betaupd[j] /= n_samples-(i+1);
                   beta(i,j) += betaupd[j];
                 }
             }
 
-          //Save needed previous values
-          for (unsigned int i=0; i<length2; ++i)
-            {
-              for (unsigned int j=0; j<sample.size(); ++j)
-                {
-                  previous_sample_replace(i+1,j)=previous_sample(i,j);
-                }
-            }
-
-          for (unsigned int j=0; j<sample.size(); ++j) previous_sample_replace(0,j) = sample[j];
-          previous_sample = previous_sample_replace;
+          // Now save the sample. If the list is becoming longer than the lag
+          // length, drop the oldest sample.
+          previous_samples.push_front (sample);
+          if (previous_samples.size() > autocovariance_length)
+            previous_samples.pop_back ();
 
           // Then also update the running mean:
           InputType update = sample;
@@ -279,6 +267,8 @@ namespace SampleFlow
           current_mean += update;
         }
     }
+
+
 
     template <typename InputType>
     typename SpuriousAutocovariance<InputType>::value_type
