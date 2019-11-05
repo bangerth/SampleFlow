@@ -21,12 +21,12 @@ namespace SampleFlow
      * apart by specific index. In this sense, we get function where domain is bounded unsigned int and for
      * each value we calculate cosine average.
      * Let's say unsigned int is equal to l and n_samples=n and n is bigger than l. Then the formula can be written as:
-     * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}^T\bar\bm{x})(||bm{x}_{t}||*||\bar\bm{x}||)}.
+     * $\hat{cos(\theta_n)(l)}=\frac{1}{n-l}\sum_{t=1}^{n-l}{(x_{t+l}^T\bar{x})(\|x_{t}\| \; \|\bar{x}\|)}$.
      *
-     * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3...,L$. The value of
+     * This code for every new sample updates $\hat{cos(\theta_n)(l)}, l=1,2,3,\ldots,L$. The value of
      * $L$ is provided to the constructor of this class.
      *
-     * Notice, that for each new sample $x_n$, we need to take a sample, that was l earlier than new sample ($x_{n-l}$).
+     * Notice, that for each new sample $x_n$, we need to take a sample, that was $l$ earlier than new sample ($x_{n-l}$).
      * Working this way, the updating algorithm becomes very similar to one used in the MeanValue class.
      *
      * Every time, for updating we calculate corresponding fractions. There numerator is the dot product, while denominator -
