@@ -42,7 +42,7 @@ namespace SampleFlow
      * In other words, it calculates the covariance of samples $x_{t+l}$ and $x_t$
      * with a lag between zero and $k$
      *
-     * This class updates $\hat\gamma(l), l=1,2,3...,$$ for each new, incoming
+     * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
      * sample. The value of $k$ is set in the constructor.
      *
      * <h3> Algorithm </h3>
@@ -51,7 +51,7 @@ namespace SampleFlow
      * get $\gamma(l)$ estimation. Further description focus on part 3) (case with big enough sample_n)
      *
      * Let expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
-     * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x_n})^T(bm{x}_{t}-\bar{x_n})}=
+     * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x_n})^T(x_{t}-\bar{x_n})}=
      * =\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l})^T(x_{t})}-
      * -(\bar{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}+(x_{t}}+
      * +\frac{n-l}{n}(\bar{x_n}^T)(\bar{x_n})=
