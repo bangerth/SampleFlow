@@ -165,8 +165,8 @@ namespace SampleFlow
          * summed vector values (sum numbers depends from lag parameter). There might be other ways how
          * to update this member, but this one appears the most stable.
          */
-        std::vector<scalar_type> alpha;//First dot product of autocovariation
-        boost::numeric::ublas::matrix<scalar_type> beta; //Sum of vectors for innerproduct
+        std::vector<scalar_type> alpha;
+        std::vector<InputType> beta;
 
         /**
          * Save previous samples needed to do calculations when a new sample
@@ -210,14 +210,18 @@ namespace SampleFlow
         {
           n_samples = 1;
           alpha.resize(autocovariance_length);
-          beta.resize(autocovariance_length, sample.size());
+          beta.resize(autocovariance_length);
 
           for (unsigned int i=0; i<autocovariance_length; ++i)
             {
               alpha[i] = 0;
+
+              // Initialize beta[i] to zero; first initialize it to 'sample'
+              // so that it has the right size already
+              beta[i] = sample;
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
-                  beta(i,j) = 0;
+                  beta[i][j] = 0;
                 }
             }
           current_mean = sample;
@@ -251,11 +255,11 @@ namespace SampleFlow
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
                   betaupd[j] += previous_samples[l][j];
-                  betaupd[j] -= beta(l,j);
+                  betaupd[j] -= beta[l][j];
                   betaupd[j] /= n_samples-(l+1);
                 }
               for (unsigned int j=0; j<sample.size(); ++j)
-                beta(l,j) += betaupd[j];
+                beta[l][j] += betaupd[j];
             }
 
           // Now save the sample. If the list is becoming longer than the lag
@@ -291,7 +295,7 @@ namespace SampleFlow
               current_autocovariation[i] = alpha[i];
 
               for (unsigned int j=0; j<current_mean.size(); ++j)
-                current_autocovariation[i] -= current_mean[j] * beta(i,j);
+                current_autocovariation[i] -= current_mean[j] * beta[i][j];
 
               for (unsigned int j=0; j<current_mean.size(); ++j)
                 current_autocovariation[i] += current_mean[j]*current_mean[j];
