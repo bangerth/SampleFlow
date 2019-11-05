@@ -28,33 +28,40 @@ namespace SampleFlow
   namespace Consumers
   {
     /**
-     * NOTICE: We can only say, that this algorithm calculates "spurious autocovariance", because by definition
-     * autocovariance function is much more complex it is not (except if we work samples of one dimension). Anyway, later in this code we use word autocovariance as
-     * we refer to spurious autocovariance.
+     * @note This class only calculates a "spurious autocovariance" since the actual
+     *   definition of "autocovariance" is more complex than what we do here (except
+     *   if we work scalar samples types). That said, below we will use the word
+     *   "autocovariance" even when refering to this spurious autocovariance.
      *
      * This is a Consumer class that implements computing the running sample autocovariance function:
-     * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x})(bm{x}_{t}-\bar\bm{x})}$
+     * @f{align*}{
+     *   \hat\gamma(l)
+     *   =
+     *   \frac{1}{n} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})(x_{t}-\bar{x})}.
+     * @f}
+     * In other words, it calculates the covariance of samples $x_{t+l}$ and $x_t$
+     * with a lag between zero and $k$
      *
-     * This code for every new sample updates $\hat\gamma(k), l=1,2,3...,k$. The value of $n$ is set
-     * in the constructor.
+     * This class updates $\hat\gamma(l), l=1,2,3...,$$ for each new, incoming
+     * sample. The value of $k$ is set in the constructor.
      *
-     * Algorithm:
+     * <h3> Algorithm </h3>
      * There are three parts: 1) When amount of samples (sample_n) is equal 0 2) When k>sample_n 3) Otherwise
      * Second and third parts are almost identical, just for "l" bigger than sample_n it is not possible to
-     * get \gamma(l) estimation. Further description focus on part 3) (case with big enough sample_n)
+     * get $\gamma(l)$ estimation. Further description focus on part 3) (case with big enough sample_n)
      *
      * Let expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
-     * \hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l}-\bar\bm{x_n})^T(bm{x}_{t}-\bar\bm{x_n})}=
-     * =\frac{1}{n}\sum_{t=1}^{n-l}{(\bm{x}_{t+l})^T(bm{x}_{t})}-
-     * -(\bar\bm{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{\bm{x}_{t+l}+(bm{x}_{t}}+
-     * +\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n})=
-     * =\alpha_n(l)-(\bar\bm{x_n}^T)\bm{beta_n(l)}+\frac{n-l}{n}(\bar\bm{x_n}^T)(\bar\bm{x_n}).$
+     * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x_n})^T(bm{x}_{t}-\bar{x_n})}=
+     * =\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l})^T(x_{t})}-
+     * -(\bar{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}+(x_{t}}+
+     * +\frac{n-l}{n}(\bar{x_n}^T)(\bar{x_n})=
+     * =\alpha_n(l)-(\bar{x_n}^T) \beta_n(l)+\frac{n-l}{n}(\bar{x_n}^T)(\bar{x_n}).$
      *
-     * During calculation, we need to update $\alpha_{n+1}(l) (scalar),
-     * \bm{beta_{n+1}(l)}$ (same dimension as sample) and sample mean $\bar\bm{x_{n+1}$
+     * During calculation, we need to update $\alpha_{n+1}(l)$ (scalar),
+     * $\beta_{n+1}(l)$ (same dimension as sample) and sample mean $\bar{x_{n+1}}$.
      *
-     * Notice, that for each l, $\alpha_{n}(l)$ and $\bm{beta_{n}(l)}$ is different. So to save $\alpha$ values
-     * we need to have vector, while for $\bm{\beta}$ - matrix.
+     * Notice, that for each $l$, $\alpha_{n}(l)$ and $\beta_{n}(l)$ is different. So to save $\alpha$ values
+     * we need to have vector, while for $\beta$ - matrix.
      *
      * Principle of this updating algorithm is equivalent as in mean_value.h
      *
@@ -77,7 +84,6 @@ namespace SampleFlow
       public:
         /**
          * The data type of the elements of the input type.
-         * MANTYS COMMENT: IF InputType is scalar by itself, this part gives error and I couldnt find the way to solve this.
          */
         using scalar_type = typename InputType::value_type;
 
@@ -87,16 +93,17 @@ namespace SampleFlow
         using value_type = std::vector<scalar_type>;
 
         /**
-         * Constructor
+         * Constructor.
          *
-         * @param[in] parameter lag_lenght refers to how many autocovariance function values we want
-         * to calculate
+         * @param[in] lag_length A number that indicates how many autocovariance
+         *   values we want to calculate, i.e., how far back in the past we
+         *   want to check how correlated each sample is.
          */
         SpuriousAutocovariance(const unsigned int lag_length);
 
         /**
          * Process one sample by updating the previously computed covariance
-         * matrix using this one sample.
+         * values using this one sample.
          *
          * @param[in] sample The sample to process.
          * @param[in] aux_data Auxiliary data about this sample. The current
@@ -113,7 +120,8 @@ namespace SampleFlow
          * samples seen so far. If no samples have been processed so far, then
          * a default-constructed object of type InputType will be returned.
          *
-         * @return The computed autocovariance vector of length leg_length.
+         * @return The computed autocovariance vector of length `lag_length`
+         *   as provided to the constructor.
          */
         value_type get() const;
 
@@ -204,7 +212,8 @@ namespace SampleFlow
           previous_sample.resize(autocovariance_length,sample.size());
           previous_sample_replace.resize(autocovariance_length,sample.size());
 
-          for (unsigned int i=0; i<sample.size(); ++i) previous_sample(0,i) = sample[i];
+          for (unsigned int i=0; i<sample.size(); ++i)
+            previous_sample(0,i) = sample[i];
         }
 
       else
@@ -221,8 +230,10 @@ namespace SampleFlow
            * to save the newest one.
            */
 
-          unsigned int length1=std::min(static_cast<unsigned int>(n_samples),autocovariance_length);
-          unsigned int length2=std::min(static_cast<unsigned int>(n_samples),autocovariance_length-1);
+          const unsigned int length1 = std::min(static_cast<unsigned int>(n_samples),
+                                                autocovariance_length);
+          const unsigned int length2 = std::min(static_cast<unsigned int>(n_samples),
+                                                autocovariance_length-1);
 
           ++n_samples;
           for (unsigned int i=0; i<length1; ++i)
