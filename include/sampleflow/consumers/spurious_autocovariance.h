@@ -46,25 +46,33 @@ namespace SampleFlow
      * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
      * sample. The value of $k$ is set in the constructor.
      *
+     *
      * <h3> Algorithm </h3>
-     * There are three parts: 1) When amount of samples (sample_n) is equal 0 2) When k>sample_n 3) Otherwise
-     * Second and third parts are almost identical, just for "l" bigger than sample_n it is not possible to
-     * get $\gamma(l)$ estimation. Further description focus on part 3) (case with big enough sample_n)
      *
-     * Let expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
-     * $\hat\gamma(l)=\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x_n})^T(x_{t}-\bar{x_n})}=
-     * =\frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l})^T(x_{t})}-
-     * -(\bar{x_n}^T)\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}+(x_{t}}+
-     * +\frac{n-l}{n}(\bar{x_n}^T)(\bar{x_n})=
-     * =\alpha_n(l)-(\bar{x_n}^T) \beta_n(l)+\frac{n-l}{n}(\bar{x_n}^T)(\bar{x_n}).$
+     * In the following, let us only consider the case when we have already seen
+     * $n\ge k$ samples, so that all of the $\hat\gamma(l)$ can actually be computed.
      *
-     * During calculation, we need to update $\alpha_{n+1}(l)$ (scalar),
-     * $\beta_{n+1}(l)$ (same dimension as sample) and sample mean $\bar{x_{n+1}}$.
+     * Let us expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
+     * @f{align*}{
+     *   \hat\gamma(l)
+     *   &=
+     *   \frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}_n)^T(x_{t}-\bar{x}_n)}
+     * \\&=
+     *   \underbrace{\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}}}_{\alpha_n(l)}
+     *   -
+     *   \bar{x}_n^T
+     *   \underbrace{\left[ \frac{1}{n}\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) \right]}_{\beta_n(l)}
+     *   +
+     *   \frac{n-l}{n}\bar{x}_n^T \bar{x}_n
+     * \\&=
+     *   \alpha_n(l)-\bar{x}_n^T \beta_n(l)+\frac{n-l}{n} \bar{x}_n^T \bar{x}_n.
+     * @f}
      *
-     * Notice, that for each $l$, $\alpha_{n}(l)$ and $\beta_{n}(l)$ is different. So to save $\alpha$ values
-     * we need to have vector, while for $\beta$ - matrix.
+     * For each new sample, we then need to update the scalars $\alpha_{n+1}(l)$,
+     * vectors $\beta_{n+1}(l)$, and sample mean $\bar{x}_{n+1}$. The
+     * principle of this updating algorithm is equivalent to what the MeanValue
+     * class does.
      *
-     * Principle of this updating algorithm is equivalent as in mean_value.h
      *
      * ### Threading model ###
      *
@@ -139,7 +147,7 @@ namespace SampleFlow
         const unsigned int autocovariance_length;
 
         /**
-         * The current value of $\bar x_k$ as described in the introduction
+         * The current value of $\bar{x}_k$ as described in the introduction
          * of this class. For more detailed description of calculation, check mean_value.h
          */
         InputType current_mean;
@@ -224,34 +232,30 @@ namespace SampleFlow
            * calculate autocovariance function values for argument bigger than sample size. In order to avoid errors, we need
            * to use minimum function. However, we need slightly different minimums for calculation of autocovariance parts and for saving
            * previous values.
-           * length1 refers to how many samples were already seen before a new one and if it is more
-           * than our desired autocovariance function length, it sets to that value. In this sense, it restricts how "long" our
-           * calculations should or can be.
-           * length2 refers to saving previous values. It refers to, that at most we can save autocovariance_length-1 values(making space
-           * to save the newest one.
            */
           ++n_samples;
-          for (unsigned int i=0; i<previous_samples.size(); ++i)
+          for (unsigned int l=0; l<previous_samples.size(); ++l)
             {
-              // Update first dot product (alpha)
+              // Update alpha
               double alphaupd = 0;
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
-                  alphaupd += sample[j] * previous_samples[i][j];
+                  alphaupd += sample[j] * previous_samples[l][j];
                 }
-              alphaupd -= alpha[i];
-              alphaupd /= n_samples-(i+1);
-              alpha[i] += alphaupd;
+              alphaupd -= alpha[l];
+              alphaupd /= n_samples-(l+1);
+              alpha[l] += alphaupd;
 
-              // Update second value (beta)
+              // Update beta
               InputType betaupd = sample;
               for (unsigned int j=0; j<sample.size(); ++j)
                 {
-                  betaupd[j] += previous_samples[i][j];
-                  betaupd[j] -= beta(i,j);
-                  betaupd[j] /= n_samples-(i+1);
-                  beta(i,j) += betaupd[j];
+                  betaupd[j] += previous_samples[l][j];
+                  betaupd[j] -= beta(l,j);
+                  betaupd[j] /= n_samples-(l+1);
                 }
+              for (unsigned int j=0; j<sample.size(); ++j)
+                beta(l,j) += betaupd[j];
             }
 
           // Now save the sample. If the list is becoming longer than the lag
@@ -280,20 +284,17 @@ namespace SampleFlow
       std::vector<scalar_type> current_autocovariation(autocovariance_length,
                                                        scalar_type(0));
 
-      if (n_samples!=0)
+      if (n_samples !=0 )
         {
-          const types::sample_index length1 = std::min(n_samples,
-                                                       static_cast<types::sample_index>(autocovariance_length));
-
-          for (int i=0; i<length1; ++i)
+          for (int i=0; i<previous_samples.size(); ++i)
             {
               current_autocovariation[i] = alpha[i];
 
-              // current_mean.size() is equal to sample.size(). While we don't get samples here, alpha.size helps to
-              for (int j=0; j<current_mean.size(); ++j)
+              for (unsigned int j=0; j<current_mean.size(); ++j)
                 current_autocovariation[i] -= current_mean[j] * beta(i,j);
 
-              current_autocovariation[i] += (current_mean*current_mean).sum();
+              for (unsigned int j=0; j<current_mean.size(); ++j)
+                current_autocovariation[i] += current_mean[j]*current_mean[j];
             }
         }
 
