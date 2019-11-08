@@ -68,15 +68,6 @@ int main ()
   // (2,3), ..., (20,21).  After doing calculations in statistical
   // software R, we expect result to be as it is at output file.
   // Whatever we got, we print it out
-  std::cout << autocovariance.get()[0] << std::endl;
-  std::cout << autocovariance.get()[1] << std::endl;
-  std::cout << autocovariance.get()[2] << std::endl;
-  std::cout << autocovariance.get()[3] << std::endl;
-  std::cout << autocovariance.get()[4] << std::endl;
-  std::cout << autocovariance.get()[5] << std::endl;
-  std::cout << autocovariance.get()[6] << std::endl;
-  std::cout << autocovariance.get()[7] << std::endl;
-  std::cout << autocovariance.get()[8] << std::endl;
-  std::cout << autocovariance.get()[9] << std::endl;
-
+  for (const auto v : autocovariance.get())
+    std::cout << v << std::endl;
 }
