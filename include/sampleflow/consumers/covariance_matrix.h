@@ -116,7 +116,7 @@ namespace SampleFlow
          * The current value of $\bar x_k$ as described in the introduction
          * of this class.
          */
-        boost::numeric::ublas::matrix<scalar_type> current_covariance_matrix;
+        value_type current_covariance_matrix;
 
         /**
          * The number of samples processed so far.
