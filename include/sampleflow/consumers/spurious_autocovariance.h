@@ -32,16 +32,17 @@ namespace SampleFlow
      * @note This class only calculates a "spurious autocovariance" since the actual
      *   definition of "autocovariance" is more complex than what we do here (except
      *   if we work scalar samples types). That said, below we will use the word
-     *   "autocovariance" even when refering to this spurious autocovariance.
+     *   "autocovariance" even when refering to this spurious autocovariance. It can be looked as trace of
+     *   cross-covariance matrices.
      *
      * This is a Consumer class that implements computing the running sample autocovariance function:
      * @f{align*}{
      *   \hat\gamma(l)
      *   =
-     *   \frac{1}{n} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})(x_{t}-\bar{x})}.
+     *   \frac{1}{n-l} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})(x_{t}-\bar{x})}.
      * @f}
      * In other words, it calculates the covariance of samples $x_{t+l}$ and $x_t$
-     * with a lag between zero and $k$
+     * with a lag l between zero and $k$
      *
      * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
      * sample. The value of $k$ is set in the constructor.
@@ -56,16 +57,16 @@ namespace SampleFlow
      * @f{align*}{
      *   \hat\gamma(l)
      *   &=
-     *   \frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}_n)^T(x_{t}-\bar{x}_n)}
+     *   \frac{1}{n-l}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}_n)^T(x_{t}-\bar{x}_n)}
      * \\&=
-     *   \underbrace{\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}}}_{\alpha_n(l)}
+     *   \underbrace{\frac{1}{n-l}\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}}}_{\alpha_n(l)}
      *   -
      *   \bar{x}_n^T
-     *   \underbrace{\left[ \frac{1}{n}\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) \right]}_{\beta_n(l)}
+     *   \underbrace{\left[ \frac{1}{n-l}\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) \right]}_{\beta_n(l)}
      *   +
-     *   \frac{n-l}{n}\bar{x}_n^T \bar{x}_n
+     *   \frac{n-l}{n-l}\bar{x}_n^T \bar{x}_n
      * \\&=
-     *   \alpha_n(l)-\bar{x}_n^T \beta_n(l)+\frac{n-l}{n} \bar{x}_n^T \bar{x}_n.
+     *   \alpha_n(l)-\bar{x}_n^T \beta_n(l)+ \bar{x}_n^T \bar{x}_n.
      * @f}
      *
      * For each new sample, we then need to update the scalars $\alpha_{n+1}(l)$,
@@ -104,7 +105,7 @@ namespace SampleFlow
         /**
          * Constructor.
          *
-         * @param[in] lag_length A number that indicates how many autocovariance
+         * @param[in] lag_length A number that indicates how many spurious autocovariance
          *   values we want to calculate, i.e., how far back in the past we
          *   want to check how correlated each sample is.
          */
@@ -158,10 +159,10 @@ namespace SampleFlow
         using PreviousSamples = std::deque<InputType>;
 
         /**
-         * Parts for running autocovariation calculations.
+         * Parts for running spurious autocovariance calculations.
          * Description of these parts is given at this class description above.
-         * We should notice, that alpha and current_autocovariation is vectors, while beta is matrix.
-         * That happens, because if we want to update beta for each new sample, we need to know mean
+         * We should notice, that alpha and current_spur_autocovariance is vectors consisted of scalar_type,
+         * while beta is matrix. That happens, because if we want to update beta for each new sample, we need to know mean
          * summed vector values (sum numbers depends from lag parameter). There might be other ways how
          * to update this member, but this one appears the most stable.
          */
@@ -285,24 +286,24 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      std::vector<scalar_type> current_autocovariation(autocovariance_length,
+      value_type current_spur_autocovariance(autocovariance_length,
                                                        scalar_type(0));
 
       if (n_samples !=0 )
         {
           for (int i=0; i<previous_samples.size(); ++i)
             {
-              current_autocovariation[i] = alpha[i];
+              current_spur_autocovariance[i] = alpha[i];
 
               for (unsigned int j=0; j<current_mean.size(); ++j)
-                current_autocovariation[i] -= current_mean[j] * beta[i][j];
+                current_spur_autocovariance[i] -= current_mean[j] * beta[i][j];
 
               for (unsigned int j=0; j<current_mean.size(); ++j)
-                current_autocovariation[i] += current_mean[j]*current_mean[j];
+                current_spur_autocovariance[i] += current_mean[j]*current_mean[j];
             }
         }
 
-      return current_autocovariation;
+      return current_spur_autocovariance;
     }
   }
 }
