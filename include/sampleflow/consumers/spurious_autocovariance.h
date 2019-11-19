@@ -18,6 +18,7 @@
 
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
+#include <sampleflow/element_access.h>
 #include <mutex>
 #include <deque>
 
@@ -219,7 +220,7 @@ namespace SampleFlow
               // Initialize beta[i] to zero; first initialize it to 'sample'
               // so that it has the right size already
               beta[i] = sample;
-              for (unsigned int j=0; j<sample.size(); ++j)
+              for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
                   beta[i][j] = 0;
                 }
@@ -242,9 +243,10 @@ namespace SampleFlow
             {
               // Update alpha
               double alphaupd = 0;
-              for (unsigned int j=0; j<sample.size(); ++j)
+              for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  alphaupd += sample[j] * previous_samples[l][j];
+                  alphaupd += Utilities::get_nth_element (sample, j) *
+                              Utilities::get_nth_element (previous_samples[l], j);
                 }
               alphaupd -= alpha[l];
               alphaupd /= n_samples-(l+1);
@@ -252,14 +254,14 @@ namespace SampleFlow
 
               // Update beta
               InputType betaupd = sample;
-              for (unsigned int j=0; j<sample.size(); ++j)
+              for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  betaupd[j] += previous_samples[l][j];
-                  betaupd[j] -= beta[l][j];
+                  betaupd[j] += Utilities::get_nth_element (previous_samples[l], j);
+                  betaupd[j] -= Utilities::get_nth_element (beta[l], j);
                   betaupd[j] /= n_samples-(l+1);
                 }
-              for (unsigned int j=0; j<sample.size(); ++j)
-                beta[l][j] += betaupd[j];
+              for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                beta[l][j] += Utilities::get_nth_element (betaupd, j);
             }
 
           // Now save the sample. If the list is becoming longer than the lag
@@ -294,11 +296,13 @@ namespace SampleFlow
             {
               current_autocovariation[i] = alpha[i];
 
-              for (unsigned int j=0; j<current_mean.size(); ++j)
-                current_autocovariation[i] -= current_mean[j] * beta[i][j];
+              for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+                current_autocovariation[i] -= Utilities::get_nth_element(current_mean,j) *
+                                              Utilities::get_nth_element(beta[i], j);
 
-              for (unsigned int j=0; j<current_mean.size(); ++j)
-                current_autocovariation[i] += current_mean[j]*current_mean[j];
+              for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+                current_autocovariation[i] += Utilities::get_nth_element(current_mean,j) *
+                                              Utilities::get_nth_element(current_mean,j);
             }
         }
 
