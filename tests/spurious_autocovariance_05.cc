@@ -38,14 +38,14 @@ double log_likelihood (const SampleType &x)
   double sum = 0;
   for (unsigned int i=0; i<x.size(); ++i)
     sum += x[i] * x[i];
-  
+
   return -sum;
 }
 
 SampleType perturb (const SampleType &x)
 {
   // Perturb the current sample using a Gaussian distribution
-  // around the current point with standard deviation 0.5.
+  // around the current point with standard deviation 1.5.
   static std::mt19937 rng;
   std::normal_distribution<double> distribution(0., 1.5);
 
@@ -67,7 +67,7 @@ int main ()
   const unsigned int AC_length = 30;
   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
   autocovariance.connect_to_producer (mh_sampler);
-  
+
   mh_sampler.sample ({0,1},
                      &log_likelihood,
                      &perturb,
@@ -80,10 +80,10 @@ int main ()
   std::cout << std::fixed;
   std::cout << std::setprecision(3);
 
+
+  // Now output the acceptance ratio and the autocorrelations
   std::cout << "# Acceptance ratio: "
             << acceptance_ratio.get() << std::endl;
-  
-  // 
   for (const auto v : autocovariance.get())
     std::cout << v << std::endl;
 }
