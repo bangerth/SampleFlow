@@ -94,7 +94,7 @@ namespace SampleFlow
         /**
          * The data type of the elements of the input type.
          */
-        using scalar_type = typename InputType::value_type;
+        using scalar_type = types::ScalarType<InputType>;
 
         /**
          * The data type returned by the get() function.
