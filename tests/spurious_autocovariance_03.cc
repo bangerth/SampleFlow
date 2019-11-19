@@ -15,7 +15,7 @@
 
 
 // Check the SpuriousAutocovariance consumer. Do so with a sequence of
-// samples is truly uncorrelated: We just pick numbers in the range
+// samples that is truly uncorrelated: We just pick numbers in the range
 // [0,1] by random. For a sufficiently long such sequence, all
 // autocorrelations should be close to zero.
 
