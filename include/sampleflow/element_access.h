@@ -184,6 +184,24 @@ namespace SampleFlow
     }
 
 
+
+    /**
+     * Like the previous function, but for non-`const` objects for which the
+     * returned object is a reference to the elements of the `sample` object.
+     */
+    template <typename SampleType>
+    auto get_nth_element (SampleType       &sample,
+                          const std::size_t index)
+    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == true,
+    typename std::remove_cv<
+    typename std::remove_reference<
+    decltype(std::declval<SampleType>()[index])>::type>::type>::type &
+    {
+      assert (index < size(sample));
+      return sample[index];
+    }
+
+
     /**
      * A function that, for types `SampleType` for which one can not build
      * expressions of the form `sample[i]`, simply returns the object itself.
@@ -199,6 +217,22 @@ namespace SampleFlow
                           const std::size_t index)
     -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == false,
     SampleType>::type
+    {
+      assert (index == 0);
+      return sample;
+    }
+
+
+    /**
+     * Like the previous function, but for non-`const` objects for which the
+     * returned object is a reference to the (single) element
+     * of the `sample` object.
+     */
+    template <typename SampleType>
+    auto get_nth_element (SampleType       &sample,
+                          const std::size_t index)
+    -> typename std::enable_if<internal::has_subscript_operator<SampleType>::value == false,
+    SampleType>::type &
     {
       assert (index == 0);
       return sample;
