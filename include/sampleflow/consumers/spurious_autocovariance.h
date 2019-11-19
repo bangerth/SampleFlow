@@ -222,7 +222,7 @@ namespace SampleFlow
               beta[i] = sample;
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  beta[i][j] = 0;
+                  Utilities::get_nth_element(beta[i], j) = 0;
                 }
             }
           current_mean = sample;
@@ -256,12 +256,17 @@ namespace SampleFlow
               InputType betaupd = sample;
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  betaupd[j] += Utilities::get_nth_element (previous_samples[l], j);
-                  betaupd[j] -= Utilities::get_nth_element (beta[l], j);
-                  betaupd[j] /= n_samples-(l+1);
+                  Utilities::get_nth_element(betaupd, j)
+                  += Utilities::get_nth_element (previous_samples[l], j);
+
+                  Utilities::get_nth_element(betaupd, j)
+                  -= Utilities::get_nth_element (beta[l], j);
+
+                  Utilities::get_nth_element(betaupd, j)
+                  /= n_samples-(l+1);
                 }
-              for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                beta[l][j] += Utilities::get_nth_element (betaupd, j);
+
+              beta[l] += betaupd;
             }
 
           // Now save the sample. If the list is becoming longer than the lag
