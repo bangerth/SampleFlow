@@ -45,8 +45,10 @@ Testing
 cmake_install.cmake
 CTestTestfile.cmake
 
-# Output files in the tests/ directory
-tests/*.result
+# In the tests/ directory, ignore everything but the .cc and .output files
+tests/*
+!tests/*cc
+!tests/*output
 
 # Files built by doxygen
 doc/SampleFlow.dox
