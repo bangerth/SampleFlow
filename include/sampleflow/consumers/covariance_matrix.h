@@ -53,7 +53,7 @@ namespace SampleFlow
      *
      * @tparam InputType The C++ type used for the samples $x_k$. In
      *   order to compute covariances, the same kind of requirements
-     *   have to hold as listed for the Covariance class.
+     *   have to hold as listed for the MeanValue class.
      */
     template <typename InputType>
     class CovarianceMatrix : public Consumer<InputType>

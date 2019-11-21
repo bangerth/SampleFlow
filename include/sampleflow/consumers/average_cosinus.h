@@ -37,7 +37,12 @@ namespace SampleFlow
      * The implementation of this class is thread-safe, i.e., its
      * consume() member function can be called concurrently and from multiple
      * threads.
-     **/
+     *
+     *
+     * @tparam InputType The C++ type used for the samples $x_k$. In
+     *   order to compute covariances, the same kind of requirements
+     *   have to hold as listed for the MeanValue class.
+     */
     template <typename InputType>
     class AverageCosineBetweenSuccessiveSamples: public Consumer<InputType>
     {
