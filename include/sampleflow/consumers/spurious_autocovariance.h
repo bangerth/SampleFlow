@@ -75,6 +75,107 @@ namespace SampleFlow
      * class does.
      *
      *
+     * ### Making computing the spurious autocovariance less expensive ###
+     *
+     * In many situations, samples are quite highly correlated. An example is
+     * Metropolis-Hastings sampling (e.g., using the Producers::MetropolisHastings
+     * class) in high dimensional spaces: In those cases, it often takes many
+     * hundreds or thousands of steps to obtain another sample that is
+     * statistically uncorrelated to the first one. Unfortunately, to find
+     * out how long this "correlation length" is, one has to compute
+     * autocorrelations with rather large lags -- say, a lag of 10,000.
+     * In these cases, it becomes very very expensive to actually compute the
+     * autocorrelation: For every new sample, this class has to compute
+     * data against each of the previous 10,000 samples. This can quite easily
+     * be as expensive as it was to compute the new sample itself, or maybe even
+     * more expensive.
+     *
+     * But, one often doesn't actually need the autocorrelation for every lag
+     * between 1 and 10,000. Rather, it would be enough to really know the
+     * correlation between samples $x_k$ and $x_{k-10}$, $x_{k-20}$, etc.
+     * That's because we generally aren't really interested in the
+     * autocorrelation for every lag $l$ between 1 and 10,000 -- rather,
+     * what one typically wants to know for which lag samples become
+     * uncorrelated and statistically it isn't going to make much difference
+     * to us whether we know that the autocorrelation first is approximately
+     * zero after a lag of 5,434 or 5,440. In other words, instead of computing
+     * 10,000 pieces of data for each new sample, one would only compute
+     * 1,000 pieces of data for each new sample. But this may still be very
+     * expensive, and it, too, is not necessary: That's because in those
+     * cases where we care to compute autocorrelations out to a lag of
+     * 10,000, the contributions of samples 54,130, 54,131, ..., 54,139
+     * to the autocorrelations are going to be almost identical because
+     * these samples are high correlated with each other. In other
+     * words, we can compute a very good approximation to the autocorrelation
+     * if we take only every tenth sample of the original stream and compute
+     * the autocorrelation with those samples back to have a lag of 10,
+     * 20, 30, ... -- i.e., we really only need to compute the autocorrelation
+     * back to a lag of 1,000 for every tenth sample.
+     *
+     * We can implement this in the following way: Let's say we have a
+     * `sampler` object that produces samples (e.g., a
+     * Producers::MetropolisHastings object), then the original and
+     * very expensive way to compute the autocorrelation back to a lag
+     * of 10,000 is to use the current class like this:
+     * @code
+     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(10000);
+     *   covariance.connect_to_producer (sampler);
+     * @endcode
+     * On the other hand, a cheaper way is as follows:
+     * @code
+     *   SampleFlow::Filters::TakeEveryNth<SampleType> every_10th(10);
+     *   every_10th.connect_to_producer (sampler);
+     *
+     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(1000);
+     *   covariance.connect_to_producer (every_10th);
+     * @endcode
+     * And an even cheaper way would be to use this, if we
+     * expect that autocorrelations in the sample stream persist
+     * substantially beyond a lag of several hundred:
+     * @code
+     *   SampleFlow::Filters::TakeEveryNth<SampleType> every_100th(100);
+     *   every_100th.connect_to_producer (sampler);
+     *
+     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(100);
+     *   covariance.connect_to_producer (every_100th);
+     * @endcode
+     *
+     * In order to illustrate this with an example, we have taken the first
+     * 100,000 samples from a Metropolis-Hastings chain of a 64-dimensional
+     * problem to find out how long the autocorrelation length scale is.
+     * For this problem, computing the autocorrelation to a lag of 10,000
+     * using every sample takes 198 minutes. Using only every tenth sample
+     * using the two additional lines above reduces this time to 2 minutes
+     * 54 seconds -- not surprisingly a reduction of almost a factor of 100,
+     * given that we only consider one tenth the samples and for each need
+     * to compute only one tenth of the information. A further reduction
+     * to every 100th sample further reduces the time to 35 seconds, which
+     * is also the time it takes if we take only every 1000th sample; both
+     * of these times reflect the time to run those parts of the program
+     * that have nothing to do with computing the autocorrelation.
+     *
+     * The question of course is how good this approximation with a reduced
+     * number of samples then is. The following picture shows the
+     * autocovariances computed with all of these subsets of data:
+     *
+     * @image html spurious_autocovariance_01.png
+     *
+     * It is clear from the image that the information we get from using
+     * only every tenth sample (at one hundredth the computational cost)
+     * is as good as when using every sample: The two curves cover each
+     * other. When only using every hundredth sample, one can see differences,
+     * and the information is substantially different when only using every
+     * thousandth sample. What *is* interesting, however, is that all of
+     * these data subsets give us the same idea that only samples at least
+     * around 5000 apart in the chain are statistically uncorrelated. In
+     * other words, if we care about finding out every how manyth sample
+     * we should take from the chain to have the same information content
+     * as when considering every single sample, then the answer around 5000
+     * no matter how we compute it. In other words, reducing the sampling
+     * rate when computing the autocovariance to a point where it no longer
+     * is prohibitively expensive works.
+     *
+     *
      * ### Threading model ###
      *
      * The implementation of this class is thread-safe, i.e., its
