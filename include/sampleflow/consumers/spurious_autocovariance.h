@@ -185,8 +185,8 @@ namespace SampleFlow
      *
      * @tparam InputType The C++ type used for the samples $x_k$. In
      *   order to compute auto covariances, the same kind of requirements
-     *   have to hold as listed for the Covariance class (we need to be able to
-     *   calculate mean, divide by positive integer ant etc)
+     *   have to hold as listed for the MeanValue class (we need to be able to
+     *   calculate mean, divide by positive integers, etc.).
      */
 
     template <typename InputType>
