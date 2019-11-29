@@ -29,8 +29,11 @@ FOREACH(_testfile ${_testfiles})
   MESSAGE(STATUS "  ${_testname}")
 
   # For each test, add the corresponding executable and the commands
-  # necessary to run the test
+  # necessary to run the test. Compile the executable with -Werror
+  # to ensure that there are no warnings in either the tests, or the
+  # header files these tests #include.
   ADD_EXECUTABLE(${_testname} EXCLUDE_FROM_ALL ${_testfile})
+  TARGET_COMPILE_OPTIONS(${_testname} PRIVATE -Werror)
 
   # Then specify what it means to run a test:
   # - execute the test and write the output to a .result file
