@@ -22,10 +22,67 @@
 
 #include <list>
 #include <utility>
+#include <future>
 
 
 namespace SampleFlow
 {
+  /**
+   * An enumeration that designates how a Consumer (or Filter) object should
+   * process a newly incoming sample. This is set through the
+   * Consumer::set_parallel_mode() function.
+   */
+  enum class ParallelMode
+  {
+    /**
+     * Process the sample synchronously, i.e., on the current thread
+     * work on whatever the consumer does with the sample and, if this
+     * consumer is in fact a filter, send the filtered sample downstream
+     * to any connected other consumers. Only after all of these steps
+     * have been executed does the program return to the place where the
+     * sample was sent from.
+     *
+     * Note that this does *not* mean that a consumer or filter is only
+     * processing one sample at a time. This is because it may be connected
+     * to a filter or producer upstream that is itself working asynchronously,
+     * or it may be connected to multiple consumers or filters upstream.
+     * These may all be sending samples in parallel, and they will have
+     * to be processed in parallel. The `synchronous` flag here simply
+     * determines what happens to each of these incoming samples: Will
+     * it be processed right away on the current thread, or will it be
+     * deferred to a later time and on a thread of the operating system's
+     * choosing.
+     */
+    synchronous,
+
+    /**
+     * Process the sample asynchronously by creating a new task that the
+     * operating system can work on whenever it has available resources.
+     * To make this possible, a Consumer or Filter object that uses this
+     * mode copies the sample, and then creates a std::task object that
+     * encapsulates what needs to be done (namely, processing the sample
+     * and, if this consumer is in fact a filter, sending the processed
+     * sample downstream to other consumers).
+     *
+     * Control flow then immediately returns to the place where the current
+     * sample was sent from, with one caveat: when specifying
+     * `asynchronous`, only a finite number of such tasks can exist at any
+     * given time. If the number of tasks that were created for previous
+     * samples and that have not been executed yet at the time a subsequent
+     * sample is sent exceeds a certain limit, then the
+     * current thread of execution will block until some of these still
+     * pending tasks have been
+     * completed, before creating a new task. This is to make sure that
+     * if processing samples takes substantially longer than creating new
+     * samples, we don't end up with an indefinite backlog of samples.
+     *
+     * The limit of currently pending tasks (the "queue size") can be
+     * set through an argument to Consumer::set_parallel_mode().
+     */
+    asynchronous
+  };
+
+
   /**
    * This is the base class for classes that *consume* samples, i.e. react
    * in some way to a sample produced by a Producer object. Examples of
@@ -75,6 +132,13 @@ namespace SampleFlow
   class Consumer
   {
     public:
+      /**
+       * Constructor. The only meaningful action of this constructor is to
+       * set the parallel mode of this object to its default,
+       * ParallelMode::synchronous.
+       */
+      Consumer ();
+
       /*
        * The destructor. It disconnects this consumer object from
        * all producers it was connected to.
@@ -121,7 +185,68 @@ namespace SampleFlow
       consume (InputType sample,
                AuxiliaryData aux_data) = 0;
 
+
+      /**
+       * Set how this consumer or filter should process newly incoming samples.
+       * In particular, the arguments to this function determine whether
+       * new samples should be processed on the current thread, or
+       * whether processing should be deferred to a separate task that
+       * may run at a later time or on a different processor core -- at
+       * the operating system's preference, whenever resources are
+       * available.
+       *
+       * See the description of the ParallelMode `enum` for more information.
+       *
+       * @param[in] parallel_mode Determines how new samples should be
+       *   processed.
+       * @param[in] queue_size The maximum number of samples whose processing
+       *   has been deferred at any given time and whose processing has not
+       *   finished yet. If, for example, `queue_size` is one and a previous
+       *   sample has not completed processing, then a newly incoming sample
+       *   will be held up (and the current process will block) until the
+       *   previous sample has completed processing.
+       *
+       * @note This function needs to be be called *before* this consumer or
+       *   filter is connected to any upstream producer (or other filter), and
+       *   in particular before any samples are actually sent to the current
+       *   object.
+       */
+      void
+      set_parallel_mode (const ParallelMode parallel_mode,
+                         const unsigned int queue_size = 1);
+
+
+      /**
+       * Ensure that all samples currently being worked on by this object
+       * are finished up. In a parallel context, there may still be new samples
+       * that are coming in even while this function is working, and as a
+       * consequence, to *really* make sure that no samples are worked on
+       * as this function returns, one needs to ensure one of two things:
+       * - Shut down all connections to upstream producers and filters.
+       *   This is what the disconnect_and_flush() function does.
+       * - Ensure that flush() has been called before on all upstream
+       *   producers and filters.
+       */
+      void
+      flush ();
+
+      /**
+       * Shut down the connections to upstream producers and filters,
+       * ensuring that no further samples will be sent to the current object.
+       * Then call the flush() function that makes sure that all samples that
+       * are currently still being processed are finished up.
+       *
+       * @note Derived classes can only allow destruction to proceed if they
+       *   can make sure that no further samples will be sent to them. This
+       *   function ensures exactly this, and as a consequence all Filter
+       *   and Consumer implementations must call this function in their
+       *   destructor before destroying any other data structures.
+       */
+      void
+      disconnect_and_flush ();
+
     private:
+
       /**
        * A list of connections created by calling connect_to_producer().
        * We store this list so that we can terminate the connection once
@@ -131,15 +256,65 @@ namespace SampleFlow
        * has been destroyed.
        */
       std::list<boost::signals2::connection> connections_to_producers;
+
+      /**
+       * How newly incoming samples should be processed.
+       */
+      ParallelMode parallel_mode;
+
+      /**
+       * How many tasks can be in flight at any given time.
+       */
+      unsigned int queue_size;
+
+      /**
+       * A mutex that controls access to all of the data structures involved
+       * in parallel processing of samples. In particular, this includes
+       * the task queue, but also shutting down the process of accepting
+       * samples.
+       */
+      std::mutex parallel_mode_mutex;
+
+      /**
+       * A queue of std::future objects that correspond to tasks that
+       * process samples.
+       */
+      std::list<std::shared_future<void>> background_tasks;
+
+
+      /**
+       * Ensure that the queue of background tasks does not grow beyond
+       * bounds by going through the queue and deleting all shared_future
+       * objects that have already completed.
+       */
+      void trim_background_queue();
   };
+
+
+
+  template <typename InputType>
+  Consumer<InputType>::Consumer ()
+    :
+    parallel_mode (ParallelMode::synchronous),
+    queue_size (1)
+  {}
 
 
 
   template <typename InputType>
   Consumer<InputType>::~Consumer ()
   {
+    // Disconnect from anything that could submit more samples
+    // to the current class. We have to be mindful that this function
+    // may have been called at the same time as a sample was sent,
+    // and because the sample processing machinery queries the
+    // state of the connections, we need to do things under a
+    // mutex
+    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
     for (auto &connection : connections_to_producers)
       connection.disconnect ();
+    connections_to_producers.clear();
   }
 
 
@@ -151,13 +326,203 @@ namespace SampleFlow
   {
     // Create a connection to a lambda function that in turn calls
     // the consume() member function of the current object.
-    connections_to_producers.push_back (
-      producer.connect_to_signal (
-        [&](InputType sample, AuxiliaryData aux_data)
-    {
-      this->consume (std::move(sample), std::move(aux_data));
-    }));
+    //
+    // How exactly this is lambda function that is called for each
+    // sample looks like depends on the parallel mode of the current
+    // object.
+    switch (parallel_mode)
+      {
+
+        // If we want to process samples synchronously, then
+        // then the lambda function simply calls the 'consume()'
+        // function that derived classes need to implement. This means that
+        // the caller will have to wait until the `consume` function
+        // returns.
+        //
+        // But it isn't so simple. If some *upstream* filter is working
+        // with tasks, then we may still end up in a situation where the
+        // lambda function we create here is called multiple times and on a
+        // separate threads. We don't want to synchronize these calls
+        // (though implementations of the `consume()` function in
+        // derived classes typically want to). So we need
+        // to expose this fact to the `disconnect_and_flush()` function.
+        // This we do by wrapping up the task at hand into a std::task
+        // object that we place into the task queue, but instead of
+        // calling `std::async` on it, we immediately execute it. The
+        // point is that while we wait for it, it exists in a state so
+        // that `disconnect_and_flush()` can also wait for it.
+        //
+        // Because we may still get multiple samples in parallel from
+        // upstream (for example, because an upstream filter runs in
+        // asynchronous mode), we need to do the set-up of all of this
+        // under a mutex.
+        //
+        // Finally, we need to be mindful that we could have received a sample
+        // just at the same time as someone called `disconnect_and_flush()`.
+        // In this case, we may have ended up in the lambda function below,
+        // the OS has interrupted us and while we had to wait, the connection
+        // to upstream was severed and `flush()` was called (or not yet, but
+        // will soon). In that case, we don't want to process more samples.
+        // If that is the case, once we get the parallel_mode_mutex,
+        // we need to decide that we don't want to process this sample
+        // any more -- as if the connection had been severed just *before*,
+        // not just *after* the sample had been sent. This ensures that once
+        // `disconnect_and_flush()` has finished, we no longer process any
+        // samples.
+        case ParallelMode::synchronous:
+        {
+          connections_to_producers.push_back (
+            producer.connect_to_signal (
+              [&](InputType sample, AuxiliaryData aux_data)
+          {
+            // Create a task that calls `consume()`. We're eventually going to
+            // run this task synchronously, so we can take all arguments of the
+            // underlying lambda as references. The point of wrapping it all
+            // up in a std::packaged_task is so that we can extract a
+            // std::future from it.
+            std::packaged_task<void ()> worker
+            ([&]()
+            {
+              this->consume (std::move(sample), std::move(aux_data));
+            });
+
+            // Now do the actual work of setting up the task and extracting
+            // the future object:
+            {
+              std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+              // If all connections have been severed since we actually
+              // got here (via a connection, of course), we pretend that we
+              // never received the sample.
+              if (connections_to_producers.size() == 0)
+                return;
+
+              // Next emplace the shared future object into the queue, in order
+              // to allow other threads to wait for the termination of
+              // the current job
+              background_tasks.emplace_back (worker.get_future().share());
+            }
+
+            // At this point, we have created a task and put its corresponding
+            // future into the queue. Instead of putting the task into the
+            // background, just execute it right away. This can happen outside
+            // the mutex guard because we do not touch the parallel data
+            // structures at this point. The future will then immediately be
+            // ready once we task has finished executing.
+            worker();
+
+            // Finally, ensure that the queue does not grow beyond bound by
+            // removing shared_futures that have already been satisfied
+            trim_background_queue();
+          }));
+
+          break;
+        }
+
+
+        // On the other hand, if we use asynchronous processing,
+        // then we create a lambda that when executed creates a task
+        // that can be executed whenever the run-time system of the compiler
+        // thinks is appropriate. ...
+        case ParallelMode::asynchronous:
+        {
+          break;
+        }
+      }
   }
+
+
+  template <typename InputType>
+  void
+  Consumer<InputType>::
+  set_parallel_mode (const ParallelMode parallel_mode,
+                     const unsigned int queue_size)
+  {
+    assert (connections_to_producers.size() == 0);
+
+    this->parallel_mode = parallel_mode;
+    this->queue_size = queue_size;
+  }
+
+
+
+  template <typename InputType>
+  void
+  Consumer<InputType>::
+  disconnect_and_flush()
+  {
+    // Disconnect from anything that could submit more samples
+    // to the current class. We have to be mindful that this function
+    // may have been called at the same time as a sample was sent,
+    // and because the sample processing machinery queries the
+    // state of the connections, we need to do things under a
+    // mutex
+    {
+      std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+      for (auto &connection : connections_to_producers)
+        connection.disconnect ();
+      connections_to_producers.clear();
+    }
+
+    // Then flush() the current state.
+    flush ();
+  }
+
+
+
+  template <typename InputType>
+  void
+  Consumer<InputType>::
+  flush()
+  {
+    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+    // For each std::shared_future object, first check whether it
+    // has already been waited on. If that is the case, then just
+    // ignore it. If it hasn't, wait for its completion.
+    for (auto &future : background_tasks)
+      if (future.valid())
+        future.wait();
+
+    // At this point, we have waited for all futures, and because
+    // we are under the lock, no new futures can have been added. So
+    // just clear the whole array
+    background_tasks.clear();
+  }
+
+
+
+  template <typename InputType>
+  void
+  Consumer<InputType>::
+  trim_background_queue()
+  {
+    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+    // For each std::shared_future object, first check whether it
+    // has completed (either because someone has waited for it,
+    // or because it has finished since someone last looked).
+    // If that is the case, then remove it from the list.
+    auto future = background_tasks.begin();
+    while (future != background_tasks.end())
+      {
+        if (future->wait_for(std::chrono::seconds(0))
+            == std::future_status::ready)
+          {
+            // Move the iterator forward by one, but erase the element
+            // previously pointed to by the iterator:
+            auto old_iterator = future;
+            ++future;
+
+            background_tasks.erase (old_iterator);
+          }
+        else
+          ++future;
+      }
+  }
+
+
 
 
   /**
