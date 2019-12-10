@@ -36,7 +36,15 @@ namespace SampleFlow
     /**
      * A Consumer class that implements the creation of a histogram of a
      * single scalar value represented by the samples. This histogram can then
-     * be obtained by calling the get() function.
+     * be obtained by calling the get() function, or output using the
+     * write_gnuplot() function in a format that easy to visualize.
+     *
+     * If a sample falls exactly on the end point of an interval, this
+     * class may count it for one or the other interval and users should
+     * not rely on a particular behavior by choosing interval break points
+     * that are not likely going to be sample points. For example, if samples
+     * are integer-valued, then the intervals should be chosen to be from
+     * $n-0.5$ to $n+0.5$ for integers $n$.
      *
      *
      * ### Threading model ###
@@ -361,9 +369,20 @@ namespace SampleFlow
     Histogram<InputType>::
     bin_number (const double value) const
     {
-      assert (value >= interval_points.front() && value < interval_points.back());
-      const auto p = std::lower_bound(interval_points.begin(), interval_points.end(), value);
-      return (p-interval_points.begin());
+      assert (value >= interval_points.front() && value <= interval_points.back());
+
+      // Find the first element in interval_points that is not < value
+      const auto p = std::lower_bound(interval_points.begin(), interval_points.end(),
+                                      value);
+
+      // We could have just hit an interval point exactly. We
+      // generally don't care about that and just count the sample for
+      // the previous interval, but can't do that if it is the
+      // leftmost end point
+      if (p == interval_points.begin())
+        return 0;
+      else
+        return (p-interval_points.begin()-1);
     }
   }
 }
