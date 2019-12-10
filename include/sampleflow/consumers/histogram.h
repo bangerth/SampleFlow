@@ -154,7 +154,13 @@ namespace SampleFlow
 
         /**
          * Process one sample by computing which bin it lies in, and then
-         * incrementing the number of samples in the bin.
+         * incrementing the number of samples in the bin. If a sample happens
+         * to lie exactly on the point between two bins, then the algorithm
+         * may count it for one or the other. User codes should not make
+         * assumptions about which one this is; this is also useful because,
+         * at least for sample types composed of floating point numbers,
+         * round-off may have shifted the sample just to the left or right
+         * of a bin end point.
          *
          * @param[in] sample The sample to process.
          * @param[in] aux_data Auxiliary data about this sample. The current
