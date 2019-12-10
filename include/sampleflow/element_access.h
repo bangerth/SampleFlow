@@ -34,7 +34,7 @@ namespace SampleFlow
        * whether the class `SampleType` given as template argument allows
        * forming subscripts, i.e., whether it has an `operator[]` that can
        * be used in expressions of the form `sample[i]` where `sample` is
-       * an object of type `SampleType`.
+       * an object of type `SampleType` and where `i` is an integer type.
        */
       template <typename SampleType>
       struct has_subscript_operator
