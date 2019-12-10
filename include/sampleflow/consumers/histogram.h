@@ -327,7 +327,10 @@ namespace SampleFlow
     Histogram<InputType>::
     get () const
     {
-      // First create the output table and breakpoints
+      // First create the output table and breakpoints. We can do
+      // this without holding the lock since we're not accessing
+      // information that is subject to change when a new sample
+      // comes in.
       value_type return_value (bins.size());
       for (unsigned int bin=0; bin<bins.size(); ++bin)
         {
