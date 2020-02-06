@@ -26,6 +26,9 @@ SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_EXTENSIONS OFF)
 ADD_DEFINITIONS("-ggdb")
 
+# Also make sure we link with the threads library in question
+FIND_PACKAGE (Threads)
+
 # Source files need to know where headers are:
 INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 
@@ -46,7 +49,7 @@ ENDIF()
 #########################################
 ### Describe what is currently the only executable
 ADD_EXECUTABLE (mcmc_test mcmc_test.cc)
-
+TARGET_LINK_LIBRARIES(mcmc_test Threads::Threads)
 
 #########################################
 ### Provide "indent" target for indenting all headers and source files
