@@ -59,6 +59,14 @@ namespace SampleFlow
         ComponentSplitter (const ComponentSplitter<InputType> &o);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~ComponentSplitter ();
+
+        /**
          * Process one sample by extracting a given component and passing
          * that on as a sample in its own right to downstream consumers.
          *
@@ -98,6 +106,14 @@ namespace SampleFlow
       : selected_component(o.selected_component)
     {}
 
+
+
+    template <typename InputType>
+    ComponentSplitter<InputType>::
+    ~ComponentSplitter ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType>

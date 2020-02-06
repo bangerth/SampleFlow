@@ -63,6 +63,14 @@ namespace SampleFlow
         MaximumProbabilitySample ();
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~MaximumProbabilitySample ();
+
+        /**
          * Process one sample by checking whether it has a higher probability
          * (log likelihoood) than the previously most likely one. If so, store
          * it so that it can later be returned by the get() function.
@@ -128,6 +136,15 @@ namespace SampleFlow
       current_most_likely_sample_data (),
       current_highest_log_likelihood(std::numeric_limits<double>::lowest())
     {}
+
+
+
+    template <typename InputType>
+    MaximumProbabilitySample<InputType>::
+    ~MaximumProbabilitySample ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

@@ -65,6 +65,11 @@ class MyStreamOutput : public SampleFlow::Consumer<InputType>
       output_stream (output_stream)
     {}
 
+    ~MyStreamOutput ()
+    {
+      this->disconnect_and_flush();
+    }
+
 
     virtual
     void

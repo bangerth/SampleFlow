@@ -110,6 +110,14 @@ namespace SampleFlow
         Action (const std::function<void (InputType, AuxiliaryData)> &action);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~Action ();
+
+        /**
          * Process one sample by forgetting about the previously last sample
          * and instead storing this one for later access using the get()
          * function.
@@ -141,6 +149,14 @@ namespace SampleFlow
       action_function (action)
     {}
 
+
+
+    template <typename InputType>
+    Action<InputType>::
+    ~Action ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType>

@@ -192,6 +192,14 @@ namespace SampleFlow
         PairHistogram (const PairHistogram<InputType> &o);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~PairHistogram ();
+
+        /**
          * Process one sample by computing which bin it lies in, and then
          * incrementing the number of samples in the bin.
          *
@@ -379,6 +387,15 @@ namespace SampleFlow
       y_interval_points(o.y_interval_points),
       bins (o.bins)
     {}
+
+
+
+    template <typename InputType>
+    PairHistogram<InputType>::
+    ~PairHistogram ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

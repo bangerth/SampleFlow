@@ -70,6 +70,14 @@ namespace SampleFlow
         StreamOutput (std::ostream &output_stream);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~StreamOutput ();
+
+        /**
          * Process one sample by outputting it to the stream set in the
          * constructor.
          *
@@ -104,6 +112,15 @@ namespace SampleFlow
       :
       output_stream (output_stream)
     {}
+
+
+
+    template <typename InputType>
+    StreamOutput<InputType>::
+    ~StreamOutput ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     namespace internal

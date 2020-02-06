@@ -213,6 +213,14 @@ namespace SampleFlow
         SpuriousAutocovariance(const unsigned int lag_length);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~SpuriousAutocovariance ();
+
+        /**
          * Process one sample by updating the previously computed covariance
          * values using this one sample.
          *
@@ -295,6 +303,15 @@ namespace SampleFlow
       autocovariance_length(lag_length),
       n_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    SpuriousAutocovariance<InputType>::
+    ~SpuriousAutocovariance ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType>

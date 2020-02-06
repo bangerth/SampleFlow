@@ -153,6 +153,14 @@ namespace SampleFlow
         Histogram (const Histogram<InputType> &o);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~Histogram ();
+
+        /**
          * Process one sample by computing which bin it lies in, and then
          * incrementing the number of samples in the bin. If a sample happens
          * to lie exactly on the point between two bins, then the algorithm
@@ -298,6 +306,15 @@ namespace SampleFlow
       interval_points(o.interval_points),
       bins (o.bins)
     {}
+
+
+
+    template <typename InputType>
+    Histogram<InputType>::
+    ~Histogram ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

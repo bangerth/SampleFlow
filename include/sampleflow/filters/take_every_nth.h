@@ -63,6 +63,14 @@ namespace SampleFlow
         TakeEveryNth (const types::sample_index every_nth);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~TakeEveryNth ();
+
+        /**
          * Process one sample by checking whether it is an $n$th sample
          * and if so, pass it on to downstream consumers. If it isn't,
          * return an empty object which the caller of this function in the
@@ -109,6 +117,15 @@ namespace SampleFlow
       : counter (0),
         every_nth (every_nth)
     {}
+
+
+
+    template <typename InputType>
+    TakeEveryNth<InputType>::
+    ~TakeEveryNth ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

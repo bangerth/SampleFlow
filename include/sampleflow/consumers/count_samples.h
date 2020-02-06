@@ -55,6 +55,14 @@ namespace SampleFlow
         CountSamples ();
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~CountSamples ();
+
+        /**
          * Process one sample by just incrementing the sample counter.
          *
          * @param[in] sample The sample to process. Since this class does
@@ -97,6 +105,15 @@ namespace SampleFlow
       :
       n_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    CountSamples<InputType>::
+    ~CountSamples ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

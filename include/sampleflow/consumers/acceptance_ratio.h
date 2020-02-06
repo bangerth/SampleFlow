@@ -67,6 +67,14 @@ namespace SampleFlow
         AcceptanceRatio();
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~AcceptanceRatio ();
+
+        /**
          * Process one sample by updating the previously computed acceptance ratio
          * using this one sample.
          *
@@ -124,6 +132,16 @@ namespace SampleFlow
       n_samples (0),
       n_accepted_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    AcceptanceRatio<InputType>::
+    ~AcceptanceRatio ()
+    {
+      this->disconnect_and_flush();
+    }
+
 
 
     namespace internal

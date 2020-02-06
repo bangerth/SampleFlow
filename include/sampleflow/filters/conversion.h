@@ -74,6 +74,14 @@ namespace SampleFlow
         });
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~Conversion ();
+
+        /**
          * Process one sample by converting it to the output type using the function
          * object passed to the constructor.
          *
@@ -105,6 +113,14 @@ namespace SampleFlow
       : conversion_function (conversion_function)
     {}
 
+
+
+    template <typename InputType, typename OutputType>
+    Conversion<InputType,OutputType>::
+    ~Conversion ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType, typename OutputType>
