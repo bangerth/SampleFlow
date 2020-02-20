@@ -37,7 +37,7 @@ namespace SampleFlow
      *
      *   const auto action_function =
      *     [](SampleType sample,
-     *        AuxiliaryData aux_data) {  std::cout << sample << std::endl;  }
+     *        AuxiliaryData aux_data) {  std::cout << sample << std::endl;  };
      *   Consumers::Action<SampleType> action (action_function);
      *   action.connect_to_producer (producer);
      * @endcode
@@ -56,7 +56,7 @@ namespace SampleFlow
      *   const auto action_function =
      *     [&output_file](SampleType sample,
      *                    AuxiliaryData aux_data)
-     *     { output_file << sample << std::endl; }
+     *     { output_file << sample << std::endl; };
      *   Consumers::Action<SampleType> action (action_function);
      *   action.connect_to_producer (producer);
      * @endcode
