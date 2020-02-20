@@ -86,7 +86,7 @@ namespace SampleFlow
      * pragmatic perspective, not an "update" operation on a variable whose
      * state is of relevance at a later time in the program.)
      *
-     * This class is often used together with the Filters::EveryNth class
+     * This class is often used together with the Filters::TakeEveryNth class
      * to execute some action every $n$th sample.
      *
      *
