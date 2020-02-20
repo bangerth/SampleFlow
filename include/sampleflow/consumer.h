@@ -78,6 +78,30 @@ namespace SampleFlow
      *
      * The limit of currently pending tasks (the "queue size") can be
      * set through an argument to Consumer::set_parallel_mode().
+     *
+     * @note When a filter or consumer object uses this parallel mode,
+     *   then it can be thought of copying every incoming sample into
+     *   a separate location and describes to the operating system
+     *   that that sample should be processed whenever computational
+     *   resources are available. This also means that if the queue
+     *   size is larger than one, then these tasks may be executed
+     *   in a different order than the samples came in. This is
+     *   because the operating system sees no need to execute
+     *   the available tasks in any particular order. One could of course
+     *   enforce this somehow, but when processing samples in parallel,
+     *   it is often also the case that an upstream sample producer
+     *   (or multiple producers feeding into a consumer or filter) already
+     *   run in parallel and send their sample in a non-deterministic
+     *   order -- making the effort to process them in a deterministic order
+     *   pointless. In any case, if a user uses this asynchronous mode
+     *   on a consumer of filter, then this is really only useful for
+     *   consumers or filters for which processing in a random order makes
+     *   sense. For example, the Consumers::MeanValue doesn't really care
+     *   about the order in which samples are processed since the mean
+     *   value computed after all samples have been processed is
+     *   independent of their order. On the other hand, the
+     *   Consumers::AcceptanceRatio class <i>does</i> care and one should
+     *   probably not set this parallel mode for that class.
      */
     asynchronous
   };
@@ -295,7 +319,7 @@ namespace SampleFlow
   template <typename InputType>
   Consumer<InputType>::Consumer ()
     :
-    parallel_mode (ParallelMode::synchronous),
+    parallel_mode (ParallelMode::asynchronous),
     queue_size (1)
   {}
 
@@ -421,11 +445,57 @@ namespace SampleFlow
 
 
         // On the other hand, if we use asynchronous processing,
-        // then we create a lambda that when executed creates a task
-        // that can be executed whenever the run-time system of the compiler
-        // thinks is appropriate. ...
+        // then we the logic is substantially more complicated
         case ParallelMode::asynchronous:
         {
+          connections_to_producers.push_back (
+            producer.connect_to_signal (
+              [&](InputType sample, AuxiliaryData aux_data)
+          {
+            // Create a task that calls `consume()`. First, because we're going
+            // to run this task at some later time, we need to copy the sample
+            // and aux data at this point. (If we were using C++14, we could
+            // actually *move* these objects into the lambda function, but that
+            // is not possible with C++11.)
+            auto worker =
+              [this,sample,aux_data]()
+            {
+              this->consume (std::move(sample), std::move(aux_data));
+            };
+
+            // We then also need to put a future object into the queue that we
+            // can query for unfinished objects. Since the queue is a shared
+            // state, we need to access it under a lock. Once we are under the
+            // lock, we can also commit to actually launching the task
+            {
+              std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+              // If all connections have been severed since we actually
+              // got here (via a connection, of course), we pretend that we
+              // never received the sample. This is the same as what happened
+              // in the synchronous case above.
+              if (connections_to_producers.size() == 0)
+                return;
+
+              // Then start the task in the background and let the OS decide when
+              // it wants to execute it. The result is a std::future object that
+              // we can query for completion of the task, and we will hold on
+              // to this future object because we need to wait for tasks to finish
+              // in flush().
+              std::future<void> future = std::async(std::launch::async, worker);
+
+              // Next emplace the shared future object into the queue, in order
+              // to allow other threads to wait for the termination of
+              // the current job
+              background_tasks.emplace_back (future.share());
+            }
+
+
+            // Finally, ensure that the queue does not grow beyond bound by
+            // removing shared_futures that have already been satisfied
+            trim_background_queue();
+          }));
+
           break;
         }
       }
