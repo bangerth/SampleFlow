@@ -23,6 +23,7 @@
 #include <list>
 #include <utility>
 #include <future>
+#include <atomic>
 
 
 namespace SampleFlow
@@ -32,7 +33,7 @@ namespace SampleFlow
    * process a newly incoming sample. This is set through the
    * Consumer::set_parallel_mode() function.
    */
-  enum class ParallelMode
+  enum class ParallelMode : int
   {
     /**
      * Process the sample synchronously, i.e., on the current thread
@@ -164,8 +165,17 @@ namespace SampleFlow
       Consumer ();
 
       /*
-       * The destructor. It disconnects this consumer object from
-       * all producers it was connected to.
+       * The destructor.
+       *
+       * Derived classes have to, in their destructors, call the
+       * disconnect_and_flush() function to ensure that all samples
+       * have been processed before the derived class object goes out
+       * of scope. If a derived class does not call disconnect_and_flush()
+       * in its destructor, it may happen that a sample is still in
+       * the process of being processed, or maybe still only scheduled
+       * for processing, while the member variables of the derived class
+       * are already destroyed -- nothing good will typically come out
+       * of such situations.
        */
       virtual
       ~Consumer ();
@@ -283,13 +293,21 @@ namespace SampleFlow
 
       /**
        * How newly incoming samples should be processed.
+       *
+       * This variable can be read from/written to in an atomic
+       * fashion to ensure that different threads don't tread on
+       * each other.
        */
-      ParallelMode parallel_mode;
+      std::atomic<int> parallel_mode;
 
       /**
        * How many tasks can be in flight at any given time.
+       *
+       * This variable can be read from/written to in an atomic
+       * fashion to ensure that different threads don't tread on
+       * each other.
        */
-      unsigned int queue_size;
+      std::atomic<unsigned int> queue_size;
 
       /**
        * A mutex that controls access to all of the data structures involved
@@ -319,7 +337,7 @@ namespace SampleFlow
   template <typename InputType>
   Consumer<InputType>::Consumer ()
     :
-    parallel_mode (ParallelMode::asynchronous),
+    parallel_mode (static_cast<int>(ParallelMode::asynchronous)),
     queue_size (1)
   {}
 
@@ -328,17 +346,9 @@ namespace SampleFlow
   template <typename InputType>
   Consumer<InputType>::~Consumer ()
   {
-    // Disconnect from anything that could submit more samples
-    // to the current class. We have to be mindful that this function
-    // may have been called at the same time as a sample was sent,
-    // and because the sample processing machinery queries the
-    // state of the connections, we need to do things under a
-    // mutex
-    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
-
-    for (auto &connection : connections_to_producers)
-      connection.disconnect ();
-    connections_to_producers.clear();
+    // The destructor of derived classes needs to call
+    // disconnect_and_flush().
+    assert (connections_to_producers.size() == 0);
   }
 
 
@@ -351,10 +361,10 @@ namespace SampleFlow
     // Create a connection to a lambda function that in turn calls
     // the consume() member function of the current object.
     //
-    // How exactly this is lambda function that is called for each
+    // How exactly the lambda function that is called for each
     // sample looks like depends on the parallel mode of the current
     // object.
-    switch (parallel_mode)
+    switch (static_cast<ParallelMode>(parallel_mode.load()))
       {
 
         // If we want to process samples synchronously, then
@@ -445,7 +455,7 @@ namespace SampleFlow
 
 
         // On the other hand, if we use asynchronous processing,
-        // then we the logic is substantially more complicated
+        // then the logic is substantially more complicated.
         case ParallelMode::asynchronous:
         {
           connections_to_producers.push_back (
