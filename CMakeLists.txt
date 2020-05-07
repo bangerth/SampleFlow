@@ -31,9 +31,7 @@ INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 
 # Set paths correctly to take BOOST from wherever it is
 # installed on the current system
-FIND_PACKAGE(Boost
-             REQUIRED
-             COMPONENTS signals)
+FIND_PACKAGE(Boost)
 INCLUDE(CheckIncludeFileCXX)
 CHECK_INCLUDE_FILE_CXX("boost/signals2.hpp" SF_HAVE_SIGNALS2)
 IF (NOT SF_HAVE_SIGNALS2)
