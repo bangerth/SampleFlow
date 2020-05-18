@@ -54,7 +54,7 @@ namespace SampleFlow
      * @tparam OutputType The C++ type used to describe the outgoing samples,
      *   i.e., the data type that the input is to be converted to.
      */
-    template <typename InputType>
+    template <typename InputType, typename OutputType>
     class Conversion : public Filter<InputType, OutputType>
     {
       public:
@@ -109,12 +109,13 @@ namespace SampleFlow
 
     template <typename InputType, typename OutputType>
     boost::optional<std::pair<OutputType, AuxiliaryData> >
-    ComponentSplitter<InputType>::
+    Conversion<InputType, OutputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)
     {
-      return
-      { conversion_function(sample), std::move(aux_data)};
+      // return
+      // { conversion_function(sample), std::move(aux_data)};
+      return std::make_pair(conversion_function(sample), std::move(aux_data));
     }
 
   }
