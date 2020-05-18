@@ -113,8 +113,6 @@ namespace SampleFlow
     filter (InputType sample,
             AuxiliaryData aux_data)
     {
-      // return
-      // { conversion_function(sample), std::move(aux_data)};
       return std::make_pair(conversion_function(sample), std::move(aux_data));
     }
 
