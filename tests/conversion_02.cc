@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2019 by the SampleFlow authors.
+// Copyright (C) 2020 by the SampleFlow authors.
 //
 // This file is part of the SampleFlow library.
 //
@@ -28,10 +28,10 @@
  * Example conversion function; converts a string to an integer
  * by getting the sum of the ASCII codes of each character.
  */
-int string_ascii_sum(std::string sample)
+int string_ascii_sum(const std::string &sample)
 {
     int sum = 0;
-    for(char& c : sample)
+    for(const char &c : sample)
     {
         sum += c;
     }
