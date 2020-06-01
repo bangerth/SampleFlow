@@ -68,21 +68,26 @@ development does not break past functionality.
 Each piece of new functionality in SampleFlow should be accompanied by a new
 test to ensure its correctness and continued functionality in view of
 future development. To add a test, simply create a `.cc` file in this
-directory that uses whatever functionality you have just implemented.
+directory that uses whatever functionality you have just implemented,
+along with a dummy `.output` file that for the moment can be
+empty.
 In most cases, one doesn't write this `.cc` file from scratch, but instead
 "clones" an existing test by copying the old test's `.cc` file to a new
 name and then modifying it as appropriate.
 
-Let's say you have so created a file `tests/new_test.cc`. Then go through
-the following steps:
+Let's say you have so created files `tests/new_test.cc` and
+`tests/new_test.output`. Then go through the following steps:
 
 - In the top-level directory, execute `cmake .`. This will re-run the
   configuration step for all of SampleFlow, and pick up the new test.
+  (For this step, it is important to have a dummy `.output` file because
+  otherwise the testing system does not recognize that the `.cc` file
+  by itself constitutes a test.)
 - Run `make check` or `ctest` (possibly with one of the command line
   options mentioned above -- a good choice would be 
   `ctest -V -R new_test`). This will execute the newly added test,
-  but because there is no "blessed" output file yet, the test will
-  fail.
+  but because there is no correct, "blessed" output yet, the test will
+  fail when comparing the results file with the still-empty output file.
 - The executed test will have produced a file `tests/new_test.result`.
   Inspect it and convince yourself that the output shown there is indeed
   what you would have expected and is correct.
