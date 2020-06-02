@@ -42,7 +42,7 @@ double log_likelihood (const SampleType &x)
   return -sum;
 }
 
-SampleType perturb (const SampleType &x)
+std::pair<SampleType,double> perturb (const SampleType &x)
 {
   // Perturb the current sample using a Gaussian distribution
   // around the current point with standard deviation 1.5.
@@ -53,7 +53,7 @@ SampleType perturb (const SampleType &x)
   for (auto &el : y)
     el += distribution(rng);
 
-  return y;
+  return {y,1};
 }
 
 int main ()

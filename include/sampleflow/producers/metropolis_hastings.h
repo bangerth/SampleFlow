@@ -31,7 +31,7 @@ namespace SampleFlow
      * `OutputType`. This class is therefore an implementation of the
      * "Producer" idiom in SampleFlow. For a discussion of the
      * Metropolis-Hastings method, see
-     * https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm .
+     * [this wikipedia article](https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm).
      *
      * The Metropolis-Hastings algorithms, often abbreviates as the
      * "MH sampler" requires three inputs: a starting sample, a way to
@@ -73,11 +73,28 @@ namespace SampleFlow
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
          * @param[in] perturb A function object that, when given a sample
-         *   $x$, returns a different sample $\tilde x$ that is perturbed
-         *   in some way. If samples are from some continuous space, say
+         *   $x$, returns a pair of values containing the following:
+         *   <ol>
+         *   <li> A different sample $\tilde x$ that is perturbed
+         *     in some way from the given sample $x$.
+         *   <li> The relative probability of the transition $x\to\tilde x$
+         *     divided by the probability of the transition $\tilde x\to x$.
+         *     Specifically, if the proposal distribution is given by
+         *     $\pi_\text{proposal}(\tilde x|x)$, then the second element
+         *     of the pair returned by the `perturb` argument is
+         *     $\frac{\pi_\text{proposal}(\tilde x|x)}
+         *           {\pi_\text{proposal}(x|\tilde x)}$.
+         *   </ol>
+         *   If samples are from some continuous space, say
          *   ${\mathbb R}^n$, then the perturbation function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
-         *   of $x$.
+         *   of $x$. If, for example, $\tilde x$ is chosen with a probability
+         *   that only depends on the distance $\|\tilde x-\x\|$ as is often
+         *   done (e.g., uniformly in a disk of a certain radius around
+         *   $x$, or using a Gaussian probability distribution centered at
+         *   $x$), then the ratio returned as second argument is
+         *   $\frac{\pi_\text{proposal}(\tilde x|x)}
+         *           {\pi_\text{proposal}(x|\tilde x)}=1$.
          * @param[in] n_samples The number of (new) samples to be produced
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
@@ -86,7 +103,7 @@ namespace SampleFlow
         void
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
-                const std::function<OutputType (const OutputType &)> &perturb,
+                const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
                 const unsigned int n_samples);
     };
 
@@ -96,7 +113,7 @@ namespace SampleFlow
     MetropolisHastings<OutputType>::
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
-            const std::function<OutputType (const OutputType &)> &perturb,
+            const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
             const unsigned int n_samples)
     {
       std::mt19937 rng;
@@ -110,7 +127,10 @@ namespace SampleFlow
         {
           // Obtain a new sample by perturbation and evaluate the
           // log likelihood for it
-          const OutputType trial_sample         = perturb (current_sample);
+          std::pair<OutputType,double> trial_sample_and_ratio = perturb (current_sample);
+          OutputType trial_sample = std::move(trial_sample_and_ratio.first);
+          const double proposal_distribution_ratio = trial_sample_and_ratio.second;
+
           const double     trial_log_likelihood = log_likelihood (trial_sample);
 
           // Then see if we want to accept the sample. This happens if either
@@ -124,9 +144,9 @@ namespace SampleFlow
           // If the sample is not accepted, then we simply stick with (i.e.,
           // repeat) the previous sample.
           bool repeated_sample;
-          if ((trial_log_likelihood > current_log_likelihood)
+          if ((trial_log_likelihood - std::log(proposal_distribution_ratio) > current_log_likelihood)
               ||
-              (std::exp(trial_log_likelihood - current_log_likelihood) >= uniform_distribution(rng)))
+              (std::exp(trial_log_likelihood - current_log_likelihood) / proposal_distribution_ratio >= uniform_distribution(rng)))
             {
               current_sample         = trial_sample;
               current_log_likelihood = trial_log_likelihood;
