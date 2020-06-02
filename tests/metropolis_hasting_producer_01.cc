@@ -38,9 +38,13 @@ double log_likelihood (const SampleType &x)
 
 
 // Always move to the right when trying to find a new trial sample.
-SampleType perturb (const SampleType &x)
+std::pair<SampleType,double> perturb (const SampleType &x)
 {
-  return x+1;
+  // Return both the new sample and the ratio of proposal distribution
+  // probabilities. We're moving the sample to the right, so that ratio
+  // is actually infinity, but we can lie about it for the purposes of
+  // this test.
+  return {x+1, 1.};
 }
 
 int main ()

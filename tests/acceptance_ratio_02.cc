@@ -32,14 +32,20 @@ double log_likelihood (const SampleType &x)
   return 1;
 }
 
-SampleType perturb (const SampleType &x)
+std::pair<SampleType,double> perturb (const SampleType &x)
 {
   SampleType y = x;
 
   for (auto &el : y)
-    if (el!=1) el += 1;
+    if (el!=1)
+      el += 1;
 
-  return y;
+
+  // Return both the new sample and the ratio of proposal distribution
+  // probabilities. We've moved the sample to the right, so that ratio
+  // is actually infinity, but we can lie about it for the purposes of
+  // this test.
+  return {y, 1.0};
 }
 
 int main ()

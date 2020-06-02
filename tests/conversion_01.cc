@@ -26,24 +26,24 @@
 
 int main()
 {
-    using SampleType = int;
-    using ResultType = double;
+  using SampleType = int;
+  using ResultType = double;
 
-    // Initialize a simple producer
-    SampleFlow::Producers::Range<SampleType> producer;
+  // Initialize a simple producer
+  SampleFlow::Producers::Range<SampleType> producer;
 
-    // Add a filter that converts to double.
-    // Here, the filter is treated as a consumer.
-    SampleFlow::Filters::Conversion<SampleType, ResultType> filter;
-    filter.connect_to_producer(producer);
+  // Add a filter that converts to double.
+  // Here, the filter is treated as a consumer.
+  SampleFlow::Filters::Conversion<SampleType, ResultType> filter;
+  filter.connect_to_producer(producer);
 
-    // Add a simple consumer to view the output of the filter.
-    // Here, the filter is treated as a producer.
-    SampleFlow::Consumers::StreamOutput<ResultType> consumer(std::cout);
-    consumer.connect_to_producer(filter);
+  // Add a simple consumer to view the output of the filter.
+  // Here, the filter is treated as a producer.
+  SampleFlow::Consumers::StreamOutput<ResultType> consumer(std::cout);
+  consumer.connect_to_producer(filter);
 
-    // Generate samples
-    const std::vector<SampleType> samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    producer.sample(samples);
+  // Generate samples
+  const std::vector<SampleType> samples = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  producer.sample(samples);
 }
 
