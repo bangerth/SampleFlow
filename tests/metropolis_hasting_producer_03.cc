@@ -43,7 +43,7 @@ double log_likelihood (const SampleType &x)
 SampleType perturb (const SampleType &x)
 {
   static std::mt19937 rng;
-  // give "true" 1/1 of the time and
+  // give "true" 1/2 of the time and
   // give "false" 1/2 of the time
   std::bernoulli_distribution distribution(0.5);
 
