@@ -51,7 +51,7 @@ namespace SampleFlow
      * one at a time. The AuxiliaryData object associated with each sample
      * $x_k$ stores two entries:
      * - An entry with name "relative log likelihood" of type
-     *   `double` that stores $\log(pi(x_k))$;
+     *   `double` that stores $\log(\pi(x_k))$;
      * - An entry with name "sample is repeated" that stores a `bool`
      *   indicating whether the algorithm has chosen the current
      *   sample as an accepted trial sample (if `false`) or whether
