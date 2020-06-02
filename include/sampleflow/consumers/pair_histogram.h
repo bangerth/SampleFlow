@@ -114,15 +114,22 @@ namespace SampleFlow
         /**
          * Constructor for a PairHistogram that is equally spaced in real space.
          *
-         * @param[in] min_value The left end point of the range over which the
+         * @param[in] min_x_value The left end point of the range over which the
+         *   first coordinate of the
          *   PairHistogram should be generated. Samples that have a value less than
          *   this end point will simply not be counted.
-         * @param[in] max_value The right end point of the range over which the
+         * @param[in] max_x_value The right end point of the range over which the
          *   PairHistogram should be generated. Samples that have a value larger than
          *   this end point will simply not be counted.
-         * @param[in] n_bins The number of bins this class represents,
-         *   i.e., how many sub-intervals the range `min_value...max_value`
-         *   will be split in.
+         * @param[in] n_x_bins The number of bins this class represents for the first
+         *   coordinate, i.e., how many sub-intervals the range
+         *   `min_x_value...max_x_value` will be split in.
+         * @param[in] min_y_value The parameter corresponding to `min_x_value` except
+         *   for the second coordinate axis.
+         * @param[in] max_y_value The parameter corresponding to `max_x_value` except
+         *   for the second coordinate axis.
+         * @param[in] n_y_bins  The parameter corresponding to `n_x_bins` except
+         *   for the second coordinate axis.
          */
         PairHistogram (const double min_x_value,
                        const double max_x_value,
@@ -146,21 +153,29 @@ namespace SampleFlow
          * Such bins would show up equispaced when plotted on a logarithmic
          * $x$ axis.
          *
-         * @param[in] min_pre_value The left end point of the range over which the
-         *   PairHistogram should be generated, before transformation with the function
-         *   `f`. Samples that have a value less than
-         *   `f(min_pre_value)` will simply not be counted.
-         * @param[in] max_pre_value The right end point of the range over which the
-         *   PairHistogram should be generated, before transformation with the function
-         *   `f`. Samples that have a value larger than
-         *   `f(max_pre_value)` will simply not be counted.
-         * @param[in] n_bins The number of bins this class represents,
-         *   i.e., how many sub-intervals the range `min_value...max_value`
-         *   will be split in.
-         * @param[in] f The function used in the transformation. For this
-         *   set up of bins to make sense, `f` needs to be a strictly
-         *   monotonically increasing function on the range
-         *   `[min_pre_values,max_pre_values]`.
+         * @param[in] min_x_pre_value The left end point of the range over which the
+         *   first coordinate of the PairHistogram should be generated,
+         *   before transformation with the function
+         *   `f_x`. Samples that have a value less than
+         *   `f_x(min_x_pre_value)` will simply not be counted.
+         * @param[in] max_x_pre_value The right end point of the range over which the
+         *   first coordinate of the PairHistogram should be generated,
+         *   before transformation with the function
+         *   `f_x`. Samples that have a value larger than
+         *   `f_x(max_x_pre_value)` will simply not be counted.
+         * @param[in] n_x_bins The number of bins in the first coordinate that
+         *   this class represents, i.e., how many sub-intervals the range
+         *   `min_x_value...max_x_value` will be split in for the first coordinate.
+         * @param[in] f_x The function used in the transformation of the first
+         *   coordinate. For this set up of bins to make sense, `f_x` needs to be
+         *   a strictly monotonically increasing function on the range
+         *   `[min_x_pre_values,max_x_pre_values]`.
+         * @param[in] min_y_pre_value Like `min_x_pre_value`,
+         *   but for the second coordinate axis.
+         * @param[in] max_y_pre_value Like `max_x_pre_value`,
+         *   but for the second coordinate axis.
+         * @param[in] n_y_bins Like `n_x_bins`, but for the second coordinate axis.
+         * @param[in] f_y Like `f_x`, but for the second coordinate axis.
          */
         PairHistogram (const double min_x_pre_value,
                        const double max_x_pre_value,
