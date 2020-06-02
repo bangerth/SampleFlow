@@ -30,39 +30,39 @@
  */
 int string_ascii_sum(const std::string &sample)
 {
-    int sum = 0;
-    for(const char &c : sample)
+  int sum = 0;
+  for (const char &c : sample)
     {
-        sum += c;
+      sum += c;
     }
-    return sum;
+  return sum;
 }
 
 int main()
 {
-    using SampleType = std::string;
-    using ConvertedType = int;
-    using ResultType = double;
+  using SampleType = std::string;
+  using ConvertedType = int;
+  using ResultType = double;
 
-    // Initialize a simple producer
-    SampleFlow::Producers::Range<SampleType> producer;
+  // Initialize a simple producer
+  SampleFlow::Producers::Range<SampleType> producer;
 
 
-    // Add a filter that converts the sample to an int, using
-    // string_ascii_sum(sample).
-    SampleFlow::Filters::Conversion<SampleType, ConvertedType> convert_to_int(string_ascii_sum);
-    convert_to_int.connect_to_producer(producer);
+  // Add a filter that converts the sample to an int, using
+  // string_ascii_sum(sample).
+  SampleFlow::Filters::Conversion<SampleType, ConvertedType> convert_to_int(string_ascii_sum);
+  convert_to_int.connect_to_producer(producer);
 
-    // Add a filter that converts to double.
-    SampleFlow::Filters::Conversion<ConvertedType, ResultType> convert_to_double;
-    convert_to_double.connect_to_producer(convert_to_int);
+  // Add a filter that converts to double.
+  SampleFlow::Filters::Conversion<ConvertedType, ResultType> convert_to_double;
+  convert_to_double.connect_to_producer(convert_to_int);
 
-    // Add a simple consumer to view the output of the filter.
-    SampleFlow::Consumers::StreamOutput<ResultType> consumer(std::cout);
-    consumer.connect_to_producer(convert_to_double);
+  // Add a simple consumer to view the output of the filter.
+  SampleFlow::Consumers::StreamOutput<ResultType> consumer(std::cout);
+  consumer.connect_to_producer(convert_to_double);
 
-    // Generate samples
-    const std::vector<SampleType> samples = {"Hello", "World"};
-    producer.sample(samples);
+  // Generate samples
+  const std::vector<SampleType> samples = {"Hello", "World"};
+  producer.sample(samples);
 }
 
