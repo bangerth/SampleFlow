@@ -68,9 +68,9 @@ int main ()
   // and right using the proposal distribution. But, because the
   // probability distribution is essentially zero on the left, never
   // take a step to the left side.
-  mh_sampler.sample ({0},
+  mh_sampler.sample ({3},
                      &log_likelihood,
                      &perturb,
-                     20);
+                     100);
   std::cout << "MAP = " << map.get().first << std::endl;
 }
