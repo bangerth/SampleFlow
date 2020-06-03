@@ -14,16 +14,9 @@
 // ---------------------------------------------------------------------
 
 
-// Check the auxiliary data the MH sampler attaches to samples. In
-// particular, check the information about repeated/non-repeated
-// samples: Because every trial sample is definitely different from
-// the previous sample, we know that the MH sampler should say that
-// the sample is repeated if it has the same value as the previous
-// sample: There is no possibility that an accepted trial sample *by
-// chance* happens to be at the same location as the previous sample.
-//
 // Test the maximum probability sample consumer by observing the 
-// auxiliary data from the MH producer.
+// auxiliary data from the MH producer, when the first sample
+// is not the maximum probability sample.
 
 
 #include <iostream>
