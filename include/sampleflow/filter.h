@@ -87,6 +87,28 @@ namespace SampleFlow
                AuxiliaryData aux_data) override final;
 
       /**
+       * Ensure that all samples currently being worked on by this object
+       * are finished up. In a parallel context, there may still be new samples
+       * that are coming in even while this function is working, and as a
+       * consequence, to *really* make sure that no samples are worked on
+       * as this function returns, one needs to ensure one of two things:
+       * - Shut down all connections to upstream producers and filters.
+       *   This is what the disconnect_and_flush() function does.
+       * - Ensure that flush() has been called before on all upstream
+       *   producers and filters.
+       *
+       * The operations described above are the same as for any other
+       * kind of Consumer object. But, since the current class also represents
+       * a Producer, this function -- after finishing the operations above
+       * by calling the Consumer::flush() function -- also triggers the
+       * `flush` signal so that all downstream Consumers connected to this
+       * Filter also flush their queues.
+       */
+      virtual
+      void
+      flush ();
+
+      /**
        * The main function of this class, which needs to be implemented by
        * derived classes. This function takes a sample of type `InputType`
        * along with auxiliary data, processes it, and may return the
@@ -136,6 +158,23 @@ namespace SampleFlow
       this->issue_sample (std::move (maybe_sample->first),
                           std::move (maybe_sample->second));
   }
+
+
+
+  template <typename InputType, typename OutputType>
+  void
+  Filter<InputType,OutputType>::
+  flush()
+  {
+    // First flush all of the samples that are currently still queued
+    // up by the current Filter object
+    Consumer<InputType>::flush();
+
+    // Then also trigger a flush operation on all downstream Consumer
+    // objects connected to this Filter
+    this->flush_consumers();
+  }
+
 }
 
 #endif

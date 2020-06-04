@@ -90,6 +90,8 @@ namespace SampleFlow
       // each of them.
       for (auto sample : range)
         this->issue_sample (sample, {});
+
+      this->flush_consumers();
     }
 
   }

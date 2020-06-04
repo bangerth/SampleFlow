@@ -249,7 +249,6 @@ namespace SampleFlow
       set_parallel_mode (const ParallelMode parallel_mode,
                          const unsigned int queue_size = 1);
 
-
       /**
        * Ensure that all samples currently being worked on by this object
        * are finished up. In a parallel context, there may still be new samples
@@ -261,6 +260,7 @@ namespace SampleFlow
        * - Ensure that flush() has been called before on all upstream
        *   producers and filters.
        */
+      virtual
       void
       flush ();
 
@@ -283,13 +283,13 @@ namespace SampleFlow
 
       /**
        * A list of connections created by calling connect_to_producer().
-       * We store this list so that we can terminate the connection once
+       * We store this list so that we can terminate the connections once
        * the current object is destroyed, in order to avoid triggering
        * a slot that no longer exists if the originally connected
        * producer decides to generate a sample after the current object
        * has been destroyed.
        */
-      std::list<boost::signals2::connection> connections_to_producers;
+      std::list<std::pair<boost::signals2::connection,boost::signals2::connection>> connections_to_producers;
 
       /**
        * How newly incoming samples should be processed.
@@ -358,15 +358,15 @@ namespace SampleFlow
   Consumer<InputType>::
   connect_to_producer (Producer<InputType> &producer)
   {
-    // Create a connection to a lambda function that in turn calls
-    // the consume() member function of the current object.
+    // Create a lambda function that receives a new sample and that in turn
+    // calls the consume() member function of the current object.
     //
     // How exactly the lambda function that is called for each
     // sample looks like depends on the parallel mode of the current
     // object.
+    std::function<void(InputType sample, AuxiliaryData aux_data)> sample_consumer;
     switch (static_cast<ParallelMode>(parallel_mode.load()))
       {
-
         // If we want to process samples synchronously, then
         // then the lambda function simply calls the 'consume()'
         // function that derived classes need to implement. This means that
@@ -405,9 +405,8 @@ namespace SampleFlow
         // samples.
         case ParallelMode::synchronous:
         {
-          connections_to_producers.push_back (
-            producer.connect_to_signal (
-              [&](InputType sample, AuxiliaryData aux_data)
+          sample_consumer =
+            [&](InputType sample, AuxiliaryData aux_data)
           {
             // Create a task that calls `consume()`. We're eventually going to
             // run this task synchronously, so we can take all arguments of the
@@ -448,7 +447,7 @@ namespace SampleFlow
             // Finally, ensure that the queue does not grow beyond bound by
             // removing shared_futures that have already been satisfied
             trim_background_queue();
-          }));
+          };
 
           break;
         }
@@ -458,9 +457,8 @@ namespace SampleFlow
         // then the logic is substantially more complicated.
         case ParallelMode::asynchronous:
         {
-          connections_to_producers.push_back (
-            producer.connect_to_signal (
-              [&](InputType sample, AuxiliaryData aux_data)
+          sample_consumer =
+            [&](InputType sample, AuxiliaryData aux_data)
           {
             // Create a task that calls `consume()`. First, because we're going
             // to run this task at some later time, we need to copy the sample
@@ -504,12 +502,32 @@ namespace SampleFlow
             // Finally, ensure that the queue does not grow beyond bound by
             // removing shared_futures that have already been satisfied
             trim_background_queue();
-          }));
+          };
 
           break;
         }
+
+
+        default:
+          assert(false);
       }
+
+
+    // Finally also build something that we can connect to the `flush_consumers`
+    // signal. For this, we call flush(), which in the case of Filters is
+    // overloaded to also call the flush_consumers() signal of the Producer
+    // side of the Filter
+    std::function<void ()> flush_slot
+      = [&]()
+    {
+      this->flush();
+    };
+
+    // Finally hook it all up:
+    connections_to_producers.emplace_back (
+      producer.connect_to_signals (sample_consumer, flush_slot));
   }
+
 
 
   template <typename InputType>
@@ -541,7 +559,10 @@ namespace SampleFlow
       std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
 
       for (auto &connection : connections_to_producers)
-        connection.disconnect ();
+        {
+          connection.first.disconnect ();
+          connection.second.disconnect ();
+        }
       connections_to_producers.clear();
     }
 

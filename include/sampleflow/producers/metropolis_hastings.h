@@ -402,6 +402,8 @@ namespace SampleFlow
             {"sample is repeated", boost::any(repeated_sample)}
           });
         }
+
+      this->flush_consumers();
     }
 
   }
