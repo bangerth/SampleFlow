@@ -29,11 +29,11 @@ namespace Test1
       std::exp(-(x-0.5)*(x-0.5)*10));
     }
 
-  SampleType perturb (const SampleType &x)
+  std::pair<SampleType,double> perturb (const SampleType &x)
   {
     static std::mt19937 rng;
     static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
-    return x + uniform_distribution(rng);
+    return {x + uniform_distribution(rng), 1};
   }
 
   void test ()
@@ -92,7 +92,7 @@ namespace Test2
   }
 
 
-  SampleType perturb (const SampleType &x)
+  std::pair<SampleType,double> perturb (const SampleType &x)
   {
     static std::mt19937 rng;
     static std::uniform_real_distribution<> uniform_distribution(-0.1,0.1);
@@ -102,7 +102,7 @@ namespace Test2
     for (auto &el : y)
       el += uniform_distribution(rng);
 
-    return y;
+    return {y, 1.0};
   }
 
 
