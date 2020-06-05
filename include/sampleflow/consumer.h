@@ -46,7 +46,8 @@ namespace SampleFlow
      * Note that this does *not* mean that a consumer or filter is only
      * processing one sample at a time. This is because it may be connected
      * to a filter or producer upstream that is itself working asynchronously,
-     * or it may be connected to multiple consumers or filters upstream.
+     * or it may be connected to multiple consumers or filters upstream that
+     * are working in parallel on separate threads.
      * These may all be sending samples in parallel, and they will have
      * to be processed in parallel. The `synchronous` flag here simply
      * determines what happens to each of these incoming samples: Will
@@ -54,7 +55,7 @@ namespace SampleFlow
      * deferred to a later time and on a thread of the operating system's
      * choosing.
      */
-    synchronous,
+    synchronous = 1,
 
     /**
      * Process the sample asynchronously by creating a new task that the
@@ -102,9 +103,12 @@ namespace SampleFlow
      *   value computed after all samples have been processed is
      *   independent of their order. On the other hand, the
      *   Consumers::AcceptanceRatio class <i>does</i> care and one should
-     *   probably not set this parallel mode for that class.
+     *   probably not set this parallel mode for that class. Similarly,
+     *   a program using Consumers::StreamOutput likely intends that
+     *   samples are written to the stream in the order in which they were
+     *   sent (though this may not in fact be the case).
      */
-    asynchronous
+    asynchronous = 2
   };
 
 
@@ -161,8 +165,14 @@ namespace SampleFlow
        * Constructor. The only meaningful action of this constructor is to
        * set the parallel mode of this object to its default,
        * ParallelMode::synchronous.
+       *
+       * @param supported_parallel_modes An optional argument indicating
+       *   which possible parallel modes (concatenated by `operator|`)
+       *   a derived class supports. By default, this is only
+       *   `ParallelMode::synchronous`, implying that the derived class
+       *   can only process one sample at a time
        */
-      Consumer ();
+      Consumer (const ParallelMode supported_parallel_modes = ParallelMode::synchronous);
 
       /*
        * The destructor.
@@ -301,6 +311,12 @@ namespace SampleFlow
       std::atomic<int> parallel_mode;
 
       /**
+       * A bit field that describes the parallel modes supported by the
+       * derived class.
+       */
+      const ParallelMode supported_parallel_modes;
+
+      /**
        * How many tasks can be in flight at any given time.
        *
        * This variable can be read from/written to in an atomic
@@ -335,9 +351,10 @@ namespace SampleFlow
 
 
   template <typename InputType>
-  Consumer<InputType>::Consumer ()
+  Consumer<InputType>::Consumer (const ParallelMode supported_parallel_modes)
     :
-    parallel_mode (static_cast<int>(ParallelMode::asynchronous)),
+    parallel_mode (static_cast<int>(ParallelMode::synchronous)),
+    supported_parallel_modes (supported_parallel_modes),
     queue_size (1)
   {}
 
@@ -375,7 +392,7 @@ namespace SampleFlow
         //
         // But it isn't so simple. If some *upstream* filter is working
         // with tasks, then we may still end up in a situation where the
-        // lambda function we create here is called multiple times and on a
+        // lambda function we create here is called multiple times and on
         // separate threads. We don't want to synchronize these calls
         // (though implementations of the `consume()` function in
         // derived classes typically want to). So we need
@@ -537,6 +554,7 @@ namespace SampleFlow
                      const unsigned int queue_size)
   {
     assert (connections_to_producers.size() == 0);
+    assert (static_cast<int>(parallel_mode) & static_cast<int>(supported_parallel_modes) != 0);
 
     this->parallel_mode = parallel_mode;
     this->queue_size = queue_size;
