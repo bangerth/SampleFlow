@@ -18,6 +18,13 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.1)
 
 MESSAGE(STATUS "Setting up tests")
 
+FIND_PROGRAM(NUMDIFF_EXECUTABLE
+  NAMES numdiff
+  HINTS ${NUMDIFF_DIR}
+  PATH_SUFFIXES bin
+)
+MARK_AS_ADVANCED(NUMDIFF_EXECUTABLE)
+
 # Create a target that we can use for 'make check'.
 ADD_CUSTOM_TARGET(check COMMAND ${CMAKE_CTEST_COMMAND})
 
@@ -41,7 +48,7 @@ FOREACH(_testfile ${_testfiles})
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.result
     COMMAND ${_testname} > ${_testname}.result
-    COMMAND diff -q ${_testname}.output ${_testname}.result
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result
     DEPENDS ${_testname} ${_testname}.output
     COMMENT "Running test <${_testname}>...")
   ADD_CUSTOM_TARGET(run_${_testname}
