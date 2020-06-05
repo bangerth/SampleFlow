@@ -40,7 +40,8 @@ FOREACH(_testfile ${_testfiles})
   # to ensure that there are no warnings in either the tests, or the
   # header files these tests #include.
   ADD_EXECUTABLE(${_testname} EXCLUDE_FROM_ALL ${_testfile})
-  TARGET_COMPILE_OPTIONS(${_testname} PRIVATE -Werror)
+  TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "-Werror")
+  TARGET_LINK_LIBRARIES (${_testname} Threads::Threads)
 
   # Then specify what it means to run a test:
   # - execute the test and write the output to a .result file
