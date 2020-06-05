@@ -106,8 +106,15 @@ namespace SampleFlow
       public:
         /**
          * Constructor. Take the action (a function object) as argument.
+         *
+         * The second argument (defaulted to ParallelMode::synchronous) indicates
+         * whether incoming samples should be processed immediately, on the current
+         * thread, or can be deferred to (possibly out of order) processing on
+         * a separate thread. See ParallelMode for more information. Whether this
+         * is possible or not depends on what the `action` function does.
          */
-        Action (const std::function<void (InputType, AuxiliaryData)> &action);
+        Action (const std::function<void (InputType, AuxiliaryData)> &action,
+                const ParallelMode supported_parallel_modes = ParallelMode::synchronous);
 
         /**
          * Destructor. This function also makes sure that all samples this
@@ -144,8 +151,10 @@ namespace SampleFlow
 
     template <typename InputType>
     Action<InputType>::
-    Action (const std::function<void (InputType, AuxiliaryData)> &action)
+    Action (const std::function<void (InputType, AuxiliaryData)> &action,
+            const ParallelMode supported_parallel_modes)
       :
+      Consumer<InputType>(supported_parallel_modes),
       action_function (action)
     {}
 

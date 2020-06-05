@@ -51,6 +51,10 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
          */
         CountSamples ();
 
@@ -103,6 +107,9 @@ namespace SampleFlow
     CountSamples<InputType>::
     CountSamples ()
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       n_samples (0)
     {}
 

@@ -59,6 +59,10 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
          */
         MaximumProbabilitySample ();
 
@@ -132,6 +136,9 @@ namespace SampleFlow
     MaximumProbabilitySample<InputType>::
     MaximumProbabilitySample ()
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       current_most_likely_sample (),
       current_most_likely_sample_data (),
       current_highest_log_likelihood(std::numeric_limits<double>::lowest())

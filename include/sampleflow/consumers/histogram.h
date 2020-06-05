@@ -97,6 +97,10 @@ namespace SampleFlow
         /**
          * Constructor for a histogram that is equally spaced in real space.
          *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         *
          * @param[in] min_value The left end point of the range over which the
          *   histogram should be generated. Samples that have a value less than
          *   this end point will simply not be counted.
@@ -125,6 +129,10 @@ namespace SampleFlow
          * `[0.001,10^{-1.5}]`, `[10^{-1.5},0]`, `[0,10^{1.5}]`, `[10^{1.5}, 1000]`.
          * Such bins would show up equispaced when plotted on a logarithmic
          * $x$ axis.
+         *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
          *
          * @param[in] min_pre_value The left end point of the range over which the
          *   histogram should be generated, before transformation with the function
@@ -253,6 +261,9 @@ namespace SampleFlow
                const double max_value,
                const unsigned int n_bins)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       interval_points(n_bins+1),
       bins (n_bins)
     {
@@ -275,6 +286,9 @@ namespace SampleFlow
                const unsigned int n_bins,
                const std::function<double (const double)> &f)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       interval_points(n_bins+1),
       bins (n_bins)
     {
@@ -303,6 +317,9 @@ namespace SampleFlow
     Histogram<InputType>::
     Histogram (const Histogram<InputType> &o)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       interval_points(o.interval_points),
       bins (o.bins)
     {}

@@ -55,6 +55,10 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
          */
         AverageCosineBetweenSuccessiveSamples(const unsigned int length);
 
@@ -127,6 +131,7 @@ namespace SampleFlow
     AverageCosineBetweenSuccessiveSamples<InputType>::
     AverageCosineBetweenSuccessiveSamples (const unsigned int length)
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       history_length(length),
       n_samples (0)
 

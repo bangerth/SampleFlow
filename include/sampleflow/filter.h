@@ -70,6 +70,31 @@ namespace SampleFlow
   {
     public:
       /**
+       * Constructor. The only meaningful action of this constructor is to
+       * set the parallel mode of this object to its default,
+       * ParallelMode::synchronous, when calling the constructor of its
+       * underlying Consumer base class.
+       *
+       * @param supported_parallel_modes An optional argument indicating
+       *   which possible parallel modes (concatenated by `operator|`)
+       *   a derived class supports. By default, this is only
+       *   `ParallelMode::synchronous`, implying that the derived class
+       *   can only process one sample at a time.
+       *
+       * @note Generally, filters should only run in synchronous mode.
+       *   That's because they hand these samples to downstream consumers
+       *   that may require synchronous processing of samples themselves.
+       *   An asynchronous filter may pass on samples in a different order
+       *   than they were received, and consequently downstream consumers
+       *   may receive them in a different order than they were generated.
+       *   In other words, an upstream filter running in asynchronous
+       *   mode may force a downstream consumer to also work in asynchronous
+       *   mode even if they declare that they want to must work in
+       *   synchronous mode.
+       */
+      Filter (const ParallelMode supported_parallel_modes = ParallelMode::synchronous);
+
+      /**
        * An implementation of the Consumer::consume() function. In the
        * current context, what this function does is to call the
        * filter() function with the sample and auxiliary data, and then
@@ -137,6 +162,15 @@ namespace SampleFlow
       filter (InputType sample,
               AuxiliaryData aux_data) = 0;
   };
+
+
+
+  template <typename InputType, typename OutputType>
+  Filter<InputType,OutputType>::
+  Filter (const ParallelMode supported_parallel_modes)
+    :
+    Consumer<InputType>(supported_parallel_modes)
+  {}
 
 
 

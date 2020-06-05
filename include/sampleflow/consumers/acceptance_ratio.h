@@ -63,6 +63,10 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
          */
         AcceptanceRatio();
 
@@ -129,6 +133,7 @@ namespace SampleFlow
     AcceptanceRatio<InputType>::
     AcceptanceRatio ()
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       n_samples (0),
       n_accepted_samples (0)
     {}

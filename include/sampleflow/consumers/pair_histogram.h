@@ -114,6 +114,10 @@ namespace SampleFlow
         /**
          * Constructor for a PairHistogram that is equally spaced in real space.
          *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         *
          * @param[in] min_x_value The left end point of the range over which the
          *   first coordinate of the
          *   PairHistogram should be generated. Samples that have a value less than
@@ -292,6 +296,9 @@ namespace SampleFlow
                    const double max_y_value,
                    const unsigned int n_y_bins)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       x_interval_points(n_x_bins+1),
       y_interval_points(n_y_bins+1),
       bins (n_x_bins, n_y_bins)
@@ -334,6 +341,9 @@ namespace SampleFlow
                    const unsigned int n_y_bins,
                    const std::function<double (const double)> &f_y)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       x_interval_points(n_x_bins+1),
       y_interval_points(n_y_bins+1),
       bins (n_x_bins, n_y_bins)
@@ -383,6 +393,9 @@ namespace SampleFlow
     PairHistogram<InputType>::
     PairHistogram (const PairHistogram<InputType> &o)
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       x_interval_points(o.x_interval_points),
       y_interval_points(o.y_interval_points),
       bins (o.bins)

@@ -62,6 +62,10 @@ namespace SampleFlow
         /**
          * Constructor.
          *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
+         *
          * @param[in] output_stream A reference to the stream to which output
          *   will be written for each sample. This class stores a reference
          *   to this stream object, so it needs to live at least as long
@@ -110,6 +114,7 @@ namespace SampleFlow
     StreamOutput<InputType>::
     StreamOutput (std::ostream &output_stream)
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       output_stream (output_stream)
     {}
 
