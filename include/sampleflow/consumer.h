@@ -554,9 +554,11 @@ namespace SampleFlow
                      const unsigned int queue_size)
   {
     assert (connections_to_producers.size() == 0);
-    assert (static_cast<int>(parallel_mode) & static_cast<int>(supported_parallel_modes) != 0);
+    assert ((static_cast<int>(parallel_mode)
+             & static_cast<int>(supported_parallel_modes))
+            != 0);
 
-    this->parallel_mode = parallel_mode;
+    this->parallel_mode = static_cast<int>(parallel_mode);
     this->queue_size = queue_size;
   }
 
