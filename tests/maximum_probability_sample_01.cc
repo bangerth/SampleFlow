@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Test the maximum probability sample consumer by observing the 
+// Test the maximum probability sample consumer by observing the
 // auxiliary data from the MH producer.
 
 
@@ -34,7 +34,9 @@ double log_likelihood (const SampleType &x)
   return (x>=0 ? -x/100. : -1e10);
 }
 
-SampleType perturb (const SampleType &x)
+
+
+std::pair<SampleType,double> perturb (const SampleType &x)
 {
   static std::mt19937 rng;
   // give "true" 1/2 of the time and
@@ -42,9 +44,9 @@ SampleType perturb (const SampleType &x)
   std::bernoulli_distribution distribution(0.5);
 
   if (distribution(rng) == true)
-    return x-1;
+    return {x-1, 1.0};
   else
-    return x+1;
+    return {x+1, 1.0};
 }
 
 
