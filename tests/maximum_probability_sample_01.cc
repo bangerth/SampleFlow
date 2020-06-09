@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2019 by the SampleFlow authors.
+// Copyright (C) 2020 by the SampleFlow authors.
 //
 // This file is part of the SampleFlow library.
 //
