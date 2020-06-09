@@ -55,8 +55,20 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
          */
         AverageCosineBetweenSuccessiveSamples(const unsigned int length);
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~AverageCosineBetweenSuccessiveSamples ();
 
         /**
          * Process one sample by updating the previously computed average cosine
@@ -119,10 +131,21 @@ namespace SampleFlow
     AverageCosineBetweenSuccessiveSamples<InputType>::
     AverageCosineBetweenSuccessiveSamples (const unsigned int length)
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       history_length(length),
       n_samples (0)
 
     {}
+
+
+
+    template <typename InputType>
+    AverageCosineBetweenSuccessiveSamples<InputType>::
+    ~AverageCosineBetweenSuccessiveSamples ()
+    {
+      this->disconnect_and_flush();
+    }
+
 
 
     template <typename InputType>

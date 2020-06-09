@@ -206,11 +206,23 @@ namespace SampleFlow
         /**
          * Constructor.
          *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
+         *
          * @param[in] lag_length A number that indicates how many autocovariance
          *   values we want to calculate, i.e., how far back in the past we
          *   want to check how correlated each sample is.
          */
         SpuriousAutocovariance(const unsigned int lag_length);
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~SpuriousAutocovariance ();
 
         /**
          * Process one sample by updating the previously computed covariance
@@ -292,9 +304,19 @@ namespace SampleFlow
     SpuriousAutocovariance<InputType>::
     SpuriousAutocovariance (unsigned int lag_length)
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       autocovariance_length(lag_length),
       n_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    SpuriousAutocovariance<InputType>::
+    ~SpuriousAutocovariance ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType>

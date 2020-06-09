@@ -48,6 +48,14 @@ namespace SampleFlow
         using value_type = InputType;
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~LastSample ();
+
+        /**
          * Process one sample by forgetting about the previously last sample
          * and instead storing this one for later access using the get()
          * function.
@@ -83,6 +91,15 @@ namespace SampleFlow
          */
         InputType last_sample;
     };
+
+
+
+    template <typename InputType>
+    LastSample<InputType>::
+    ~LastSample ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

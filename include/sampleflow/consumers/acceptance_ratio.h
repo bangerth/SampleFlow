@@ -63,8 +63,20 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
          */
         AcceptanceRatio();
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~AcceptanceRatio ();
 
         /**
          * Process one sample by updating the previously computed acceptance ratio
@@ -121,9 +133,20 @@ namespace SampleFlow
     AcceptanceRatio<InputType>::
     AcceptanceRatio ()
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       n_samples (0),
       n_accepted_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    AcceptanceRatio<InputType>::
+    ~AcceptanceRatio ()
+    {
+      this->disconnect_and_flush();
+    }
+
 
 
     namespace internal

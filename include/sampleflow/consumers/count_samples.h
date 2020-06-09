@@ -51,8 +51,20 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
          */
         CountSamples ();
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~CountSamples ();
 
         /**
          * Process one sample by just incrementing the sample counter.
@@ -95,8 +107,20 @@ namespace SampleFlow
     CountSamples<InputType>::
     CountSamples ()
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       n_samples (0)
     {}
+
+
+
+    template <typename InputType>
+    CountSamples<InputType>::
+    ~CountSamples ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

@@ -59,6 +59,14 @@ namespace SampleFlow
         DiscardFirstN (const types::sample_index initial_n_samples);
 
         /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~DiscardFirstN ();
+
+        /**
          * Process one sample by checking whether it is after the initial $n$
          * samples and if so, pass it on to downstream consumers. If it isn't,
          * return an empty object which the caller of this function in the
@@ -105,6 +113,14 @@ namespace SampleFlow
         initial_n_samples (initial_n_samples)
     {}
 
+
+
+    template <typename InputType>
+    DiscardFirstN<InputType>::
+    ~DiscardFirstN ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     template <typename InputType>

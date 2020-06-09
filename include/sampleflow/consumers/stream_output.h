@@ -62,12 +62,24 @@ namespace SampleFlow
         /**
          * Constructor.
          *
+         * This class does not support asynchronous processing of samples,
+         * and consequently calls the base class constructor with
+         * ParallelMode::synchronous as argument.
+         *
          * @param[in] output_stream A reference to the stream to which output
          *   will be written for each sample. This class stores a reference
          *   to this stream object, so it needs to live at least as long
          *   as the current object.
          */
         StreamOutput (std::ostream &output_stream);
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~StreamOutput ();
 
         /**
          * Process one sample by outputting it to the stream set in the
@@ -102,8 +114,18 @@ namespace SampleFlow
     StreamOutput<InputType>::
     StreamOutput (std::ostream &output_stream)
       :
+      Consumer<InputType>(ParallelMode::synchronous),
       output_stream (output_stream)
     {}
+
+
+
+    template <typename InputType>
+    StreamOutput<InputType>::
+    ~StreamOutput ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
     namespace internal

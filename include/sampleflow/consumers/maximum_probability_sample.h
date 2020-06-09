@@ -59,8 +59,20 @@ namespace SampleFlow
 
         /**
          * Constructor.
+         *
+         * This class does not care in which order samples are processed, and
+         * consequently calls the base class constructor with
+         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
          */
         MaximumProbabilitySample ();
+
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~MaximumProbabilitySample ();
 
         /**
          * Process one sample by checking whether it has a higher probability
@@ -124,10 +136,22 @@ namespace SampleFlow
     MaximumProbabilitySample<InputType>::
     MaximumProbabilitySample ()
       :
+      Consumer<InputType>(ParallelMode(static_cast<int>(ParallelMode::synchronous)
+                                       |
+                                       static_cast<int>(ParallelMode::asynchronous))),
       current_most_likely_sample (),
       current_most_likely_sample_data (),
       current_highest_log_likelihood(std::numeric_limits<double>::lowest())
     {}
+
+
+
+    template <typename InputType>
+    MaximumProbabilitySample<InputType>::
+    ~MaximumProbabilitySample ()
+    {
+      this->disconnect_and_flush();
+    }
 
 
 

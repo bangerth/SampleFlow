@@ -58,7 +58,7 @@ namespace SampleFlow
        * objects attached by calling the current function are then called
        * every time a new sample becomes available.
        *
-       * @param[in] f The function to be called whenever a new sample is produced.
+       * @param[in] signal_slot The function to be called whenever a new sample is produced.
        *   This may simply be a pointer to a function that takes two arguments
        *   (one of the type of the sample, and one of type AuxiliaryData), but
        *   more frequently it will be a lambda function that takes two
@@ -73,8 +73,9 @@ namespace SampleFlow
        *   is triggered, the function previously attached is no longer
        *   called.
        */
-      boost::signals2::connection
-      connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f);
+      std::pair<boost::signals2::connection,boost::signals2::connection>
+      connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
+                          const std::function<void ()> &flush_slot);
 
     protected:
       /**
@@ -84,17 +85,35 @@ namespace SampleFlow
        * been produced.
        */
       boost::signals2::signal<void (OutputType, AuxiliaryData)> issue_sample;
+
+      /**
+       * The signal that is used to notify downstream objects of the
+       * end of the stream of samples. This signal is intended to signal
+       * to consumers to wait for all samples whose processing has been
+       * queued (see the ParallelMode options) to finish processing.
+       *
+       * In other words, triggering this signal by calling
+       * `flush_consumers()` is supposed to only return once all consumers
+       * attached to this producer are done with all sample processing.
+       * If a Consumer object is in fact a Filter exit, it recursively
+       * calls the `flush_consumer` signal on those consumers connected
+       * to it.
+       */
+      boost::signals2::signal<void ()> flush_consumers;
   };
 
 
 
   template <typename OutputType>
-  boost::signals2::connection
+  std::pair<boost::signals2::connection,boost::signals2::connection>
   Producer<OutputType>::
-  connect_to_signal (const std::function<void (OutputType, AuxiliaryData)> &f)
+  connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &new_sample_slot,
+                      const std::function<void ()> &flush_slot)
   {
     // Connect with the signal and return the connection object.
-    return issue_sample.connect (f);
+    return { issue_sample.connect (new_sample_slot),
+             flush_consumers.connect (flush_slot)
+           };
   }
 
 
