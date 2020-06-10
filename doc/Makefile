@@ -16,13 +16,16 @@ SampleFlow.tag: $(SampleFlow-files) Makefile
 	  false ; \
 	 fi
 	@echo "=====SampleFlow=================== Generating documentation"
-	@echo '@INCLUDE = options.dox'                                > SampleFlow.dox
-	@echo 'DOT_IMAGE_FORMAT = png'                               >> SampleFlow.dox
-	@echo 'IMAGE_PATH = images'                                  >> SampleFlow.dox
-	@echo 'PROJECT_NAME = "SampleFlow"'                          >> SampleFlow.dox
-	@echo 'INPUT = $(SampleFlow-files)'                          >> SampleFlow.dox
-	@echo 'HTML_OUTPUT      = doxygen'                           >> SampleFlow.dox
-	@echo 'GENERATE_TAGFILE = $@'                                >> SampleFlow.dox
+	@echo '@INCLUDE               = options.dox'                  > SampleFlow.dox
+	@echo 'DOT_IMAGE_FORMAT       = png'                         >> SampleFlow.dox
+	@echo 'IMAGE_PATH             = images'                      >> SampleFlow.dox
+	@echo 'PROJECT_NAME           = "SampleFlow"'                >> SampleFlow.dox
+	@echo 'INPUT                  = $(SampleFlow-files)'         >> SampleFlow.dox
+	@echo 'HTML_OUTPUT            = doxygen'                     >> SampleFlow.dox
+	@echo 'GENERATE_TAGFILE       = $@'                          >> SampleFlow.dox
+	@echo 'USE_MATHJAX            = YES'                         >> SampleFlow.dox
+	@echo 'MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/' >> SampleFlow.dox
+	@echo 'MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols'  >> SampleFlow.dox
 	@doxygen SampleFlow.dox || echo "Running doxygen to generate documentation failed."
 
 
