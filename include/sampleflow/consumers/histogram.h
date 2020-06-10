@@ -99,7 +99,7 @@ namespace SampleFlow
          *
          * This class does not care in which order samples are processed, and
          * consequently calls the base class constructor with
-         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         * `ParallelMode::synchronous | ParallelMode::asynchronous` as argument.
          *
          * @param[in] min_value The left end point of the range over which the
          *   histogram should be generated. Samples that have a value less than
@@ -132,7 +132,7 @@ namespace SampleFlow
          *
          * This class does not care in which order samples are processed, and
          * consequently calls the base class constructor with
-         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         * `ParallelMode::synchronous | ParallelMode::asynchronous` as argument.
          *
          * @param[in] min_pre_value The left end point of the range over which the
          *   histogram should be generated, before transformation with the function

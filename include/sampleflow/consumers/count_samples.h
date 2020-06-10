@@ -54,7 +54,7 @@ namespace SampleFlow
          *
          * This class does not care in which order samples are processed, and
          * consequently calls the base class constructor with
-         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         * `ParallelMode::synchronous | ParallelMode::asynchronous` as argument.
          */
         CountSamples ();
 
