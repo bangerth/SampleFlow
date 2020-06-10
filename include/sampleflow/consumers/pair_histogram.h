@@ -116,7 +116,7 @@ namespace SampleFlow
          *
          * This class does not care in which order samples are processed, and
          * consequently calls the base class constructor with
-         * `ParallelMode::synchronous|ParallelMode::asynchronous` as argument.
+         * `ParallelMode::synchronous | ParallelMode::asynchronous` as argument.
          *
          * @param[in] min_x_value The left end point of the range over which the
          *   first coordinate of the
