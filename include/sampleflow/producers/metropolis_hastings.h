@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_PRODUCERS_METROPOLIS_HASTINGS_H
 
 #include <sampleflow/producer.h>
+#include <sampleflow/scope_exit.h>
 
 #include <random>
 #include <cmath>
@@ -355,6 +356,13 @@ namespace SampleFlow
             const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
             const unsigned int n_samples)
     {
+      // Make sure the flush_consumers() function is called at any point
+      // where we exit the current function.
+      Utilities::ScopeExit scope_exit ([this]()
+      {
+        this->flush_consumers();
+      });
+
       std::mt19937 rng;
       std::uniform_real_distribution<> uniform_distribution(0,1);
 
