@@ -34,7 +34,7 @@ namespace SampleFlow
    *
    * Derived classes are free to implement whatever algorithm they want in
    * generating these samples. (The Filter class is one example of an
-   * implementation: It is both a Producer and a Consumer, and everytime it
+   * implementation: It is both a Producer and a Consumer, and every time it
    * "consumes" a sample, i.e., it called from another producer with a
    * new sample, it decides whether it wants to convert this input into
    * an output sample of its own.) In general, implementations of derived
@@ -98,6 +98,39 @@ namespace SampleFlow
        * If a Consumer object is in fact a Filter exit, it recursively
        * calls the `flush_consumer` signal on those consumers connected
        * to it.
+       *
+       * Every Producer function should call this object at the end of the
+       * function call that produces a set of samples to ensure that
+       * that function only returns when the samples have not only been
+       * produced, but have in fact also been completely consumed. This
+       * can be done by explicitly calling this signal or, better, by
+       * having code such as the following that ensures that the flush
+       * operation also happens if the function exits via an exception
+       * or, if later modifications are made that introduce a `return`
+       * statement in the middle of the function:
+       * @code
+       * void
+       * Range<OutputType>::
+       * sample (const RangeType &range)
+       * {
+       *   // Make sure the flush_consumers() function is called at any point
+       *   // where we exit the current function.
+       *   Utilities::ScopeExit scope_exit ([this]() {this->flush_consumers();});
+       *
+       *   // Loop over all elements of the given range and issue a sample for
+       *   // each of them.
+       *   for (auto sample : range)
+       *     this->issue_sample (sample, {});
+       * }
+       * @endcode
+       * This code, taken from the Producers::Range class, sets up the
+       * `scope_exit` object that, in essence, stores a function to be executed
+       * whenever the surrounding `sample()` function exits. This may happen
+       * either by just falling off the end of the function itself, through
+       * an explicit `return` statement, an explicit `throw` statement, or if
+       * any of the functions being called here throw an exception themselves
+       * (which, because it isn't caught here, automatically leads to the
+       * current function exiting as well).
        */
       boost::signals2::signal<void ()> flush_consumers;
   };

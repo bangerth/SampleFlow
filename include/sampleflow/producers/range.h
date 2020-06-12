@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_PRODUCERS_RANGE_H
 
 #include <sampleflow/producer.h>
+#include <sampleflow/scope_exit.h>
 
 namespace SampleFlow
 {
@@ -86,12 +87,17 @@ namespace SampleFlow
     Range<OutputType>::
     sample (const RangeType &range)
     {
+      // Make sure the flush_consumers() function is called at any point
+      // where we exit the current function.
+      Utilities::ScopeExit scope_exit ([this]()
+      {
+        this->flush_consumers();
+      });
+
       // Loop over all elements of the given range and issue a sample for
       // each of them.
       for (auto sample : range)
         this->issue_sample (sample, {});
-
-      this->flush_consumers();
     }
 
   }
