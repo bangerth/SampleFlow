@@ -27,6 +27,13 @@ FIND_PROGRAM(NUMDIFF_EXECUTABLE
 )
 MARK_AS_ADVANCED(NUMDIFF_EXECUTABLE)
 
+IF( "${NUMDIFF_EXECUTABLE}" MATCHES "NUMDIFF_EXECUTABLE-NOTFOUND")
+  MESSAGE(FATAL_ERROR
+    "Could not find 'numdiff', which is required for running the testsuite.\n"
+    "Please specify NUMDIFF_DIR to a location containing the binary, or\n"
+    "install 'numdiff' via a package manage.")
+ENDIF()
+
 
 # Create a target that we can use for 'make check'.
 ADD_CUSTOM_TARGET(check COMMAND ${CMAKE_CTEST_COMMAND})
@@ -51,7 +58,7 @@ FOREACH(_testfile ${_testfiles})
   # - compare the .result file to the .output file
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.result
-    COMMAND ${_testname} > ${_testname}.result
+    COMMAND ${_testname} > ${_testname}.result || (echo "*** Failed in executable" ; false)
     COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result
     DEPENDS ${_testname} ${_testname}.output
     COMMENT "Running test <${_testname}>...")
