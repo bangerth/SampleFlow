@@ -65,6 +65,18 @@ namespace SampleFlow
        *   arguments, or something that has been created using the std::bind
        *   functionalities.
        *
+       * @param[in] flush_slot The function to be called whenever a this
+       *   producer decides that it is, at least for the moment, done with
+       *   producing samples. Downstream listeners to this signal are
+       *   supposed to finish all processing of samples that may have
+       *   been deferred to separate threads or tasks. If a downstream
+       *   listener is a Filter, rather than just a Consumer, then the
+       *   filter is supposed to recursively send the same signal to the
+       *   filters and consumers connected to its own slots. (By default,
+       *   what the Consumer class does when this signal is triggered, is
+       *   call the Consumer::flush() function. The Filter class overloads
+       *   this function in Filter::flush().)
+       *
        * @return The returned object describes the connection made with
        *   the signal to which the caller wants to attach `f`. Callers
        *   may want to store this connection object and, if the calling
