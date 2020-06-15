@@ -30,22 +30,46 @@ namespace SampleFlow
   namespace Consumers
   {
     /**
-     * @note This class only calculates a "spurious autocovariance" since the actual
-     *   definition of "autocovariance" is more complex than what we do here (except
-     *   if we work scalar samples types). That said, below we will use the word
-     *   "autocovariance" even when refering to this spurious autocovariance.
-     *
      * This is a Consumer class that implements computing the running sample autocovariance function:
      * @f{align*}{
      *   \hat\gamma(l)
-     *   =
-     *   \frac{1}{n} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})(x_{t}-\bar{x})}.
+     *   &=
+     *   \frac{1}{n} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})^T(x_{t}-\bar{x})}
+     *   \\
+     *   &=
+     *   \frac{1}{n} \text{trace}\left[
+     *      \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}) (x_{t}-\bar{x})^T}
+     *   \right]
+     *   \\
+     *   &=
+     *   \text{trace}\; \gamma(l).
      * @f}
-     * In other words, it calculates the covariance of samples $x_{t+l}$ and $x_t$
-     * with a lag between zero and $k$
+     * In other words, it calculates the trace of the (auto-)covariance matrix
+     * $\gamma(l)$ of samples $x_{t+l}$ and $x_t$
+     * with a lag between zero and $k$.
      *
      * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
      * sample. The value of $k$ is set in the constructor.
+     *
+     * @note This class only calculates a quantity derived from the actual
+     *   auto-covariance of the samples (which is a matrix), namely the
+     *   trace. The trace is an indication for the size of a matrix and in the
+     *   case of the auto-covariance, is used to see how quickly the
+     *   correlation of samples in a Markov chain decreases -- in other words,
+     *   how quickly $\hat \gamma(l)$ goes to zero as $l\to\infty$. As such,
+     *   the quantity computed by this class is a cheap way to assess the decay
+     *   of the correlation of successive samples. At
+     *   the same time, the trace is not a *measure* on the auto-covariance
+     *   matrices since matrices may be large even if their trace is small.
+     *   For example, one could imagine processes in which the diagonal
+     *   elements of $\gamma(l)$ are small but the off-diagonal entries
+     *   are large. In those cases, $\hat\gamma(l)=\text{trace}\;\hat\gamma(l)$
+     *   will be small even though the actual auto-covariance matrices are
+     *   large. A more rigorous approach is therefore to use the
+     *   AutoCovarianceMatrix class to compute the matrices $\gamma(l)$
+     *   and to compute some kind of norm of these matrices; the downside is,
+     *   of course, that computing $\gamma(l)$ is substantially more expensive
+     *   than computing the quantity $\hat\gamma(l)$ used here.
      *
      *
      * <h3> Algorithm </h3>
