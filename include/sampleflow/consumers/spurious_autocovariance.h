@@ -13,8 +13,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef SAMPLEFLOW_CONSUMERS_SPURIOUS_AUTOCOVARIANCE_H
-#define SAMPLEFLOW_CONSUMERS_SPURIOUS_AUTOCOVARIANCE_H
+#ifndef SAMPLEFLOW_CONSUMERS_AUTOCOVARIANCETRACE_H
+#define SAMPLEFLOW_CONSUMERS_AUTOCOVARIANCETRACE_H
 
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
@@ -30,7 +30,8 @@ namespace SampleFlow
   namespace Consumers
   {
     /**
-     * This is a Consumer class that implements computing the running sample autocovariance function:
+     * This is a Consumer class that implements computing the trace of the
+     * running sample auto-covariance matrix function:
      * @f{align*}{
      *   \hat\gamma(l)
      *   &=
@@ -99,7 +100,7 @@ namespace SampleFlow
      * class does.
      *
      *
-     * ### Making computing the spurious autocovariance less expensive ###
+     * ### Making computing this operation less expensive ###
      *
      * In many situations, samples are quite highly correlated. An example is
      * Metropolis-Hastings sampling (e.g., using the Producers::MetropolisHastings
@@ -142,7 +143,7 @@ namespace SampleFlow
      * very expensive way to compute the autocorrelation back to a lag
      * of 10,000 is to use the current class like this:
      * @code
-     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(10000);
+     *   SampleFlow::Consumers::AutoCovarianceTrace<SampleType> covariance(10000);
      *   covariance.connect_to_producer (sampler);
      * @endcode
      * On the other hand, a cheaper way is as follows:
@@ -150,7 +151,7 @@ namespace SampleFlow
      *   SampleFlow::Filters::TakeEveryNth<SampleType> every_10th(10);
      *   every_10th.connect_to_producer (sampler);
      *
-     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(1000);
+     *   SampleFlow::Consumers::AutoCovarianceTrace<SampleType> covariance(1000);
      *   covariance.connect_to_producer (every_10th);
      * @endcode
      * And an even cheaper way would be to use this, if we
@@ -160,7 +161,7 @@ namespace SampleFlow
      *   SampleFlow::Filters::TakeEveryNth<SampleType> every_100th(100);
      *   every_100th.connect_to_producer (sampler);
      *
-     *   SampleFlow::Consumers::SpuriousAutocovariance<SampleType> covariance(100);
+     *   SampleFlow::Consumers::AutoCovarianceTrace<SampleType> covariance(100);
      *   covariance.connect_to_producer (every_100th);
      * @endcode
      *
@@ -214,7 +215,7 @@ namespace SampleFlow
      */
 
     template <typename InputType>
-    class SpuriousAutocovariance: public Consumer<InputType>
+    class AutoCovarianceTrace: public Consumer<InputType>
     {
       public:
         /**
@@ -238,7 +239,7 @@ namespace SampleFlow
          *   values we want to calculate, i.e., how far back in the past we
          *   want to check how correlated each sample is.
          */
-        SpuriousAutocovariance(const unsigned int lag_length);
+        AutoCovarianceTrace(const unsigned int lag_length);
 
         /**
          * Destructor. This function also makes sure that all samples this
@@ -246,7 +247,7 @@ namespace SampleFlow
          * it calls the Consumers::disconnect_and_flush() function of the
          * base class.
          */
-        virtual ~SpuriousAutocovariance ();
+        virtual ~AutoCovarianceTrace ();
 
         /**
          * Process one sample by updating the previously computed covariance
@@ -325,8 +326,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    SpuriousAutocovariance<InputType>::
-    SpuriousAutocovariance (unsigned int lag_length)
+    AutoCovarianceTrace<InputType>::
+    AutoCovarianceTrace (unsigned int lag_length)
       :
       Consumer<InputType>(ParallelMode::synchronous),
       autocovariance_length(lag_length),
@@ -336,8 +337,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    SpuriousAutocovariance<InputType>::
-    ~SpuriousAutocovariance ()
+    AutoCovarianceTrace<InputType>::
+    ~AutoCovarianceTrace ()
     {
       this->disconnect_and_flush();
     }
@@ -345,7 +346,7 @@ namespace SampleFlow
 
     template <typename InputType>
     void
-    SpuriousAutocovariance<InputType>::
+    AutoCovarianceTrace<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
     {
       std::lock_guard<std::mutex> lock(mutex);
@@ -433,8 +434,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    typename SpuriousAutocovariance<InputType>::value_type
-    SpuriousAutocovariance<InputType>::
+    typename AutoCovarianceTrace<InputType>::value_type
+    AutoCovarianceTrace<InputType>::
     get () const
     {
       std::lock_guard<std::mutex> lock(mutex);
