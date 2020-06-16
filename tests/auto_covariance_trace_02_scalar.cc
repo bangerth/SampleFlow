@@ -14,36 +14,32 @@
 // ---------------------------------------------------------------------
 
 
-// Check the SpuriousAutocovariance consumer. This test is a bit like
-// the _02 test, but instead of a sequence of samples that consists of
-// {0, 1, 0, 1, ...}, we use the sequence {{1,1}, {-1,1}, {-1,-1}, {1,-1}, ...}.
-// For this sequence, we know that the mean value is {0,0} and we can
-// again compute all covariances by hand.
-
+// Check the AutoCovarianceTrace consumer. Do so with a sequence of
+// samples that consists of {0, 1, 0, 1, ...}
+//
+// While the _02 test uses vectors of length 1 to encode each of these
+// samples, the current test just uses scalar values.
 
 #include <iostream>
 #include <valarray>
 
 #include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/spurious_autocovariance.h>
+#include <sampleflow/consumers/auto_covariance_trace.h>
 
 
 int main ()
 {
-  using SampleType = std::valarray<double>;
+  using SampleType = double;
 
   SampleFlow::Producers::Range<SampleType> range_producer;
 
   const unsigned int AC_length = 10;
-  SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
   autocovariance.connect_to_producer (range_producer);
-
-  const std::valarray<double> base_samples[4]
-  = {{1,1}, {-1,1}, {-1,-1}, {1,-1}};
 
   std::vector<SampleType> samples(1000);
   for (unsigned int i=0; i<1000; ++i)
-    samples[i] = base_samples[i % 4];
+    samples[i] = (i % 2 == 0 ? 0. : 1.);
 
   range_producer.sample (samples);
 

@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Check the SpuriousAutocovariance consumer. Do so with a sequence of
+// Check the AutoCovarianceTrace consumer. Do so with a sequence of
 // samples that consists of {0, 1, 0, 1, ...}
 
 
@@ -22,7 +22,7 @@
 #include <valarray>
 
 #include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/spurious_autocovariance.h>
+#include <sampleflow/consumers/auto_covariance_trace.h>
 
 
 int main ()
@@ -32,7 +32,7 @@ int main ()
   SampleFlow::Producers::Range<SampleType> range_producer;
 
   const unsigned int AC_length = 10;
-  SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
   autocovariance.connect_to_producer (range_producer);
 
   std::vector<SampleType> samples(1000, std::valarray<double>(1));

@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Check the SpuriousAutocovariance consumer
+// Check the AutoCovarianceTrace consumer
 
 
 #include <iostream>
@@ -24,7 +24,7 @@
 
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <sampleflow/consumers/spurious_autocovariance.h>
+#include <sampleflow/consumers/auto_covariance_trace.h>
 
 using SampleType = std::valarray<double>;
 
@@ -53,7 +53,7 @@ int main ()
   SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
   const unsigned int AC_length = 10;
-  SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
   autocovariance.connect_to_producer (mh_sampler);
 
   mh_sampler.sample ({0,1},

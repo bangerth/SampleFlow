@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Check the SpuriousAutocovariance consumer. Do so with a sequence of
+// Check the AutoCovarianceTrace consumer. Do so with a sequence of
 // samples that is truly uncorrelated: We just pick numbers in the range
 // [0,1] by random. For a sufficiently long such sequence, all
 // autocorrelations should be close to zero.
@@ -25,7 +25,7 @@
 #include <random>
 
 #include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/spurious_autocovariance.h>
+#include <sampleflow/consumers/auto_covariance_trace.h>
 
 
 int main ()
@@ -42,7 +42,7 @@ int main ()
       SampleFlow::Producers::Range<SampleType> range_producer;
 
       const unsigned int AC_length = 10;
-      SampleFlow::Consumers::SpuriousAutocovariance<SampleType> autocovariance(AC_length);
+      SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
       autocovariance.connect_to_producer (range_producer);
 
       std::vector<SampleType> samples(N, std::valarray<double>(1));
