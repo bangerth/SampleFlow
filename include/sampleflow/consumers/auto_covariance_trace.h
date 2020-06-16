@@ -75,6 +75,12 @@ namespace SampleFlow
      *   of course, that computing $\gamma(l)$ is substantially more expensive
      *   than computing the quantity $\hat\gamma(l)$ used here.
      *
+     * @note In the case of scalar data types, the (auto-)covariance matrices
+     *   are also just numbers. In those cases, the results of the current
+     *   AutoCovarianceTrace and the AutoCovarianceMatrix classes are the
+     *   same, though the latter returns $1\times 1$ matrices whereas the
+     *   current class just returns numbers for each lag $l$.
+     *
      *
      * <h3> Algorithm </h3>
      *
