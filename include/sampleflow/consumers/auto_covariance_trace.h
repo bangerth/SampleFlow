@@ -35,10 +35,10 @@ namespace SampleFlow
      * @f{align*}{
      *   \hat\gamma(l)
      *   &=
-     *   \frac{1}{n} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})^T(x_{t}-\bar{x})}
+     *   \frac{1}{n-l-1} \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x})^T(x_{t}-\bar{x})}
      *   \\
      *   &=
-     *   \frac{1}{n} \text{trace}\left[
+     *   \frac{1}{n-l-1} \text{trace}\left[
      *      \sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}) (x_{t}-\bar{x})^T}
      *   \right]
      *   \\
@@ -47,10 +47,13 @@ namespace SampleFlow
      * @f}
      * In other words, it calculates the trace of the (auto-)covariance matrix
      * $\gamma(l)$ of samples $x_{t+l}$ and $x_t$
-     * with a lag between zero and $k$.
+     * with a lag between zero and $k$. The fraction in front is $n-l-1$ because
+     * we are comparing $n-l$ pairs of samples, of which $n-l-1$ are statistically
+     * independent. This is consistent with the definition of the covariance matrix
+     * used by the CovarianceMatrix class.
      *
      * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
-     * sample. The value of $k$ is set in the constructor.
+     * sample. The value of the maximum lag $k$ is set in the constructor.
      *
      * @note This class only calculates a quantity derived from the actual
      *   auto-covariance of the samples (which is a matrix), namely the
@@ -75,29 +78,62 @@ namespace SampleFlow
      *
      * <h3> Algorithm </h3>
      *
+     * The approach to deriving an update formula for $\gamma(l)$ is the
+     * same as for many other classes, and similar to the one used in the
+     * AutoCovariance class.
      * In the following, let us only consider the case when we have already seen
      * $n\ge k$ samples, so that all of the $\hat\gamma(l)$ can actually be computed.
      *
-     * Let us expand formula above and then denote some of its parts as $\alpha$ and $\beta$:
+     * Let us expand the formula above and then denote some of its parts as $\hat\alpha$
+     * and $\hat\beta$:
      * @f{align*}{
      *   \hat\gamma(l)
      *   &=
-     *   \frac{1}{n}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}_n)^T(x_{t}-\bar{x}_n)}
+     *   \frac{1}{n-l-1}\sum_{t=1}^{n-l}{(x_{t+l}-\bar{x}_n)^T(x_{t}-\bar{x}_n)}
      * \\&=
-     *   \underbrace{\frac{1}{n}\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}}}_{\alpha_n(l)}
+     *   \underbrace{\frac{1}{n-l-1}\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}}}_{\hat\alpha_n(l)}
      *   -
      *   \bar{x}_n^T
-     *   \underbrace{\left[ \frac{1}{n}\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) \right]}_{\beta_n(l)}
+     *   \underbrace{\left[ \frac{1}{n-l-1}\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) \right]}_{\hat\beta_n(l)}
      *   +
-     *   \frac{n-l}{n}\bar{x}_n^T \bar{x}_n
+     *   \frac{n-l}{n-l-1}\bar{x}_n^T \bar{x}_n
      * \\&=
-     *   \alpha_n(l)-\bar{x}_n^T \beta_n(l)+\frac{n-l}{n} \bar{x}_n^T \bar{x}_n.
+     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\frac{n-l}{n-l-1} \bar{x}_n^T \bar{x}_n.
+     * \\&=
+     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\left(1+\frac{1}{n-l-1}} \bar{x}_n^T \bar{x}_n.
      * @f}
      *
-     * For each new sample, we then need to update the scalars $\alpha_{n+1}(l)$,
-     * vectors $\beta_{n+1}(l)$, and sample mean $\bar{x}_{n+1}$. The
-     * principle of this updating algorithm is equivalent to what the MeanValue
-     * class does.
+     * For each new sample, we then need to update the scalars $\hat\alpha_{n+1}(l)$,
+     * vectors $\hat\beta_{n+1}(l)$, and sample mean $\bar{x}_{n+1}$. The
+     * principle of updating $\bar x_{n+1}$ is equivalent to what the MeanValue
+     * class does. For $\hat\alpha$, we use that
+     * @f{align*}{
+     *  \hat\alpha_{n+1}(l)
+     *  &=
+     *  \frac{1}{n-l}\sum_{t=1}^{n+1-l}{x_{t+l}^T x_{t}}
+     *  =
+     *  \frac{1}{n-l}\left[\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}} + x_{n+1}^T x_{n+1-l} \right]
+     *  \\
+     *  &=
+     *  \frac{1}{n-l}\left[(n-l-1)\hat\alpha_n(l) + x_{n+1}^T x_{n+1-l} \right]
+     *  \\
+     *  &=
+     *  \frac{n-l-1}{n-l} \alpha_n(l) + \frac{1}{n-l} x_{n+1}^T x_{n+1-l}.
+     *  \\
+     *  &=
+     *  \hat\alpha_n(l) - \frac{1}{n-l} \hat\alpha_n(l) + \frac{1}{n-l} x_{n+1}^T x_{n+1-l}.
+     * @f}
+     * Similarly, for $\hat\beta$ we can use that
+     * @f{align*}
+     *   \hat\beta_{n+1}(l)
+     *   &= \frac{1}{n-l}\sum_{t=1}^{n+1-l}(x_{t+l}+x_{t})
+     * \\
+     *   &= \frac{1}{n-l} \left[\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) + (x_{n+1}+x_{n+1-l})\right]
+     * \\
+     *   &= \frac{1}{n-l} \left[(n-l-1)\beta_n(l) + (x_{n+1}+x_{n+1-l})\right]
+     * \\
+     *   &= \beta_n(l) - \frac{1}{n-l}\beta_n(l) + \frac{1}{n-l} (x_{n+1}+x_{n+1-l}).
+     * @f}
      *
      *
      * ### Making computing this operation less expensive ###
@@ -358,13 +394,11 @@ namespace SampleFlow
       if (n_samples == 0)
         {
           n_samples = 1;
-          alpha.resize(autocovariance_length);
+          alpha = std::vector<double>(autocovariance_length, 0.);
           beta.resize(autocovariance_length);
 
           for (unsigned int i=0; i<autocovariance_length; ++i)
             {
-              alpha[i] = 0;
-
               // Initialize beta[i] to zero; first initialize it to 'sample'
               // so that it has the right size already
               beta[i] = sample;
@@ -380,27 +414,20 @@ namespace SampleFlow
         }
       else
         {
-          /*
-           * In the start of updating algorithm, there is no enough samples already seen, to be able to
-           * calculate autocovariance function values for argument bigger than sample size. In order to avoid errors, we need
-           * to use minimum function. However, we need slightly different minimums for calculation of autocovariance parts and for saving
-           * previous values.
-           */
-          ++n_samples;
           for (unsigned int l=0; l<previous_samples.size(); ++l)
             {
               // Update alpha
-              double alphaupd = 0;
+              double alphaupd = -alpha[l];
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
                   alphaupd += Utilities::get_nth_element (sample, j) *
                               Utilities::get_nth_element (previous_samples[l], j);
                 }
-              alphaupd -= alpha[l];
-              alphaupd /= n_samples-(l+1);
+              alphaupd *= 1./(n_samples-l);
               alpha[l] += alphaupd;
 
-              // Update beta
+              // Update beta. Start with the current sample and add up
+              // the updates.
               InputType betaupd = sample;
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
@@ -411,11 +438,11 @@ namespace SampleFlow
                   -= Utilities::get_nth_element (beta[l], j);
 
                   Utilities::get_nth_element(betaupd, j)
-                  /= n_samples-(l+1);
+                    *= 1./(n_samples-l);
                 }
-
               beta[l] += betaupd;
             }
+          ++n_samples;
 
           // Now save the sample. If the list is becoming longer than the lag
           // length, drop the oldest sample.
@@ -454,7 +481,9 @@ namespace SampleFlow
                                               Utilities::get_nth_element(beta[i], j);
 
               for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-                current_autocovariation[i] += Utilities::get_nth_element(current_mean,j) *
+                current_autocovariation[i] += (1. + 1./(n_samples-i-1))
+                                              *
+                                              Utilities::get_nth_element(current_mean,j) *
                                               Utilities::get_nth_element(current_mean,j);
             }
         }

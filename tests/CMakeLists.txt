@@ -54,12 +54,15 @@ FOREACH(_testfile ${_testfiles})
   TARGET_LINK_LIBRARIES (${_testname} Threads::Threads)
 
   # Then specify what it means to run a test:
+  # - remove the previous .result file just in case the executable aborts before
+  #   it produces any output (which leaves the previous output file in place)
   # - execute the test and write the output to a .result file
   # - compare the .result file to the .output file
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.result
+    COMMAND rm ${_testname}.result
     COMMAND ${_testname} > ${_testname}.result || (echo "*** Failed in executable" ; false)
-    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result || (echo "*** Failed in diff" ; false)
     DEPENDS ${_testname} ${_testname}.output
     COMMENT "Running test <${_testname}>...")
   ADD_CUSTOM_TARGET(run_${_testname}
