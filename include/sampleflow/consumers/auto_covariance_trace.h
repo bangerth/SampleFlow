@@ -412,7 +412,6 @@ namespace SampleFlow
         }
       else
         {
-          ++n_samples;
           for (unsigned int l=0; l<previous_samples.size(); ++l)
             {
               // Update alpha
@@ -422,7 +421,7 @@ namespace SampleFlow
                   alphaupd += Utilities::get_nth_element (sample, j) *
                               Utilities::get_nth_element (previous_samples[l], j);
                 }
-              alphaupd *= 1./(n_samples-1-l);
+              alphaupd *= 1./(n_samples-l);
               alpha[l] += alphaupd;
 
               // Update beta
@@ -436,10 +435,11 @@ namespace SampleFlow
                   -= Utilities::get_nth_element (beta[l], j);
 
                   Utilities::get_nth_element(betaupd, j)
-                    *= 1./(n_samples-1-l);
+                    *= 1./(n_samples-l);
                 }
               beta[l] += betaupd;
             }
+          ++n_samples;
 
           // Now save the sample. If the list is becoming longer than the lag
           // length, drop the oldest sample.
