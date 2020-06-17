@@ -99,6 +99,8 @@ namespace SampleFlow
      *   \frac{n-l}{n-l-1}\bar{x}_n^T \bar{x}_n
      * \\&=
      *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\frac{n-l}{n-l-1} \bar{x}_n^T \bar{x}_n.
+     * \\&=
+     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\left(1+\frac{1}{n-l-1}} \bar{x}_n^T \bar{x}_n.
      * @f}
      *
      * For each new sample, we then need to update the scalars $\hat\alpha_{n+1}(l)$,
@@ -424,7 +426,8 @@ namespace SampleFlow
               alphaupd *= 1./(n_samples-l);
               alpha[l] += alphaupd;
 
-              // Update beta
+              // Update beta. Start with the current sample and add up
+              // the updates.
               InputType betaupd = sample;
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
@@ -478,7 +481,9 @@ namespace SampleFlow
                                               Utilities::get_nth_element(beta[i], j);
 
               for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-                current_autocovariation[i] += Utilities::get_nth_element(current_mean,j) *
+                current_autocovariation[i] += (1. + 1./(n_samples-i-1))
+                                              *
+                                              Utilities::get_nth_element(current_mean,j) *
                                               Utilities::get_nth_element(current_mean,j);
             }
         }
