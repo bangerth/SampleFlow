@@ -54,19 +54,33 @@ FOREACH(_testfile ${_testfiles})
   TARGET_LINK_LIBRARIES (${_testname} Threads::Threads)
 
   # Then specify what it means to run a test:
+  #
+  # Step 1 is to:
   # - remove the previous .result file just in case the executable aborts before
   #   it produces any output (which leaves the previous output file in place)
   # - execute the test and write the output to a .result file
-  # - compare the .result file to the .output file
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.result
-    COMMAND rm ${_testname}.result
-    COMMAND ${_testname} > ${_testname}.result || (echo "*** Failed in executable" ; false)
-    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result || (echo "*** Failed in diff" ; false)
-    DEPENDS ${_testname} ${_testname}.output
+    COMMAND rm -f ${_testname}.result
+    COMMAND ${_testname} > ${_testname}.result
+    DEPENDS ${_testname}
     COMMENT "Running test <${_testname}>...")
+
+  # Step 2 is to:
+  # - remove the .ok file
+  # - compare the .result file to the .output file
+  # - if this succeeds, write a .ok file
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${_testname}.ok
+    COMMAND rm -f ${_testname}.ok
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${_testname}.output ${_testname}.result
+    COMMAND touch ${_testname}.ok
+    DEPENDS ${_testname}.result ${_testname}.output
+    COMMENT "Comparing test <${_testname}>...")
+
+  # Now make success of the test be dependent on there being an .ok file:
   ADD_CUSTOM_TARGET(run_${_testname}
-                    DEPENDS ${_testname}.result)
+                    DEPENDS ${_testname}.ok)
 
   # Define running the test as executing the cmake program
   # with the given target.
