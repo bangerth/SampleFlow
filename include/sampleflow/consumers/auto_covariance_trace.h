@@ -98,9 +98,9 @@ namespace SampleFlow
      *   +
      *   \frac{n-l}{n-l-1}\bar{x}_n^T \bar{x}_n
      * \\&=
-     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\frac{n-l}{n-l-1} \bar{x}_n^T \bar{x}_n.
+     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\frac{n-l}{n-l-1} \bar{x}_n^T \bar{x}_n
      * \\&=
-     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\left(1+\frac{1}{n-l-1}} \bar{x}_n^T \bar{x}_n.
+     *   \hat\alpha_n(l)-\bar{x}_n^T \hat \beta_n(l)+\left(1+\frac{1}{n-l-1}\right) \bar{x}_n^T \bar{x}_n.
      * @f}
      *
      * For each new sample, we then need to update the scalars $\hat\alpha_{n+1}(l)$,
