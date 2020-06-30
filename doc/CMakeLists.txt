@@ -36,7 +36,6 @@ ENDIF()
 # First gather all of the input files that are to be used when creating
 # the documentation.
 FILE(GLOB _doxygen_input "../include/sampleflow/*.h" "../include/sampleflow/*/*.h")
-MESSAGE (STATUS "doc input ${_doxygen_input}")
 
 ADD_CUSTOM_COMMAND(
   OUTPUT SampleFlow.dox
