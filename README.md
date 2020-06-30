@@ -106,6 +106,22 @@ The "generators" are listed at the bottom.
 
 
 
+## Documentation
+
+Most classes and functions are extensively documented, using the
+[doxygen](http://www.doxygen.nl/) documentation generation
+program. You will have to have the `doxygen` program installed for
+SampleFlow. You can then simply do
+
+```
+  cmake .
+  make doc
+```
+
+and start browsing through the documentation in `doc/doxygen/index.html`.
+
+
+
 ## Testing
 
 There are numerous tests in the `tests/` directory. To execute them,
@@ -117,17 +133,3 @@ say
 
 A description of how testing works can be found in
 [tests/README.md](tests/README.md).
-
-
-## Documentation
-
-Most classes and functions are extensively documented, using the
-[doxygen](http://www.doxygen.nl/) documentation generation program. If
-you have doxygen installed, say
-
-```
-  cd doc
-  make
-```
-
-and start browsing through the documentation in `doc/doxygen/index.html`.
