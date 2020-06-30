@@ -62,7 +62,9 @@ ADD_CUSTOM_TARGET(indent
 
 
 #########################################
-### Next, set up the testsuite
+### Next, set up the testsuite, and the documentation generation machinery
 
 ENABLE_TESTING()
 ADD_SUBDIRECTORY(tests)
+
+ADD_SUBDIRECTORY(doc)
