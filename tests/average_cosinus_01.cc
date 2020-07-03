@@ -54,8 +54,8 @@ int main ()
 
   SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-  const unsigned int AC_length = 10;
-  SampleFlow::Consumers::AverageCosineBetweenSuccessiveSamples<SampleType> average_cosinus(AC_length);
+  const unsigned int max_lag = 10;
+  SampleFlow::Consumers::AverageCosineBetweenSuccessiveSamples<SampleType> average_cosinus(max_lag);
   average_cosinus.connect_to_producer (mh_sampler);
 
   mh_sampler.sample ({0,1},

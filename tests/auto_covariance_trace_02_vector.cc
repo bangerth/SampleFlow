@@ -34,8 +34,8 @@ int main ()
 
   SampleFlow::Producers::Range<SampleType> range_producer;
 
-  const unsigned int AC_length = 10;
-  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
+  const unsigned int max_lag = 10;
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(max_lag);
   autocovariance.connect_to_producer (range_producer);
 
   const std::valarray<double> base_samples[4]

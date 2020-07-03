@@ -53,7 +53,9 @@ namespace SampleFlow
      * used by the CovarianceMatrix class.
      *
      * This class updates $\hat\gamma(l), l=0,1,2,3,\ldots,k$ for each new, incoming
-     * sample. The value of the maximum lag $k$ is set in the constructor.
+     * sample. The value of the maximum lag $k$ is set in the constructor. The
+     * auto-covariances $\hat\gamma(l)$ are only defined if the class has seen
+     * $n>k+1$ samples.
      *
      * @note This class only calculates a quantity derived from the actual
      *   auto-covariance of the samples (which is a matrix), namely the
@@ -75,12 +77,18 @@ namespace SampleFlow
      *   of course, that computing $\gamma(l)$ is substantially more expensive
      *   than computing the quantity $\hat\gamma(l)$ used here.
      *
+     * @note In the case of scalar data types, the (auto-)covariance matrices
+     *   are also just numbers. In those cases, the results of the current
+     *   AutoCovarianceTrace and the AutoCovarianceMatrix classes are the
+     *   same, though the latter returns $1\times 1$ matrices whereas the
+     *   current class just returns numbers for each lag $l$.
+     *
      *
      * <h3> Algorithm </h3>
      *
      * The approach to deriving an update formula for $\gamma(l)$ is the
      * same as for many other classes, and similar to the one used in the
-     * AutoCovariance class.
+     * MeanValue class.
      * In the following, let us only consider the case when we have already seen
      * $n\ge k$ samples, so that all of the $\hat\gamma(l)$ can actually be computed.
      *
@@ -108,10 +116,22 @@ namespace SampleFlow
      * principle of updating $\bar x_{n+1}$ is equivalent to what the MeanValue
      * class does. For $\hat\alpha$, we use that
      * @f{align*}{
+     *  \hat\alpha_{0}(l) = \cdots = \hat\alpha_{l+1}(l)
+     *  &= 0,
+     *  \\
+     *  \hat\alpha_{l+2}(l)
+     *  &=
+     *  \sum_{t=1}^2 x_{t+l} x_t
+     *  \\
+     *  &=
+     *  x_{1+l} x_1 + x_{2+l} x_2,
+     *  \\
      *  \hat\alpha_{n+1}(l)
      *  &=
      *  \frac{1}{n-l}\sum_{t=1}^{n+1-l}{x_{t+l}^T x_{t}}
-     *  =
+     *  \qquad\qquad\qquad (\text{for}\, n\ge l+2)
+     *  \\
+     *  &=
      *  \frac{1}{n-l}\left[\sum_{t=1}^{n-l}{x_{t+l}^T x_{t}} + x_{n+1}^T x_{n+1-l} \right]
      *  \\
      *  &=
@@ -125,8 +145,22 @@ namespace SampleFlow
      * @f}
      * Similarly, for $\hat\beta$ we can use that
      * @f{align*}
+     *  \hat\beta_{0}(l) = \cdots = \hat\beta_{l+1}(l)
+     *  &= 0,
+     *  \\
+     *  \hat\beta_{l+2}(l)
+     *  &=
+     *  \frac{1}{l+2-l-1}\sum_{t=1}^{l+2-l}(x_{t+l}+x_{t})
+     *  \\
+     *  &=
+     *  \sum_{t=1}^{2}(x_{t+l}+x_{t})
+     *  \\
+     *  &=
+     *  (x_{l+1}+x_{1}) + (x_{l+2}+x_{2}),
+     *  \\
      *   \hat\beta_{n+1}(l)
      *   &= \frac{1}{n-l}\sum_{t=1}^{n+1-l}(x_{t+l}+x_{t})
+     *   \qquad\qquad\qquad (\text{for}\, n\ge l+2)
      * \\
      *   &= \frac{1}{n-l} \left[\sum_{t=1}^{n-l}(x_{t+l}+x_{t}) + (x_{n+1}+x_{n+1-l})\right]
      * \\
@@ -304,8 +338,12 @@ namespace SampleFlow
          * samples seen so far. If no samples have been processed so far, then
          * a default-constructed object of type InputType will be returned.
          *
-         * @return The computed autocovariance vector of length `lag_length`
-         *   as provided to the constructor.
+         * @return The computed autocovariance vector of length `lag_length+1`
+         *   as provided to the constructor. The $l$th element of this vector,
+         *   starting from $l=0$ and going to $l=$`lag_length` (both inclusive)
+         *   corresponds to the auto-covariance of lag $l$. As a consequence,
+         *   the first entry ($l=0$) is the trace of the covariance matrix
+         *   that would have been returned by the CovarianceMatrix class.
          */
         value_type get() const;
 
@@ -317,9 +355,9 @@ namespace SampleFlow
         mutable std::mutex mutex;
 
         /**
-         * Describes how many values of autocovariance function we calculate.
+         * Describes the maximal lag up to which we calculate auto-covariances.
          */
-        const unsigned int autocovariance_length;
+        const unsigned int max_lag;
 
         /**
          * The current value of $\bar{x}_k$ as described in the introduction
@@ -366,7 +404,7 @@ namespace SampleFlow
     AutoCovarianceTrace (unsigned int lag_length)
       :
       Consumer<InputType>(ParallelMode::synchronous),
-      autocovariance_length(lag_length),
+      max_lag(lag_length),
       n_samples (0)
     {}
 
@@ -390,65 +428,89 @@ namespace SampleFlow
       // If this is the first sample we see, initialize all components
       // After the first sample, the autocovariance vector
       // is the zero vector since a single sample does not have any friends yet.
-
       if (n_samples == 0)
         {
-          n_samples = 1;
-          alpha = std::vector<double>(autocovariance_length, 0.);
-          beta.resize(autocovariance_length);
+          // Initialize the alpha and beta vectors to a length of lag_length+1
+          // (so that we can compute the variance plus lag_length auto-variances)
+          alpha = std::vector<double>(max_lag+1, 0.);
+          beta.resize(max_lag+1);
 
-          for (unsigned int i=0; i<autocovariance_length; ++i)
+          for (unsigned int l=0; l<=max_lag; ++l)
             {
               // Initialize beta[i] to zero; first initialize it to 'sample'
               // so that it has the right size already
-              beta[i] = sample;
+              beta[l] = sample;
               for (unsigned int j=0; j<Utilities::size(sample); ++j)
                 {
-                  Utilities::get_nth_element(beta[i], j) = 0;
+                  Utilities::get_nth_element(beta[l], j) = 0;
                 }
             }
           current_mean = sample;
 
           // Push the first sample to the front of the list of samples:
           previous_samples.push_front (sample);
+          n_samples = 1;
         }
       else
         {
-          for (unsigned int l=0; l<previous_samples.size(); ++l)
-            {
-              // Update alpha
-              double alphaupd = -alpha[l];
-              for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                {
-                  alphaupd += Utilities::get_nth_element (sample, j) *
-                              Utilities::get_nth_element (previous_samples[l], j);
-                }
-              alphaupd *= 1./(n_samples-l);
-              alpha[l] += alphaupd;
-
-              // Update beta. Start with the current sample and add up
-              // the updates.
-              InputType betaupd = sample;
-              for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                {
-                  Utilities::get_nth_element(betaupd, j)
-                  += Utilities::get_nth_element (previous_samples[l], j);
-
-                  Utilities::get_nth_element(betaupd, j)
-                  -= Utilities::get_nth_element (beta[l], j);
-
-                  Utilities::get_nth_element(betaupd, j)
-                    *= 1./(n_samples-l);
-                }
-              beta[l] += betaupd;
-            }
-          ++n_samples;
-
           // Now save the sample. If the list is becoming longer than the lag
-          // length, drop the oldest sample.
+          // length (plus one, for l=0), drop the oldest sample at the end of this
+          // block. This makes sure that we always have all samples up to a lag of l+1
+          // available, which we need for the initialization step
           previous_samples.push_front (sample);
-          if (previous_samples.size() > autocovariance_length)
+
+          for (unsigned int l=0; l<=max_lag; ++l)
+            {
+              if (n_samples == l+1)
+                {
+                  // We need to initialize alpha via the formula
+                  // alpha_{l+2}(l) = sum_{t=1}^2 x_{t+l} x_t
+                  alpha[l] = 0;
+                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                    alpha[l] += Utilities::get_nth_element (previous_samples[0], j) *
+                                Utilities::get_nth_element (previous_samples[l], j);
+                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                    alpha[l] += Utilities::get_nth_element (previous_samples[1], j) *
+                                Utilities::get_nth_element (previous_samples[l+1], j);
+
+                  beta[l] = previous_samples[0];
+                  beta[l] += previous_samples[1];
+                  beta[l] += previous_samples[l];
+                  beta[l] += previous_samples[l+1];
+                }
+              else if (n_samples >= l+2)
+                {
+                  // Update alpha
+                  double alphaupd = -alpha[l];
+                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                    {
+                      alphaupd += Utilities::get_nth_element (sample, j) *
+                                  Utilities::get_nth_element (previous_samples[l], j);
+                    }
+                  alphaupd *= 1./(n_samples-l);
+                  alpha[l] += alphaupd;
+
+                  // Update beta. Start with the current sample and add up
+                  // the updates.
+                  InputType betaupd = sample;
+                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                    {
+                      Utilities::get_nth_element(betaupd, j)
+                      += Utilities::get_nth_element (previous_samples[l], j);
+
+                      Utilities::get_nth_element(betaupd, j)
+                      -= Utilities::get_nth_element (beta[l], j);
+
+                      Utilities::get_nth_element(betaupd, j)
+                      *= 1./(n_samples-l);
+                    }
+                  beta[l] += betaupd;
+                }
+            }
+
+          if (previous_samples.size() > max_lag+1)
             previous_samples.pop_back ();
+          ++n_samples;
 
           // Then also update the running mean:
           InputType update = sample;
@@ -467,25 +529,23 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      std::vector<scalar_type> current_autocovariation(autocovariance_length,
+      std::vector<scalar_type> current_autocovariation(max_lag+1,
                                                        scalar_type(0));
 
-      if (n_samples !=0 )
+      for (int l=0; l<=max_lag; ++l)
         {
-          for (int i=0; i<previous_samples.size(); ++i)
-            {
-              current_autocovariation[i] = alpha[i];
+          current_autocovariation[l] = alpha[l];
 
-              for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-                current_autocovariation[i] -= Utilities::get_nth_element(current_mean,j) *
-                                              Utilities::get_nth_element(beta[i], j);
+          for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+            current_autocovariation[l] -= Utilities::get_nth_element(current_mean,j) *
+                                          Utilities::get_nth_element(beta[l], j);
 
-              for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-                current_autocovariation[i] += (1. + 1./(n_samples-i-1))
-                                              *
-                                              Utilities::get_nth_element(current_mean,j) *
-                                              Utilities::get_nth_element(current_mean,j);
-            }
+          if (n_samples > l+1 )
+            for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+              current_autocovariation[l] += (1. + 1./(n_samples-l-1))
+                                            *
+                                            Utilities::get_nth_element(current_mean,j) *
+                                            Utilities::get_nth_element(current_mean,j);
         }
 
       return current_autocovariation;

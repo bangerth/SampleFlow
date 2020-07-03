@@ -14,15 +14,20 @@
 // ---------------------------------------------------------------------
 
 
-// Check the AutoCovarianceTrace consumer. Do so with a sequence of
-// samples that consists of {0, 1, 0, 1, ...}
-
+// Check the AutoCovarianceTrace consumer.
+//
+// This test is the like the _01 and _02 tests, but now finally sets
+// both components of the sample. This leads to a covariance matrix in
+// which all entries are the same, and consequently the trace is 2
+// times what it was in the previous tests.
 
 #include <iostream>
 #include <valarray>
 
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/auto_covariance_trace.h>
+#include <sampleflow/consumers/covariance_matrix.h>
+#include <sampleflow/consumers/stream_output.h>
 
 
 int main ()
@@ -35,12 +40,27 @@ int main ()
   SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(max_lag);
   autocovariance.connect_to_producer (range_producer);
 
-  std::vector<SampleType> samples(1000, std::valarray<double>(1));
-  for (unsigned int i=0; i<1000; ++i)
-    samples[i][0] = (i % 2 == 0 ? 0. : 1.);
+  SampleFlow::Consumers::CovarianceMatrix<SampleType> cov;
+  cov.connect_to_producer (range_producer);
+
+  SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
+  stream_output.connect_to_producer(range_producer);
+
+  std::vector<SampleType> samples(20, std::valarray<double>(2));
+  for (unsigned int i=0; i<samples.size(); ++i)
+    samples[i][0] = samples[i][1] = (i % 2 == 0 ? -1. : 1.);
 
   range_producer.sample (samples);
 
+  std::cout.precision(16);
+  std::cout << "Covariance matrix="
+            << cov.get()(0,0) << ' '
+            << cov.get()(0,1) << ' '
+            << cov.get()(1,0) << ' '
+            << cov.get()(1,1)
+            << std::endl;
+
+  std::cout << "Auto-covariances:" << std::endl;
   for (const auto v : autocovariance.get())
     std::cout << v << std::endl;
 }

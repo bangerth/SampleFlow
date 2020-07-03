@@ -52,8 +52,8 @@ int main ()
 
   SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
 
-  const unsigned int AC_length = 10;
-  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
+  const unsigned int max_lag = 10;
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(max_lag);
   autocovariance.connect_to_producer (mh_sampler);
 
   mh_sampler.sample ({0,1},
