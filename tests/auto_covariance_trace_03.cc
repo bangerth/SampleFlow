@@ -17,7 +17,7 @@
 // Check the AutoCovarianceTrace consumer. Do so with a sequence of
 // samples that is truly uncorrelated: We just pick numbers in the range
 // [0,1] by random. For a sufficiently long such sequence, all
-// autocorrelations should be close to zero.
+// autocorrelations (with lag>0) should be close to zero.
 
 
 #include <iostream>
@@ -41,8 +41,8 @@ int main ()
     {
       SampleFlow::Producers::Range<SampleType> range_producer;
 
-      const unsigned int AC_length = 10;
-      SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
+      const unsigned int max_lag = 10;
+      SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(max_lag);
       autocovariance.connect_to_producer (range_producer);
 
       std::vector<SampleType> samples(N, std::valarray<double>(1));

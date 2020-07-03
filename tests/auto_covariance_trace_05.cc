@@ -64,8 +64,8 @@ int main ()
   SampleFlow::Consumers::AcceptanceRatio<SampleType> acceptance_ratio;
   acceptance_ratio.connect_to_producer(mh_sampler);;
 
-  const unsigned int AC_length = 30;
-  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(AC_length);
+  const unsigned int max_lag = 30;
+  SampleFlow::Consumers::AutoCovarianceTrace<SampleType> autocovariance(max_lag);
   autocovariance.connect_to_producer (mh_sampler);
 
   mh_sampler.sample ({0,1},
