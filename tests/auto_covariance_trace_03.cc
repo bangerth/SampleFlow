@@ -60,10 +60,11 @@ int main ()
       // Now also compute the average of these numbers and output
       // that. Each of the samples are uncorrelated, so there is no
       // reason why the AC(1) should be any different from AC(10), and
-      // we can just take the average.
-      double s=0;
+      // we can just take the average. When computing the average,
+      // skip AC(0) since that just measures the variance of samples
+      double s = -autocovariance.get()[0];
       for (const auto v : autocovariance.get())
         s += v;
-      std::cout << "  average: " << s/AC_length << std::endl;
+      std::cout << "  average: " << s/max_lag << std::endl;
     }
 }
