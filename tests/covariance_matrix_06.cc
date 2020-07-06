@@ -21,7 +21,7 @@
 // the covariance matrix only has one element, which is the variance
 // of the sequence. The variance of a complex number is equal to the sum
 // of the variances of the real and imaginary components. The variance
-// of the real component in this sequence is 6, and the variance of the 
+// of the real component in this sequence is 6, and the variance of the
 // imaginary component in this sequence is 6, so the variance of the sequence
 // overall is 6+6=12.
 
