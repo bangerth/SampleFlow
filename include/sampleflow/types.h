@@ -17,7 +17,10 @@
 #define SAMPLEFLOW_TYPES_H
 
 #include <cstddef>
+#include <complex>
+
 #include <sampleflow/element_access.h>
+
 
 namespace SampleFlow
 {
@@ -58,6 +61,33 @@ namespace SampleFlow
      */
     template <typename SampleType>
     using ScalarType = decltype(Utilities::get_nth_element(std::declval<SampleType>(), 0));
+  }
+
+
+  namespace Utilities
+  {
+    /**
+     * Form the complex-conjugate of the argument. This function
+     * template is chosen when the argument is not, in fact, complex-valued
+     * and consequently simply returns the argument itself.
+     */
+    template <typename T>
+    T conj (const T &value)
+    {
+      return value;
+    }
+
+
+
+    /**
+     * Form the complex-conjugate of the argument. This function
+     * template is chosen when the argument is complex-valued.
+     */
+    template <typename T>
+    std::complex<T> conj (const std::complex<T> &value)
+    {
+      return std::conj(value);
+    }
   }
 }
 
