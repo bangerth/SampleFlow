@@ -116,15 +116,15 @@ namespace SampleFlow
      * principle of updating $\bar x_{n+1}$ is equivalent to what the MeanValue
      * class does. For $\hat\alpha$, we use that
      * @f{align*}{
-     *  \hat\alpha_{0}(l) = \cdots = \hat\alpha_{l+1}(l)
+     *  \hat\alpha_{1}(l) = \cdots = \hat\alpha_{l+1}(l)
      *  &= 0,
      *  \\
      *  \hat\alpha_{l+2}(l)
      *  &=
-     *  \sum_{t=1}^2 x_{t+l} x_t
+     *  \sum_{t=1}^2 x_{t+l}^T x_t
      *  \\
      *  &=
-     *  x_{1+l} x_1 + x_{2+l} x_2,
+     *  x_{1+l}^T x_1 + x_{2+l}^T x_2,
      *  \\
      *  \hat\alpha_{n+1}(l)
      *  &=
@@ -145,7 +145,7 @@ namespace SampleFlow
      * @f}
      * Similarly, for $\hat\beta$ we can use that
      * @f{align*}
-     *  \hat\beta_{0}(l) = \cdots = \hat\beta_{l+1}(l)
+     *  \hat\beta_{1}(l) = \cdots = \hat\beta_{l+1}(l)
      *  &= 0,
      *  \\
      *  \hat\beta_{l+2}(l)
