@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// Test the Metropolis-Hastings producer with a custom sample class. 
+// Test the Metropolis-Hastings producer with a custom sample class.
 
 
 #include <iostream>
@@ -40,7 +40,7 @@ class MyTriangle
 };
 
 
-std::ostream& operator<<(std::ostream& os, const MyTriangle &tri)
+std::ostream &operator<<(std::ostream &os, const MyTriangle &tri)
 {
   os << "Triangle: " << tri.side_lengths[0] << ", " << tri.side_lengths[1] << ", " << tri.side_lengths[2];
   return os;
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, const MyTriangle &tri)
 std::pair<MyTriangle, double> perturb(const MyTriangle &sample)
 {
   static std::mt19937 gen;
-  std::normal_distribution<> d{0, 1};
+  std::normal_distribution<> d {0, 1};
   double side_a = sample.side_lengths[0] + d(gen);
   double side_b = sample.side_lengths[1] + d(gen);
   double side_c = sample.side_lengths[2] + d(gen);
@@ -60,7 +60,7 @@ std::pair<MyTriangle, double> perturb(const MyTriangle &sample)
     side_c = std::abs(side_a - side_b);
   MyTriangle result({side_a, side_b, side_c});
   // We are going to pretend that the change we are making to the triangle
-  // is equally likely to a change going in the opposite direction, even 
+  // is equally likely to a change going in the opposite direction, even
   // though this is not true because of the clipping that is happening
   // in the if statements. This is okay for the purposes of this test.
   return {result, 1.0};
@@ -83,7 +83,7 @@ int main ()
   SampleFlow::Consumers::StreamOutput<MyTriangle> stream_output(std::cout);
 
   stream_output.connect_to_producer(mh_sampler);
- 
+
   MyTriangle triangle_0({4, 6, 8});
   mh_sampler.sample (triangle_0, log_likelihood, perturb, 10);
 }
