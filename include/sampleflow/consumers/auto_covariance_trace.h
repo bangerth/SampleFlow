@@ -371,12 +371,8 @@ namespace SampleFlow
         using PreviousSamples = std::deque<InputType>;
 
         /**
-         * Parts for running autocovariation calculations.
-         * Description of these parts is given at this class description above.
-         * We should notice, that alpha and current_autocovariation is vectors, while beta is matrix.
-         * That happens, because if we want to update beta for each new sample, we need to know mean
-         * summed vector values (sum numbers depends from lag parameter). There might be other ways how
-         * to update this member, but this one appears the most stable.
+         * Update variables necessary to compute the autocovariation. See their
+         * definition in the documentation of this class.
          */
         std::vector<scalar_type> alpha;
         std::vector<InputType> beta;

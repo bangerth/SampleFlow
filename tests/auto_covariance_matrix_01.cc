@@ -28,6 +28,17 @@
 
 using SampleType = std::valarray<double>;
 
+template <typename T>
+T trace (const boost::numeric::ublas::matrix<T> &A)
+{
+  T t = 0;
+  for (unsigned int i=0; i<A.size1(); ++i)
+    t += A(i,i);
+  return t;
+}
+
+
+
 double log_likelihood (const SampleType &x)
 {
   return 1;
@@ -73,5 +84,5 @@ int main ()
   // software R, we expect result to be as it is at output file.
   // Whatever we got, we print it out
   for (const auto v : autocovariance.get())
-    std::cout << v << std::endl;
+    std::cout << trace(v) << std::endl;
 }

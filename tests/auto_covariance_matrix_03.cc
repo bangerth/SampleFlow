@@ -28,6 +28,16 @@
 #include <sampleflow/consumers/auto_covariance_matrix.h>
 
 
+template <typename T>
+T trace (const boost::numeric::ublas::matrix<T> &A)
+{
+  T t = 0;
+  for (unsigned int i=0; i<A.size1(); ++i)
+    t += A(i,i);
+  return t;
+}
+
+
 int main ()
 {
   using SampleType = std::valarray<double>;
@@ -55,16 +65,16 @@ int main ()
 
       std::cout << "Number of samples: " << N << std::endl;
       for (const auto v : autocovariance.get())
-        std::cout << "  " << v << std::endl;
+        std::cout << "  " << trace(v) << std::endl;
 
       // Now also compute the average of these numbers and output
       // that. Each of the samples are uncorrelated, so there is no
       // reason why the AC(1) should be any different from AC(10), and
       // we can just take the average. When computing the average,
       // skip AC(0) since that just measures the variance of samples
-      double s = -autocovariance.get()[0];
+      double s = -trace(autocovariance.get()[0]);
       for (const auto v : autocovariance.get())
-        s += v;
+        s += trace(v);
       std::cout << "  average: " << s/max_lag << std::endl;
     }
 }

@@ -33,6 +33,17 @@
 
 using SampleType = std::valarray<double>;
 
+
+template <typename T>
+T trace (const boost::numeric::ublas::matrix<T> &A)
+{
+  T t = 0;
+  for (unsigned int i=0; i<A.size1(); ++i)
+    t += A(i,i);
+  return t;
+}
+
+
 double log_likelihood (const SampleType &x)
 {
   double sum = 0;
@@ -85,5 +96,5 @@ int main ()
   std::cout << "# Acceptance ratio: "
             << acceptance_ratio.get() << std::endl;
   for (const auto v : autocovariance.get())
-    std::cout << v << std::endl;
+    std::cout << trace(v) << std::endl;
 }

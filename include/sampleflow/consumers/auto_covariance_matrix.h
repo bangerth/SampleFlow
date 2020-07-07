@@ -256,7 +256,7 @@ namespace SampleFlow
         /**
          * The data type returned by the get() function.
          */
-        using value_type = std::vector<scalar_type>;
+        using value_type = std::vector<boost::numeric::ublas::matrix<scalar_type>>;
 
         /**
          * Constructor.
@@ -331,14 +331,10 @@ namespace SampleFlow
         using PreviousSamples = std::deque<InputType>;
 
         /**
-         * Parts for running autocovariation calculations.
-         * Description of these parts is given at this class description above.
-         * We should notice, that alpha and current_autocovariation is vectors, while beta is matrix.
-         * That happens, because if we want to update beta for each new sample, we need to know mean
-         * summed vector values (sum numbers depends from lag parameter). There might be other ways how
-         * to update this member, but this one appears the most stable.
+         * Update variables necessary to compute the autocovariation. See their
+         * definition in the documentation of this class.
          */
-        std::vector<scalar_type> alpha;
+        value_type alpha;
         std::vector<InputType> beta;
         std::vector<InputType> eta;
 
@@ -393,7 +389,9 @@ namespace SampleFlow
         {
           // Initialize the alpha and beta vectors to a length of lag_length+1
           // (so that we can compute the variance plus lag_length auto-variances)
-          alpha = std::vector<double>(max_lag+1, 0.);
+          alpha.resize(max_lag+1);
+          for (auto &a : alpha)
+            a.resize (Utilities::size(sample), Utilities::size(sample));
           beta.resize(max_lag+1);
           eta.resize(max_lag+1);
 
@@ -429,13 +427,14 @@ namespace SampleFlow
                 {
                   // We need to initialize alpha via the formula
                   // alpha_{l+2}(l) = sum_{t=1}^2 x_{t+l} x_t
-                  alpha[l] = 0;
-                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                    alpha[l] += Utilities::get_nth_element (previous_samples[0], j) *
-                                Utilities::get_nth_element (previous_samples[l], j);
-                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                    alpha[l] += Utilities::get_nth_element (previous_samples[1], j) *
-                                Utilities::get_nth_element (previous_samples[l+1], j);
+                  for (unsigned int i=0; i<Utilities::size(sample); ++i)
+                    for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                      alpha[l](i,j) += Utilities::get_nth_element (previous_samples[0], i) *
+                                        Utilities::get_nth_element (previous_samples[l], j);
+                  for (unsigned int i=0; i<Utilities::size(sample); ++i)
+                    for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                      alpha[l](i,j) += Utilities::get_nth_element (previous_samples[1], i) *
+                                        Utilities::get_nth_element (previous_samples[l+1], j);
 
                   beta[l] = previous_samples[0];
                   beta[l] += previous_samples[1];
@@ -446,12 +445,13 @@ namespace SampleFlow
               else if (n_samples >= l+2)
                 {
                   // Update alpha
-                  double alphaupd = -alpha[l];
-                  for (unsigned int j=0; j<Utilities::size(sample); ++j)
-                    {
-                      alphaupd += Utilities::get_nth_element (sample, j) *
-                                  Utilities::get_nth_element (previous_samples[l], j);
-                    }
+                  boost::numeric::ublas::matrix<scalar_type> alphaupd = -alpha[l];
+                  for (unsigned int i=0; i<Utilities::size(sample); ++i)
+                    for (unsigned int j=0; j<Utilities::size(sample); ++j)
+                      {
+                        alphaupd(i,j) += Utilities::get_nth_element (sample, i) *
+                                    Utilities::get_nth_element (previous_samples[l], j);
+                      }
                   alphaupd *= 1./(n_samples-l);
                   alpha[l] += alphaupd;
 
@@ -491,27 +491,31 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      std::vector<scalar_type> current_autocovariation(max_lag+1,
-                                                       scalar_type(0));
+      value_type current_autocovariation(max_lag+1);
+      for (auto &a : current_autocovariation)
+        a.resize (Utilities::size(current_mean), Utilities::size(current_mean));
 
       for (int l=0; l<=max_lag; ++l)
         {
           current_autocovariation[l] = alpha[l];
 
-          for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-            current_autocovariation[l] -= Utilities::get_nth_element(current_mean,j) *
-                                          Utilities::get_nth_element(eta[l], j);
+          for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
+            for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+              current_autocovariation[l](i,j) -= Utilities::get_nth_element(current_mean,i) *
+                                            Utilities::get_nth_element(eta[l], j);
 
-          for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-            current_autocovariation[l] -= Utilities::get_nth_element(beta[l],j) *
-                                          Utilities::get_nth_element(current_mean, j);
+          for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
+            for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+              current_autocovariation[l](i,j) -= Utilities::get_nth_element(beta[l],i) *
+                                            Utilities::get_nth_element(current_mean, j);
 
           if (n_samples > l+1 )
-            for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
-              current_autocovariation[l] += (1. + 1./(n_samples-l-1))
-                                            *
-                                            Utilities::get_nth_element(current_mean,j) *
-                                            Utilities::get_nth_element(current_mean,j);
+            for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
+              for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
+                current_autocovariation[l](i,j) += (1. + 1./(n_samples-l-1))
+                                              *
+                                              Utilities::get_nth_element(current_mean,i) *
+                                              Utilities::get_nth_element(current_mean,j);
         }
 
       return current_autocovariation;
