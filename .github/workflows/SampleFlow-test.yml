@@ -21,4 +21,4 @@ jobs:
     - name: cmake
       run: cmake .
     - name: ctest
-      run: ctest
+      run: ctest -j8
