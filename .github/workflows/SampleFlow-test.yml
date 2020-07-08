@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: |
-        sudo apt-get install doxygen graphviz libboost-all-dev -y
+        sudo apt-get install doxygen graphviz libboost-all-dev numdiff -y
         doxygen --version
     - name: cmake
       run: cmake .
