@@ -27,17 +27,6 @@
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/auto_covariance_matrix.h>
 
-template <typename T>
-T trace (const boost::numeric::ublas::matrix<T> &A)
-{
-  T t = 0;
-  for (unsigned int i=0; i<A.size1(); ++i)
-    t += A(i,i);
-  return t;
-}
-
-
-
 int main ()
 {
   using SampleType = std::valarray<double>;
@@ -58,5 +47,5 @@ int main ()
   range_producer.sample (samples);
 
   for (const auto v : autocovariance.get())
-    std::cout << trace(v) << std::endl;
+    std::cout << v(0,0) << ' ' << v(0,1) << ' ' << v(1,0) << ' ' << v(1,1) << std::endl;
 }

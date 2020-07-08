@@ -18,8 +18,7 @@
 //
 // This test is the like the _01 and _02 tests, but now finally sets
 // both components of the sample. This leads to a covariance matrix in
-// which all entries are the same, and consequently the trace is 2
-// times what it was in the previous tests.
+// which all entries are the same
 
 #include <iostream>
 #include <valarray>
@@ -28,16 +27,6 @@
 #include <sampleflow/consumers/auto_covariance_matrix.h>
 #include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/stream_output.h>
-
-template <typename T>
-T trace (const boost::numeric::ublas::matrix<T> &A)
-{
-  T t = 0;
-  for (unsigned int i=0; i<A.size1(); ++i)
-    t += A(i,i);
-  return t;
-}
-
 
 
 int main ()
@@ -72,5 +61,5 @@ int main ()
 
   std::cout << "Auto-covariances:" << std::endl;
   for (const auto v : autocovariance.get())
-    std::cout << trace(v) << std::endl;
+    std::cout << v(0,0) << ' ' << v(0,1) << ' ' << v(1,0) << ' ' << v(1,1) << std::endl;
 }
