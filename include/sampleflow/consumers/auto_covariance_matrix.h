@@ -430,11 +430,11 @@ namespace SampleFlow
                   for (unsigned int i=0; i<Utilities::size(sample); ++i)
                     for (unsigned int j=0; j<Utilities::size(sample); ++j)
                       alpha[l](i,j) += Utilities::get_nth_element (previous_samples[0], i) *
-                                        Utilities::get_nth_element (previous_samples[l], j);
+                                       Utilities::get_nth_element (previous_samples[l], j);
                   for (unsigned int i=0; i<Utilities::size(sample); ++i)
                     for (unsigned int j=0; j<Utilities::size(sample); ++j)
                       alpha[l](i,j) += Utilities::get_nth_element (previous_samples[1], i) *
-                                        Utilities::get_nth_element (previous_samples[l+1], j);
+                                       Utilities::get_nth_element (previous_samples[l+1], j);
 
                   beta[l] = previous_samples[0];
                   beta[l] += previous_samples[1];
@@ -450,7 +450,7 @@ namespace SampleFlow
                     for (unsigned int j=0; j<Utilities::size(sample); ++j)
                       {
                         alphaupd(i,j) += Utilities::get_nth_element (sample, i) *
-                                    Utilities::get_nth_element (previous_samples[l], j);
+                                         Utilities::get_nth_element (previous_samples[l], j);
                       }
                   alphaupd *= 1./(n_samples-l);
                   alpha[l] += alphaupd;
@@ -502,20 +502,20 @@ namespace SampleFlow
           for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
             for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
               current_autocovariation[l](i,j) -= Utilities::get_nth_element(current_mean,i) *
-                                            Utilities::get_nth_element(eta[l], j);
+                                                 Utilities::get_nth_element(eta[l], j);
 
           for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
             for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
               current_autocovariation[l](i,j) -= Utilities::get_nth_element(beta[l],i) *
-                                            Utilities::get_nth_element(current_mean, j);
+                                                 Utilities::get_nth_element(current_mean, j);
 
           if (n_samples > l+1 )
             for (unsigned int i=0; i<Utilities::size(current_mean); ++i)
               for (unsigned int j=0; j<Utilities::size(current_mean); ++j)
                 current_autocovariation[l](i,j) += (1. + 1./(n_samples-l-1))
-                                              *
-                                              Utilities::get_nth_element(current_mean,i) *
-                                              Utilities::get_nth_element(current_mean,j);
+                                                   *
+                                                   Utilities::get_nth_element(current_mean,i) *
+                                                   Utilities::get_nth_element(current_mean,j);
         }
 
       return current_autocovariation;
