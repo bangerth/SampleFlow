@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 before_script:
-  - apt-get install doxygen -y
+  - apt-get install doxygen libboost-all-dev -y
 
 jobs:
   build:
