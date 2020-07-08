@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [ master ]
 
-before_script:
-  - apt-get install doxygen libboost-all-dev -y
 
 jobs:
   build:
@@ -16,6 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: install dependencies
+      run: |
+        sudo apt-get install doxygen graphviz libboost-all-dev -y
+        doxygen --version
     - name: cmake
       run: cmake .
     - name: ctest
