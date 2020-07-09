@@ -47,11 +47,6 @@ ENDIF()
 
 
 #########################################
-### Describe what is currently the only executable
-ADD_EXECUTABLE (mcmc_test mcmc_test.cc)
-TARGET_LINK_LIBRARIES(mcmc_test Threads::Threads)
-
-#########################################
 ### Provide "indent" target for indenting all headers and source files
 ADD_CUSTOM_TARGET(indent
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
