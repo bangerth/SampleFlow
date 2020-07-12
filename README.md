@@ -99,7 +99,7 @@ thing, you can let cmake generate projects for other IDEs as well; to
 see a list of possibilities, say
 
 ```
-  cmake help
+  cmake --help
 ```
 
 The "generators" are listed at the bottom.
