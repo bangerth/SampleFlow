@@ -18,8 +18,8 @@
 // This test generates a sequence of 2D samples where each dimension
 // is a complex-typed, real number:
 // 1st dimension: (1 + 0i, 2 + 0i, 3 + 0i, 4 + 0i, 5 + 0i, 6 + 0i, 7 + 0i, 8 + 0i)
-// 2nd dimension: (2 + 0i, 3 + 0i, 4 + 0i, 5 + 0i, 6 + 0i, 8 + 0i, 8 + 0i, 9 + 0i)
-// This test should be essentiall equivalent to covariance_matrix_01,
+// 2nd dimension: (2 + 0i, 3 + 0i, 4 + 0i, 5 + 0i, 6 + 0i, 7 + 0i, 8 + 0i, 9 + 0i)
+// This test should be essentially equivalent to covariance_matrix_01,
 // where the covariance matrix is
 // [6, 6
 //  6, 6]
@@ -46,7 +46,7 @@ std::pair<SampleType,double> perturb (const SampleType &x)
   SampleType y = x;
 
   for (auto &el : y)
-      el += SampleType(1, 0);
+    el += ComponentType(1, 0);
 
   // Return both the new sample and the ratio of proposal distribution
   // probabilities. We've moved the sample to the right, so that ratio
