@@ -28,7 +28,7 @@ namespace SampleFlow
      * useful if one wants to compute quantities from a stream of samples
      * in arithmetic that is not possible in the data type used for the sample.
      * An example is computing the mean value of the number of dots one gets
-     * when throwing a dice (see the Consumers::MeanValue class): the
+     * when throwing a dice (see the Consumers::MeanValue class): The
      * data type used to store the number of dots would generally be an
      * integer, but it is not possible to compute the mean value in this
      * data type because one gets out of the realm of the integers when
@@ -37,10 +37,21 @@ namespace SampleFlow
      * but this is not the root cause of the problem in this example.) As
      * a consequence, if one wanted to compute this mean value, one would
      * want to convert the samples from integers to `double` values, for
-     * example.
+     * example. (Whether computing the "average number of dots" actually
+     * makes sense is a separate question.)
      *
      * The actual conversion of the data types is done using a function object
-     * passed to the constuctor.
+     * passed to the constructor. This also opens up the possibility of using
+     * entirely different operations than just type conversion. For example,
+     * one could imagine the `InputType` to be something that represents
+     * triangles, and `OutputType` a floating point number that represents
+     * the area of a triangle. In that case, the conversion function is not
+     * simply a type cast, but a function that given a triangle outputs
+     * its area. Such a filter might be useful if one has a sampling algorithm
+     * for "random triangles" and wants to know the statistical distribution
+     * of the areas of random triangles. A filter of the current type with
+     * such a conversion function could then connect the triangle producer
+     * to a Consumers::Histogram or Consumers::MeanValue consumer.
      *
      *
      * ### Threading model ###
@@ -65,7 +76,7 @@ namespace SampleFlow
          *   do the actual conversion from `InputType` to `OutputType`.
          *   The default for this function object is a lambda function
          *   that simply calls `static_cast`. This is appropriate for
-         *   simple conversions such as from `int`
+         *   simple conversions such as from `int` to double.
          */
         Conversion (const std::function<OutputType (const InputType &)> &conversion_function
                     = [] (const InputType &in)
