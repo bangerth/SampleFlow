@@ -65,7 +65,7 @@ int main ()
 
   SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
   covariance_matrix.connect_to_producer(mh_sampler);
-  
+
   mh_sampler.sample ({ComponentType(0, 0), ComponentType(1, 1)},
                      &log_likelihood,
                      &perturb,
