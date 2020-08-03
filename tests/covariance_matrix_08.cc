@@ -19,7 +19,7 @@
 // is a complex-typed, imaginary number:
 // 1st dimension: (0 + 1i, 0 + 2i, 0 + 3i, 0 + 4i, 0 + 5i, 0 + 6i, 0 + 7i, 0 + 8i)
 // 2nd dimension: (0 + 2i, 0 + 3i, 0 + 4i, 0 + 5i, 0 + 6i, 0 + 7i, 0 + 8i, 0 + 9i)
-// This test should produce the same results as covariance_matrix_01 
+// This test should produce the same results as covariance_matrix_01
 // (since the variance and covariance of imaginary numbers are equivalent
 //  to that of real numbers), which are:
 // [6, 6

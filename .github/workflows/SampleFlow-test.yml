@@ -22,3 +22,13 @@ jobs:
       run: cmake .
     - name: ctest
       run: ctest --output-on-failure -j2
+    - name: doc
+      run: make doc
+    - name: style
+      run: |
+        wget -O astyle_2.04_linux.tar.gz https://sourceforge.net/projects/astyle/files/astyle/astyle%202.04/astyle_2.04_linux.tar.gz/download
+        tar -xvf astyle_2.04_linux.tar.gz
+        cd astyle/build/gcc && make && sudo make install
+        cd ../../..
+        ./doc/indent
+        git --no-pager diff --exit-code

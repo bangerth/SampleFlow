@@ -85,8 +85,8 @@ double triangle_area(const MyTriangle &sample)
   // calculate the area using Heron's formula
   double s = sample.side_lengths.sum() / 2.0;
   double area = std::sqrt(s * (s - sample.side_lengths[0]) *
-                              (s - sample.side_lengths[1]) *
-                              (s - sample.side_lengths[2]));
+                          (s - sample.side_lengths[1]) *
+                          (s - sample.side_lengths[2]));
   return area;
 }
 

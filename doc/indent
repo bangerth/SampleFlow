@@ -45,14 +45,17 @@ fi
 # collect all header and source files and process them in batches of 50 files
 # with up to 10 in parallel
 echo "--- Indenting all SampleFlow header and source files"
+echo astyle --version
 
 find include tests \( -name '*.cc' -o -name '*.h' \) -print | xargs -n 50 -P 10 astyle --options=doc/astyle.rc
 
 # remove execute permission on source files:
+echo "--- Removing execute permission on source files"
 find include \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 50 -P 10 chmod -x
 
 # convert dos formatted files to unix file format by stripping out 
 # carriage returns (15=0x0D):
+echo "--- Convert DOS formatted files to UNIX"
 dos_to_unix()
 {
     f=$1
@@ -63,3 +66,4 @@ dos_to_unix()
 export -f dos_to_unix
 
 find include \( -name '*.cc' -o -name '*.h' -o -name '*.prm' \) -print | xargs -n 1 -P 10 -I {} bash -c 'dos_to_unix "$@"' _ {} 
+echo "--- Done"
