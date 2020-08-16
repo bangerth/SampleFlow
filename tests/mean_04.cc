@@ -32,6 +32,14 @@ class MyTriangle
 
     std::valarray<double> side_lengths;
 
+    MyTriangle()
+    {
+      side_lengths = {std::numeric_limits<double>::signaling_NaN(),
+                      std::numeric_limits<double>::signaling_NaN(),
+                      std::numeric_limits<double>::signaling_NaN()
+                     };
+    }
+
     MyTriangle(const std::valarray<double> lengths)
     {
       side_lengths = lengths;
