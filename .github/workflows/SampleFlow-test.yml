@@ -42,19 +42,27 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: |
-        sudo apt-get install doxygen graphviz libboost-all-dev numdiff -y
-        doxygen --version
+        brew install cmake boost numdiff -y
     - name: cmake
       run: cmake .
     - name: ctest
       run: ctest --output-on-failure -j2
-    - name: doc
-      run: make doc
-    - name: style
+
+  build-windows:
+
+    runs-on: windows-lastest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install dependencies
       run: |
-        wget -O astyle_2.04_linux.tar.gz https://sourceforge.net/projects/astyle/files/astyle/astyle%202.04/astyle_2.04_linux.tar.gz/download
-        tar -xvf astyle_2.04_linux.tar.gz
-        cd astyle/build/gcc && make && sudo make install
-        cd ../../..
-        ./doc/indent
-        git --no-pager diff --exit-code
+        wget -O boost.zip https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.zip
+        tar -xf boost.zip
+        cd boost
+        bootstrap.bat mingw
+        b2 install --prefix=c:/boost toolset=gcc
+        cd ..
+    - name: cmake
+      run: cmake .
+    - name: ctest
+      run: ctest --output-on-failure -j2
