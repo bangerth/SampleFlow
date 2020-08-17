@@ -73,7 +73,7 @@ FOREACH(_testfile ${_testfiles})
   ADD_CUSTOM_COMMAND(
     OUTPUT ${_testname}.ok
     COMMAND rm -f ${_testname}.ok
-    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n=,:;<>[](){}^'" -q ${CMAKE_CURRENT_SOURCE_DIR}/${_testname}.output ${_testname}.result
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n\\r=,:;<>[](){}^'" -q ${CMAKE_CURRENT_SOURCE_DIR}/${_testname}.output ${_testname}.result
     COMMAND touch ${_testname}.ok
     DEPENDS ${_testname}.result ${_testname}.output
     COMMENT "Comparing test <${_testname}>...")
