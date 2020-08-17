@@ -34,7 +34,7 @@ INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 
 # Set paths correctly to take BOOST from wherever it is
 # installed on the current system
-FIND_PACKAGE(Boost 1.72 REQUIRED)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system)
 INCLUDE(CheckIncludeFileCXX)
 
 MESSAGE(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
