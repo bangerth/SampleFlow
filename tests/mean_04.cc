@@ -35,8 +35,9 @@ class MyTriangle
     MyTriangle()
       :
       side_lengths ({std::numeric_limits<double>::signaling_NaN(),
-                     std::numeric_limits<double>::signaling_NaN(),
-                     std::numeric_limits<double>::signaling_NaN()})
+                   std::numeric_limits<double>::signaling_NaN(),
+                   std::numeric_limits<double>::signaling_NaN()
+    })
     {}
 
     MyTriangle(const std::array<double, 3> &lengths)
