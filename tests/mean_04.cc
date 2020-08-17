@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (C) 2019 by the SampleFlow authors.
+// Copyright (C) 2020 by the SampleFlow authors.
 //
 // This file is part of the SampleFlow library.
 //
@@ -30,20 +30,19 @@ class MyTriangle
 {
   public:
 
-    std::valarray<double> side_lengths;
+    std::array<double, 3> side_lengths;
 
     MyTriangle()
-    {
-      side_lengths = {std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN()
-                     };
-    }
+      :
+      side_lengths ({std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN()})
+    {}
 
-    MyTriangle(const std::valarray<double> lengths)
-    {
-      side_lengths = lengths;
-    }
+    MyTriangle(const std::array<double, 3> &lengths)
+      :
+      side_lengths (lengths)
+    {}
 
 };
 
