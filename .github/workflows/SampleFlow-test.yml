@@ -59,6 +59,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: setup-boost
+      run: export BOOST_ROOT=$BOOST_ROOT_1_72_0
     - name: cmake
       run: cmake .
     - name: ctest
