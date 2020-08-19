@@ -131,7 +131,7 @@ namespace SampleFlow
        */
       virtual
       void
-      flush ();
+      flush () override;
 
       /**
        * The main function of this class, which needs to be implemented by
