@@ -61,7 +61,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: setup-boost
       run: |
-        setx BOOST_ROOT %BOOST_ROOT_1_72_0%
+        setx BOOST_ROOT $env:BOOST_ROOT_1_72_0
         echo "boost dir" $env:BOOST_ROOT_1_72_0
         dir %BOOST_ROOT_1_72_0%
     - name: cmake
