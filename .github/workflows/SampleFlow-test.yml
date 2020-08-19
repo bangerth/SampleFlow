@@ -63,7 +63,7 @@ jobs:
       run: |
         setx BOOST_ROOT $env:BOOST_ROOT_1_72_0
         echo "boost dir" $env:BOOST_ROOT_1_72_0
-        dir %BOOST_ROOT_1_72_0%
+        dir $env:BOOST_ROOT_1_72_0
     - name: cmake
       run: cmake .
     - name: ctest
