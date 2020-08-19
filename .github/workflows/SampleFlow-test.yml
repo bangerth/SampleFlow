@@ -63,7 +63,6 @@ jobs:
       run: |
         setx BOOST_ROOT %BOOST_ROOT_1_72_0%
         echo "boost dir" %BOOST_ROOT_1_72_0%
-        echo "boost dir $BOOST_ROOT_1_72_0
         dir %BOOST_ROOT_1_72_0%
     - name: cmake
       run: cmake .
