@@ -18,6 +18,7 @@
 
 #include <sampleflow/producer.h>
 #include <sampleflow/scope_exit.h>
+#include <sampleflow/types.h>
 
 #include <random>
 #include <cmath>
@@ -344,7 +345,7 @@ namespace SampleFlow
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
                 const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
-                const unsigned int n_samples);
+                const types::sample_index n_samples);
     };
 
 
@@ -354,7 +355,7 @@ namespace SampleFlow
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
             const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
-            const unsigned int n_samples)
+            const types::sample_index n_samples)
     {
       // Make sure the flush_consumers() function is called at any point
       // where we exit the current function.
@@ -370,7 +371,7 @@ namespace SampleFlow
       double     current_log_likelihood = log_likelihood (current_sample);
 
       // Loop over the desired number of samples
-      for (unsigned int i=0; i<n_samples; ++i)
+      for (types::sample_index i=0; i<n_samples; ++i)
         {
           // Obtain a new sample by perturbation and evaluate the
           // log likelihood for it
