@@ -63,6 +63,9 @@ jobs:
       run: |
         $Env:BOOST_ROOT = $env:BOOST_ROOT_1_72_0
         $Env:Boost_INCLUDE_DIR = "$env:BOOST_ROOT\include"
+        cd $env:BOOST_ROOT
+        bootstrap
+        .\b2
     - name: cmake
       run: cmake .
     - name: ctest
