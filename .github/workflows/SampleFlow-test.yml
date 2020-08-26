@@ -64,6 +64,6 @@ jobs:
         $Env:BOOST_ROOT = $env:BOOST_ROOT_1_72_0
         $Env:Boost_INCLUDE_DIR = "$env:BOOST_ROOT\include"
     - name: cmake
-      run: cmake .
+      run: cmake .  ||  cat CMakeFiles/CMakeError.log
     - name: ctest
       run: ctest --output-on-failure -j2
