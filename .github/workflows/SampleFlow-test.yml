@@ -62,8 +62,7 @@ jobs:
     - name: setup-boost
       run: |
         $Env:BOOST_ROOT = $env:BOOST_ROOT_1_72_0
-        echo "boost dir" $env:BOOST_ROOT_1_72_0
-        dir $env:BOOST_ROOT
+        $Env:Boost_INCLUDE_DIR = "$env:BOOST_ROOT\include"
     - name: cmake
       run: cmake .
     - name: ctest
