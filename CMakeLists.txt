@@ -24,13 +24,9 @@ PROJECT (SampleFlow CXX)
 SET (CMAKE_CXX_STANDARD 11)
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_EXTENSIONS OFF)
-ADD_DEFINITIONS("-ggdb")
 
 # Also make sure we link with the threads library in question
 FIND_PACKAGE (Threads)
-
-# Source files need to know where headers are:
-INCLUDE_DIRECTORIES(include ${CMAKE_BINARY_DIR}/include)
 
 # Set paths correctly to take BOOST from wherever it is
 # installed on the current system
@@ -38,8 +34,6 @@ FIND_PACKAGE(Boost 1.39 REQUIRED)
 INCLUDE(CheckIncludeFileCXX)
 
 MESSAGE(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
 CHECK_INCLUDE_FILE_CXX("boost/signals2.hpp" SF_HAVE_SIGNALS2)
@@ -51,6 +45,27 @@ IF (NOT SF_HAVE_MATRIX)
   MESSAGE(FATAL_ERROR "Could not find boost/numeric/ublas/matrix.hpp")
 ENDIF()
 
+
+
+############################################################
+### Having done the set-up, let us describe what SampleFlow
+### actually is. Specifically, it is a collection of header
+### files that can be installed and that can be linked to.
+###
+### In cmake, this is expressed via an INTERFACE library.
+### Take a look at the following blog post that describes
+### how this works:
+###   http://mariobadr.com/creating-a-header-only-library-with-cmake.html
+############################################################
+
+ADD_LIBRARY(sampleflow INTERFACE)
+TARGET_INCLUDE_DIRECTORIES(sampleflow
+                           INTERFACE
+                           "${CMAKE_SOURCE_DIR}/include/"
+                           "${Boost_INCLUDE_DIRS}")
+TARGET_LINK_LIBRARIES(sampleflow
+                      INTERFACE
+                      Threads::Threads)
 
 #########################################
 ### Provide "indent" target for indenting all headers and source files

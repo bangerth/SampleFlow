@@ -18,8 +18,6 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.1)
 
 MESSAGE(STATUS "Setting up tests")
 
-FIND_PACKAGE(Threads)
-
 FIND_PROGRAM(NUMDIFF_EXECUTABLE
   NAMES numdiff
   HINTS ${NUMDIFF_DIR}
@@ -55,7 +53,7 @@ FOREACH(_testfile ${_testfiles})
   ELSE()
     TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "-Werror")
   ENDIF()
-  TARGET_LINK_LIBRARIES (${_testname} Threads::Threads)
+  TARGET_LINK_LIBRARIES (${_testname} sampleflow)
 
   # Then specify what it means to run a test:
   #
