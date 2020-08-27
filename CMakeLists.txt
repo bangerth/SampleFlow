@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------
 #
-# Copyright (C) 2019 by the SampleFlow authors.
+# Copyright (C) 2019-2020 by the SampleFlow authors.
 #
 # This file is part of the SampleFlow library.
 #
@@ -15,7 +15,8 @@
 
 
 CMAKE_MINIMUM_REQUIRED (VERSION 3.1)
-PROJECT (SampleFlow CXX)
+PROJECT (SampleFlow
+         CXX)
 
 #########################################
 ### Set up compiler flags and input paths
@@ -58,21 +59,47 @@ ENDIF()
 ###   http://mariobadr.com/creating-a-header-only-library-with-cmake.html
 ############################################################
 
-ADD_LIBRARY(sampleflow INTERFACE)
-TARGET_INCLUDE_DIRECTORIES(sampleflow
+ADD_LIBRARY(${PROJECT_NAME} INTERFACE)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
                            INTERFACE
-                           "${CMAKE_SOURCE_DIR}/include/"
+                           $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
                            "${Boost_INCLUDE_DIRS}")
-TARGET_LINK_LIBRARIES(sampleflow
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       INTERFACE
                       Threads::Threads)
+TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_11)
+
+FILE(GLOB_RECURSE _header_files
+     LIST_DIRECTORIES false
+     "${CMAKE_SOURCE_DIR}/include/*")
+TARGET_SOURCES(${PROJECT_NAME}
+               INTERFACE
+               ${_header_files})
+
+INSTALL(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}_Targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include
+        DESTINATION include)
+
+INCLUDE(CMakePackageConfigHelpers)
+WRITE_BASIC_PACKAGE_VERSION_FILE(
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
+    VERSION 0.1
+    COMPATIBILITY AnyNewerVersion
+)
+INSTALL(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
 
 #########################################
 ### Provide "indent" target for indenting all headers and source files
 ADD_CUSTOM_TARGET(indent
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND ./doc/indent
-  COMMENT "Indenting all SampleFlow header and source files..."
+  COMMENT "Indenting all ${PROJECT_NAME} header and source files..."
   )
 
 
