@@ -53,7 +53,7 @@ FOREACH(_testfile ${_testfiles})
   ELSE()
     TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "-Werror")
   ENDIF()
-  TARGET_LINK_LIBRARIES (${_testname} sampleflow)
+  TARGET_LINK_LIBRARIES (${_testname} ${PROJECT_NAME})
 
   # Then specify what it means to run a test:
   #
