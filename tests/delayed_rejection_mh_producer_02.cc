@@ -14,7 +14,8 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the Metropolis-Hasting producer. This test
+// A simple test for the DelayedRejection Metropolis Hastings producer,
+// copied from metropolis_hasting_producer_04.  This test
 // samples integers between 1 and 100, from a probability
 // distribution that has pi(x)=2^(-x). This happens to be an almost
 // normalized probability distribution because
@@ -37,9 +38,10 @@
 // with floating point arithmetic.
 
 #include <iostream>
-#include <sampleflow/producers/metropolis_hastings.h>
+#include <sampleflow/producers/delayed_rejection_mh.h>
 #include <sampleflow/filters/conversion.h>
 #include <sampleflow/consumers/mean_value.h>
+#include <sampleflow/consumers/stream_output.h>
 #include <valarray>
 #include <random>
 #include <cmath>
@@ -55,7 +57,7 @@ double log_likelihood (const SampleType &x)
 
 // Go to the left or right with equal probability. Wrap around if we
 // get below 1 or beyond 100.
-std::pair<SampleType,double> perturb (const SampleType &x)
+std::pair<SampleType,double> perturb (const SampleType &x, const std::vector<SampleType> &)
 {
   static std::mt19937 rng;
   // give "true" 1/2 of the time and
@@ -81,19 +83,21 @@ std::pair<SampleType,double> perturb (const SampleType &x)
 
 int main ()
 {
-  SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+  SampleFlow::Producers::DelayedRejectionMetropolisHastings<SampleType> drmh_sampler;
 
   SampleFlow::Filters::Conversion<SampleType,double> conversion;
-  conversion.connect_to_producer (mh_sampler);
+  conversion.connect_to_producer (drmh_sampler);
 
   SampleFlow::Consumers::MeanValue<double> mean_value;
   mean_value.connect_to_producer (conversion);
 
   // Sample, starting at 1, and creating 100,000 samples
-  mh_sampler.sample ({10},
-                     &log_likelihood,
-                     &perturb,
-                     100000);
+  drmh_sampler.sample ({10},
+                       &log_likelihood,
+                       &perturb,
+                       0,
+                       100000,
+                       1);
 
   std::cout << "Mean value = " << mean_value.get() << std::endl;
 }
