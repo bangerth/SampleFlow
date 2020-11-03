@@ -116,7 +116,7 @@ namespace SampleFlow
             const unsigned int crossover_gap,
             const types::sample_index n_samples)
     {
-      unsigned int n_chains = starting_points.size();
+      const typename std::vector<OutputType>::size_type n_chains = starting_points.size();
       assert (n_chains >= 3);
       // Make sure the flush_consumers() function is called at any point
       // where we exit the current function.
@@ -142,7 +142,7 @@ namespace SampleFlow
       for (types::sample_index generation=0; true; ++generation)
         {
           // Loop over the desired number of chains
-          for (unsigned int chain = 0; chain < n_chains; ++chain)
+          for (typename std::vector<OutputType>::size_type chain = 0; chain < n_chains; ++chain)
             {
               // Return if we have already generated the desired number of
               // samples. The ScopeExit object above also makes sure that
@@ -153,24 +153,31 @@ namespace SampleFlow
               // Determine trial sample and likelihood ratio; either from
               // crossover operation or regular perturbation
               std::pair<OutputType, double> trial_sample_and_ratio;
+
               // Perform crossover every crossover_gap iterations
               if ((generation % crossover_gap) == 0)
                 {
                   // Select two chains to combine
-                  std::uniform_int_distribution<> a_dist(0, n_chains - 2);
-                  int a = a_dist(rng);
+                  std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
+                  a_dist(0, n_chains - 2);
+
+                  typename std::vector<OutputType>::size_type a = a_dist(rng);
                   if (a >= generation)
                     a += 1;
-                  OutputType trial_a = current_samples[a];
-                  std::uniform_int_distribution<> b_dist(0, n_chains - 3);
-                  int b = b_dist(rng);
-                  if (b >= std::max<int>(a, chain))
+                  const OutputType trial_a = current_samples[a];
+
+                  std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
+                  b_dist(0, n_chains - 3);
+
+                  typename std::vector<OutputType>::size_type b = b_dist(rng);
+                  if (b >= std::max<typename std::vector<OutputType>::size_type>(a, chain))
                     b += 2;
-                  else if (b >= std::min<int>(a, generation))
+                  else if (b >= std::min<typename std::vector<OutputType>::size_type>(a, generation))
                     b += 1;
-                  OutputType trial_b = current_samples[b];
+                  const OutputType trial_b = current_samples[b];
+
                   // Combine trial a and trial b
-                  OutputType crossover_result = crossover(current_samples[chain], trial_a, trial_b);
+                  const OutputType crossover_result = crossover(current_samples[chain], trial_a, trial_b);
                   trial_sample_and_ratio = perturb(crossover_result);
                 }
               else
