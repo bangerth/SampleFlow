@@ -136,30 +136,30 @@ namespace SampleFlow
       std::vector<OutputType> next_samples = starting_points;
 
       // Loop over the desired number of samples
-      for (types::sample_index i=0; i<n_samples/n_chains; ++i)
+      for (types::sample_index generation=0; generation<n_samples/n_chains; ++generation)
         {
           // Loop over the desired number of chains
           for (unsigned int chain = 0; chain < n_chains; ++chain)
             {
-              if (i * n_chains + chain > n_samples)
+              if (generation * n_chains + chain > n_samples)
                 return;
               // Determine trial sample and likelihood ratio; either from
               // crossover operation or regular perturbation
               std::pair<OutputType, double> trial_sample_and_ratio;
               // Perform crossover every crossover_gap iterations
-              if ((i % crossover_gap) == 0)
+              if ((generation % crossover_gap) == 0)
                 {
                   // Select two chains to combine
                   std::uniform_int_distribution<> a_dist(0, n_chains - 2);
                   int a = a_dist(rng);
-                  if (a >= i)
+                  if (a >= generation)
                     a += 1;
                   OutputType trial_a = current_samples[a];
                   std::uniform_int_distribution<> b_dist(0, n_chains - 3);
                   int b = b_dist(rng);
                   if (b >= std::max<int>(a, chain))
                     b += 2;
-                  else if (b >= std::min<int>(a, i))
+                  else if (b >= std::min<int>(a, generation))
                     b += 1;
                   OutputType trial_b = current_samples[b];
                   // Combine trial a and trial b
