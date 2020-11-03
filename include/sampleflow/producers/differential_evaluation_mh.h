@@ -135,14 +135,21 @@ namespace SampleFlow
       // can be performed with the previous set of samples
       std::vector<OutputType> next_samples = starting_points;
 
-      // Loop over the desired number of samples
-      for (types::sample_index generation=0; generation<n_samples/n_chains; ++generation)
+      // Loop over the desired number of samples, using an outer loop over
+      // "generations" and an inner loop over the individual chains. We
+      // exit from the inner loop when we have reached the desired number of
+      // samples.
+      for (types::sample_index generation=0; true; ++generation)
         {
           // Loop over the desired number of chains
           for (unsigned int chain = 0; chain < n_chains; ++chain)
             {
-              if (generation * n_chains + chain > n_samples)
+              // Return if we have already generated the desired number of
+              // samples. The ScopeExit object above also makes sure that
+              // we flush the downstream consumers.
+              if (generation * n_chains + chain >= n_samples)
                 return;
+
               // Determine trial sample and likelihood ratio; either from
               // crossover operation or regular perturbation
               std::pair<OutputType, double> trial_sample_and_ratio;
@@ -193,11 +200,9 @@ namespace SampleFlow
                 {"sample is repeated", boost::any(!accepted_sample)}
               });
             }
+
           current_samples = next_samples;
-
         }
-
-      this->flush_consumers();
     }
 
   }
