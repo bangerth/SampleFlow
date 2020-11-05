@@ -170,7 +170,7 @@ namespace SampleFlow
                   b_dist(0, n_chains - 3);
 
                   typename std::vector<OutputType>::size_type b = b_dist(rng);
-                  if (b >= std::max<typename std::vector<OutputType>::size_type>(a, chain))
+                  if (b >= std::max(a, chain))
                     b += 2;
                   else if (b >= std::min<typename std::vector<OutputType>::size_type>(a, generation))
                     b += 1;
