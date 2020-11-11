@@ -155,14 +155,14 @@ namespace SampleFlow
               std::pair<OutputType, double> trial_sample_and_ratio;
 
               // Perform crossover every crossover_gap iterations
-              if ((generation % crossover_gap) == 0)
+              if ((generation % crossover_gap) == 0 && generation > 0)
                 {
                   // Select two chains to combine
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   a_dist(0, n_chains - 2);
 
                   typename std::vector<OutputType>::size_type a = a_dist(rng);
-                  if (a >= generation)
+                  if (a >= chain)
                     a += 1;
                   const OutputType trial_a = current_samples[a];
 
@@ -172,7 +172,7 @@ namespace SampleFlow
                   typename std::vector<OutputType>::size_type b = b_dist(rng);
                   if (b >= std::max(a, chain))
                     b += 2;
-                  else if (b >= std::min<typename std::vector<OutputType>::size_type>(a, generation))
+                  else if (b >= std::min<typename std::vector<OutputType>::size_type>(a, chain))
                     b += 1;
                   const OutputType trial_b = current_samples[b];
 
