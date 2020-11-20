@@ -95,6 +95,16 @@ namespace SampleFlow
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
          *   sample is available.
+         * @param[in] random_seed If not equal to the default value, this optional
+         *   argument is used to "seed" the random number generator. Using the
+         *   default, or passing the same seed every time this function is called
+         *   will then result in a reproducible sequence of samples. On the other
+         *   hand, if you want to generate a different sequence of samples every
+         *   time this function is called, then you want to pass this function
+         *   a different seed every time it is called, for example by using the
+         *   output of
+         *   [std::random_device()](https://en.cppreference.com/w/cpp/numeric/random/random_device)
+         *   as argument.
          */
         void
         sample (const std::vector<OutputType> starting_points,
@@ -102,7 +112,8 @@ namespace SampleFlow
                 const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
                 const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
                 const unsigned int crossover_gap,
-                const types::sample_index n_samples);
+                const types::sample_index n_samples,
+                const std::mt19937::result_type random_seed = {});
     };
 
 
@@ -114,7 +125,8 @@ namespace SampleFlow
             const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
             const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
             const unsigned int crossover_gap,
-            const types::sample_index n_samples)
+            const types::sample_index n_samples,
+            const std::mt19937::result_type random_seed)
     {
       const typename std::vector<OutputType>::size_type n_chains = starting_points.size();
       assert (n_chains >= 3);
@@ -126,6 +138,9 @@ namespace SampleFlow
       });
 
       std::mt19937 rng;
+      if (random_seed != std::mt19937::result_type {})
+        rng.seed (random_seed);
+
       // Initialize distribution for comparing to acceptance ratio
       std::uniform_real_distribution<> uniform_distribution(0,1);
 
