@@ -50,7 +50,11 @@ namespace SampleFlow
          * base class to Consumer objects.
          *
          * @param[in] starting_points The initial samples of $x_{i, 0}$ for
-         *   each chain {i}. Must have at least 3 elements.
+         *   each chain $i$. The number of starting points also determines
+         *   how many chains this algorithm will run.
+         *   The algorithm needs to have at least three chains to make
+         *   sense, and so the list of starting points must have at least
+         *   3 elements.
          * @param[in] log_likelihood A function object that, when called
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
@@ -88,7 +92,6 @@ namespace SampleFlow
          *   ```
          *   where `gamma` is a scaling parameter that is typically chosen as $\frac{2.38}{\sqrt{2d}}$, where $d$ is the
          *   dimension of the vector space.
-         * @param[in] n_chains The number of sample chains to produce in parallel.
          * @param[in] crossover_gap The number of iterations in between crossover
          *   iterations.
          * @param[in] n_samples The number of (new) samples to be produced

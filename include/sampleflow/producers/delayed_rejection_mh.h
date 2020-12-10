@@ -71,7 +71,7 @@ namespace SampleFlow
          *   ${\mathbb R}^n$, then the perturbation function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
          *   of $x$. If, for example, $\tilde x$ is chosen with a probability
-         *   that only depends on the distance $\|\tilde x-\x\|$ as is often
+         *   that only depends on the distance $\|\tilde x-x\|$ as is often
          *   done (e.g., uniformly in a disk of a certain radius around
          *   $x$, or using a Gaussian probability distribution centered at
          *   $x$), then the ratio returned as second argument is
