@@ -53,8 +53,9 @@ namespace SampleFlow
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
          * @param[in] perturb A function object that, when given a sample
-         *   $x$ as well as a vector of rejected samples $y$,
-         *   returns a pair of values containing the following:
+         *   $x$ as well as a (possibly empty) vector of rejected samples
+         *   $\{y_1,\ldots,y_n\}$, returns a pair of values containing the
+         *   following:
          *   <ol>
          *   <li> A different sample $\tilde x$ that is perturbed
          *     in some way from the given sample $x$.
@@ -76,6 +77,22 @@ namespace SampleFlow
          *   $x$), then the ratio returned as second argument is
          *   $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}=1$.
+         *   On the other hand, the whole point of *delayed rejection*
+         *   algorithms is to choose the proposed sample $\tilde x$
+         *   not only based on the last accepted sample $x$, but also taking
+         *   into account that the samples $y_i$, if that is a non-empty set,
+         *   have already been rejected; this might suggest that going from
+         *   $x$ in the direction of the $y_i$ is not a profitable idea
+         *   and that going in the *opposite* direction is what one should do.
+         *   In this case, the second component of the returned object is
+         *   more difficult to compute since
+         *   @f[
+         *     \pi_\text{proposal}(\tilde x|x) =
+         *     \pi_\text{proposal}(\tilde x|x, \{y_1,\ldots,y_n\})
+         *   @f]
+         *   and care has to be taken to compute the ratio with
+         *   $\pi_\text{proposal}(x|\tilde x)$. The paper @cite trias2009delayed
+         *   provides a nice introduction.
          * @param[in] max_delays The maximum number of delayed rejection stages.
          *   if `max_delays==0`, then this class functions the same as a regular
          *   Metropolis-Hastings producer.
