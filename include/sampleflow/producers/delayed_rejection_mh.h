@@ -114,7 +114,7 @@ namespace SampleFlow
         void
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
-                const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType>)> &perturb,
+                const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &perturb,
                 const unsigned int max_delays,
                 const types::sample_index n_samples,
                 const std::mt19937::result_type random_seed = {});
@@ -126,7 +126,7 @@ namespace SampleFlow
     DelayedRejectionMetropolisHastings<OutputType>::
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
-            const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType>)> &perturb,
+            const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &perturb,
             const unsigned int max_delays,
             const types::sample_index n_samples,
             const std::mt19937::result_type random_seed)
