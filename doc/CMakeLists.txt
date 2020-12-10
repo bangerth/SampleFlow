@@ -13,7 +13,7 @@
 #
 # ---------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.9)
 
 
 MESSAGE(STATUS "Setting up documentation")
@@ -35,19 +35,28 @@ ENDIF()
 
 # First gather all of the input files that are to be used when creating
 # the documentation.
-FILE(GLOB _doxygen_input "../include/sampleflow/*.h" "../include/sampleflow/*/*.h")
+FILE(GLOB_RECURSE _doxygen_inputs "${CMAKE_SOURCE_DIR}/*.h")
 
-ADD_CUSTOM_COMMAND(
-  OUTPUT SampleFlow.dox
-  DEPENDS CMakeLists.txt ${_doxygen_input}
-  COMMAND echo '@INCLUDE               = options.dox'        > SampleFlow.dox
-  COMMAND echo 'INPUT                  = ${_doxygen_input}' >> SampleFlow.dox
-  COMMENT "Generating SampleFlow.dox")
+# Then set up the doxygen infrastructure
+FIND_PACKAGE(Doxygen
+  REQUIRED dot)
 
-ADD_CUSTOM_TARGET(doxygen
-  DEPENDS SampleFlow.dox
-  BYPRODUCTS SampleFlow.tag
-  COMMAND doxygen SampleFlow.dox
+SET(DOXYGEN_PROJECT_NAME "SampleFlow")
+SET(DOXYGEN_PROJECT_BRIEF
+    "A C++ library for the type-safe generation and processing of statistical samples.")
+SET(DOXYGEN_EXTRACT_ALL "YES")
+SET(DOXYGEN_EXTRACT_PRIVATE "YES")
+SET(DOXYGEN_EXTRACT_STATIC "YES")
+SET(DOXYGEN_CITE_BIB_FILES "${CMAKE_CURRENT_SOURCE_DIR}/references.bib")
+SET(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/images")
+SET(DOXYGEN_INPUT_FILTER "${CMAKE_CURRENT_SOURCE_DIR}/filter")
+SET(DOXYGEN_FILTER_SOURCE_FILES "YES")
+SET(DOXYGEN_USE_MATHJAX "YES")
+SET(DOXYGEN_QUIET "YES")
+
+DOXYGEN_ADD_DOCS(doxygen
+  ${_doxygen_inputs}
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR/doxygen}
   COMMENT "Running doxygen...")
 
 # Create a target that we can use for 'make doc'.
