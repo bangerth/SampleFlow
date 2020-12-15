@@ -15,11 +15,13 @@
 
 
 // Test the Metropolis-Hastings producer with a diagonally elongated
-// distribution.
+// distribution; here, we use a MVN with mean [0, 0] and covariance
+// [[10, 0], [0, 1]].
 
 #include <iostream>
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/filters/conversion.h>
+#include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/mean_value.h>
 #include <valarray>
 #include <random>
@@ -31,16 +33,18 @@ using SampleType = std::valarray<double>;
 
 double log_likelihood (const SampleType &x)
 {
-  std::valarray<double> mu = {0, 0};
-  std::valarray<double> cov = {{1, 1.5}, {1.5, 3}};
-  // FIXME: what's the correct way to do these matrix operations?
-  return -0.5 * (ln(|cov|) + (x - mu)^T @ cov^-1 @ (x - mu) + k * ln(2 * pi));
+  double mu[2] = {0, 0};
+  double cov[2][2] = {{10, 0}, {0, 1}};
+  // return -0.5 * (ln(|cov|) + (x - mu)^T @ cov^-1 @ (x - mu) + k * ln(2 * pi));
+  return -0.5 * ((x[0]-mu[0])*cov[0][0]*(x[0]-mu[0]) +
+                 (x[0]-mu[0])*cov[0][1]*(x[1]-mu[1]) +
+                 (x[1]-mu[1])*cov[1][0]*(x[0]-mu[0]) +
+                 (x[1]-mu[1])*cov[1][1]*(x[1]-mu[1]));
 }
 
 
 std::pair<SampleType,double> perturb (const SampleType &x)
 {
-  // FIXME: how to sample MVN(x, cov)?
   static std::mt19937 rng;
   std::normal_distribution<double> distribution(0, 1);
   SampleType y = x;
@@ -53,11 +57,12 @@ std::pair<SampleType,double> perturb (const SampleType &x)
 int main ()
 {
   SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
-  SampleFlow::Producers::CovarianceMatrix<SampleType> cov_matrix;
+  SampleFlow::Consumers::CovarianceMatrix<SampleType> cov_matrix;
   SampleFlow::Consumers::MeanValue<SampleType> mean_value;
   cov_matrix.connect_to_producer(mh_sampler);
   mean_value.connect_to_producer(mh_sampler);
   // Sample, starting at an asymmetric point, and creating 100,000 samples
   mh_sampler.sample({5, -1}, &log_likelihood, &perturb, 100000);
-  std::cout << "Mean value = " << mean_value.get() << std::endl;
+  std::cout << "Mean value = " << mean_value.get()[0] << std::endl;
+  std::cout << "Mean value = " << mean_value.get()[1] << std::endl;
 }
