@@ -75,14 +75,17 @@ std::pair<double[][], double[]> cholesky(A)
 std::pair<SampleType,double> perturb (const SampleType &x, const double[] &cov)
 {
   std::pair<double[], double[]> decomp = cholesky(cov);
-  double L[][] = decomp.first;
-  double D[] = decomp.second;
+  double L[x.size()][x.size()] = decomp.first;
+  double D[x.size()] = decomp.second;
   static std::mt19937 rng;
   SampleType y = x;
   for (i = 0; i < y.size(); ++i)
     {
-      std::normal_distribution<double> distribution(x[i], D[i]);
-      y[i] = L[i][j] * distribution(rng) * L[j][i];
+      std::normal_distribution<double> distribution(x[i], 1 ) * D[i];
+      double perturbation[2] = distribution(rng);
+      // xt = xk + l * sqrt(D) * n // n is a vector whose elements are normally distrubitued with variance 1
+      //
+      y[i] = L[i][j] * distribution(rng);
     }
   return {y, 1.0};
 }

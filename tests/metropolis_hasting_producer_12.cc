@@ -34,11 +34,12 @@ using SampleType = std::valarray<double>;
 double log_likelihood (const SampleType &x)
 {
   double mu[2] = {0, 0};
-  double cov[2][2] = {{10, 0}, {0, 1}};
-  return -0.5 * ((x[0]-mu[0])*cov[0][0]*(x[0]-mu[0]) +
-                 (x[0]-mu[0])*cov[0][1]*(x[1]-mu[1]) +
-                 (x[1]-mu[1])*cov[1][0]*(x[0]-mu[0]) +
-                 (x[1]-mu[1])*cov[1][1]*(x[1]-mu[1]));
+  // double cov[2][2] = {{10, 0}, {0, 1}};
+  double cov_inv[2][2] = {{1/10, 0},{0, 1}};
+  return -0.5 * ((x[0]-mu[0])*cov_inv[0][0]*(x[0]-mu[0]) +
+                 (x[0]-mu[0])*cov_inv[0][1]*(x[1]-mu[1]) +
+                 (x[1]-mu[1])*cov_inv[1][0]*(x[0]-mu[0]) +
+                 (x[1]-mu[1])*cov_inv[1][1]*(x[1]-mu[1]));
 }
 
 
