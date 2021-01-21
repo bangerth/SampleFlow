@@ -23,6 +23,7 @@
 #include <sampleflow/filters/conversion.h>
 #include <sampleflow/consumers/covariance_matrix.h>
 #include <sampleflow/consumers/mean_value.h>
+#include <sampleflow/consumers/stream_output.h>
 #include <valarray>
 #include <random>
 #include <cmath>
@@ -36,10 +37,16 @@ double log_likelihood (const SampleType &x)
   double mu[2] = {0, 0};
   // double cov[2][2] = {{10, 0}, {0, 1}};
   double cov_inv[2][2] = {{1/10, 0},{0, 1}};
-  return -0.5 * ((x[0]-mu[0])*cov_inv[0][0]*(x[0]-mu[0]) +
-                 (x[0]-mu[0])*cov_inv[0][1]*(x[1]-mu[1]) +
-                 (x[1]-mu[1])*cov_inv[1][0]*(x[0]-mu[0]) +
-                 (x[1]-mu[1])*cov_inv[1][1]*(x[1]-mu[1]));
+  double dev[2] = {x[0]- mu[0], x[1] - mu[1]};
+  double dev_covinv[2] = {dev[0] * cov_inv[0][0] + dev[1] * cov_inv[0][1],
+                          dev[0] * cov_inv[1][0] + dev[1] * cov_inv[1][1]};
+  double dev_covinv_dev = dev_covinv[0] * dev[0] + dev_covinv[1] * dev[1];
+  // return -0.5 * ((x[0]-mu[0])*cov_inv[0][0]*(x[0]-mu[0]) +
+  //                (x[0]-mu[0])*cov_inv[0][1]*(x[1]-mu[1]) +
+  //                (x[1]-mu[1])*cov_inv[1][0]*(x[0]-mu[0]) +
+  //                (x[1]-mu[1])*cov_inv[1][1]*(x[1]-mu[1]));
+  std::cout << x[0] << " " << -0.5 * dev_covinv_dev << std::endl;
+  return -0.5 * dev_covinv_dev;
 }
 
 
@@ -61,6 +68,8 @@ int main ()
   SampleFlow::Consumers::MeanValue<SampleType> mean_value;
   cov_matrix.connect_to_producer(mh_sampler);
   mean_value.connect_to_producer(mh_sampler);
+  // SampleFlow::Consumers::StreamOutput<SampleType> output(std::cout);
+  // output.connect_to_producer(mh_sampler);
   // Sample, starting at an asymmetric point, and creating 100,000 samples
   mh_sampler.sample({5, -1}, &log_likelihood, &perturb, 100000);
   std::cout << "Mean value = " << mean_value.get()[0] << std::endl;
