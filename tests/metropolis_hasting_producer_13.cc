@@ -72,7 +72,7 @@ double log_likelihood (const SampleType &x)
 }
 
 
-double *cholesky(const double A[2][2])
+std::vector<double> cholesky(const boost::numeric::ublas::matrix<double> &A)
 {
   double L[2][2];
   double D[2];
@@ -83,12 +83,12 @@ double *cholesky(const double A[2][2])
           double partial_sum = 0;
           for (int k = 0; k < (j - 1); ++k)
             partial_sum += pow(L[j][k], 2) * D[k];
-          D[j] = A[j][j] - partial_sum;
+          D[j] = A(i, j) - partial_sum;
           if (i > j)
             {
               for (int k = 0; k < (j - 1); ++k)
                 partial_sum += L[i][k] * L[j][k] * D[k];
-              L[i][j] = 1 / D[j] * (A[i][j] - partial_sum);
+              L[i][j] = 1 / D[j] * (A(i, j) - partial_sum);
             }
           else if (i == j)
             L[i][j] = 1;
@@ -104,7 +104,7 @@ double *cholesky(const double A[2][2])
 }
 
 
-std::pair<SampleType, double> perturb (const SampleType &x, const double cov[2][2])
+std::pair<SampleType, double> perturb (const SampleType &x, const boost::numeric::ublas::matrix<double> &cov)
 {
   static std::mt19937 rng;
   double L[2] = cholesky(cov);
@@ -132,7 +132,7 @@ int main ()
   mh_sampler.sample(
   {5, -1},
   &log_likelihood,
-  [cov_matrix](const SampleType &x)
+  [&cov_matrix](const SampleType &x)
   {
     return perturb(x, cov_matrix.get());
   },
