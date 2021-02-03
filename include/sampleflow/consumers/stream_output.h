@@ -184,7 +184,7 @@ namespace SampleFlow
       std::lock_guard<std::mutex> lock(mutex);
 
       internal::StreamOutput::write (sample, output_stream);
-      output_stream << std::endl;
+      output_stream << '\n';
     }
   }
 }
