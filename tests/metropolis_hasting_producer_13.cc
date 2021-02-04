@@ -102,9 +102,9 @@ MatrixType cholesky(const MatrixType &A)
             L[i][j] = 0;
         }
     }
-  MatrixType sqrtD(1, 2);
+  MatrixType sqrtD(2, 2);
   sqrtD(0, 0) = sqrt(D[0]);
-  sqrtD(0, 1) = sqrt(D[1]);
+  sqrtD(1, 1) = sqrt(D[1]);
   MatrixType Lmatrix(2, 2);
   Lmatrix(0, 0) = L[0][0];
   Lmatrix(0, 1) = L[0][1];
@@ -149,21 +149,27 @@ MatrixType cholesky(const MatrixType &A)
 
 std::pair<SampleType, double> perturb (const SampleType &x, const MatrixType &cov)
 {
-  std::cout << cov.size1() << std::endl;
   std::mt19937 rng;
   std::normal_distribution<double> dist(0, 1);
   VectorType delta(2);
   delta(0) = dist(rng);
   delta(1) = dist(rng);
-
-  MatrixType L = cholesky(cov);
   VectorType perturbation(2);
-  boost::numeric::ublas::prod(L, delta, perturbation);
+
+  if (int(cov.size1()) > 0)
+    {
+      MatrixType L = cholesky(cov);
+      boost::numeric::ublas::prod(L, delta, perturbation);
+    }
+  else
+    {
+      perturbation(0) = delta(0);
+      perturbation(1) = delta(1);
+    }
 
   SampleType y = x;
   y[0] = x[0] + perturbation(0);
   y[1] = x[1] + perturbation(1);
-
   return {y, 1.0};
 }
 
