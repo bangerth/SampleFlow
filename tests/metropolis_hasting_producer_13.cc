@@ -29,6 +29,8 @@
 
 
 using SampleType = std::valarray<double>;
+using MatrixType = boost::numeric::ublas::matrix<double>;
+using VectorType = boost::numeric::ublas::vector<double>;
 
 
 double log_likelihood (const SampleType &x)
@@ -72,7 +74,7 @@ double log_likelihood (const SampleType &x)
 }
 
 
-std::vector<double> cholesky(const boost::numeric::ublas::matrix<double> &A)
+MatrixType cholesky(const MatrixType &A)
 {
   double L[2][2];
   double D[2];
@@ -81,13 +83,17 @@ std::vector<double> cholesky(const boost::numeric::ublas::matrix<double> &A)
       for (int j = 0; j < 2; ++j)
         {
           double partial_sum = 0;
-          for (int k = 0; k < (j - 1); ++k)
+          for (int k = 0; k < j; ++k)
+          {
             partial_sum += pow(L[j][k], 2) * D[k];
+          }
           D[j] = A(i, j) - partial_sum;
           if (i > j)
             {
-              for (int k = 0; k < (j - 1); ++k)
+              for (int k = 0; k < j; ++k)
+              {
                 partial_sum += L[i][k] * L[j][k] * D[k];
+              }
               L[i][j] = 1 / D[j] * (A(i, j) - partial_sum);
             }
           else if (i == j)
@@ -96,26 +102,67 @@ std::vector<double> cholesky(const boost::numeric::ublas::matrix<double> &A)
             L[i][j] = 0;
         }
     }
-  double sqrtD[2] = {sqrt(D[0]), sqrt(D[1])};
-  double result[2] = {L[0][0] *sqrtD[0] + L[0][0] *sqrtD[0],
-                      L[1][0] *sqrtD[1] *L[1][1] *sqrtD[1]
-                     };
+  MatrixType sqrtD(1, 2);
+  sqrtD(0, 0) = sqrt(D[0]);
+  sqrtD(0, 1) = sqrt(D[1]);
+  MatrixType Lmatrix(2, 2);
+  Lmatrix(0, 0) = L[0][0];
+  Lmatrix(0, 1) = L[0][1];
+  Lmatrix(1, 0) = L[1][0];
+  Lmatrix(1, 1) = L[1][1];
+  MatrixType result(2, 2);
+  boost::numeric::ublas::prod(Lmatrix, sqrtD, result);
   return result;
 }
 
+//
+//
+//int cholesky_decompose(const MatrixType& A)
+//{
+//  namespace ublas = ::boost::numeric::ublas;
+//  
+//  const MatrixType& A_c(A);
+//
+//  const size_t n = A.size1();
+//  
+//  for (size_t k=0 ; k < n; k++) {
+//        
+//    double qL_kk = A_c(k,k) - ublas::inner_prod( ublas::project( row(A_c, k), ublas::range(0, k) ),
+//                                          ublas::project( ublas::row(A_c, k), ublas::range(0, k) ) );
+//    
+//    if (qL_kk <= 0) {
+//      return 1 + k;
+//    } else {
+//      double L_kk = ::std::sqrt( qL_kk );
+//      
+//      ublas::matrix_column<MatrixType> cLk(A, k);
+//      ublas::project( cLk, ublas::range(k+1, n) )
+//        = ( ublas::project( ublas::column(A_c, k), ublas::range(k+1, n) )
+//            - ublas::prod( ublas::project(A_c, ublas::range(k+1, n), ublas::range(0, k)), 
+//                    ublas::project(ublas::row(A_c, k), ublas::range(0, k) ) ) ) / L_kk;
+//      A(k,k) = L_kk;
+//    }
+//  }
+//  return 0;
+//}
 
-std::pair<SampleType, double> perturb (const SampleType &x, const boost::numeric::ublas::matrix<double> &cov)
+
+std::pair<SampleType, double> perturb (const SampleType &x, const MatrixType &cov)
 {
-  static std::mt19937 rng;
-  double L[2] = cholesky(cov);
+  std::cout << cov.size1() << std::endl;
+  std::mt19937 rng;
+  std::normal_distribution<double> dist(0, 1);
+  VectorType delta(2);
+  delta(0) = dist(rng);
+  delta(1) = dist(rng);
 
-  double perturbation[2];
-  perturbation[0] = distribution(0, 1) * L[0];
-  perturbation[1] = distribution(0, 1) * L[1];
+  MatrixType L = cholesky(cov);
+  VectorType perturbation(2);
+  boost::numeric::ublas::prod(L, delta, perturbation);
 
   SampleType y = x;
-  y[0] = x[0] + perturbation[0];
-  y[1] = x[1] + perturbation[1];
+  y[0] = x[0] + perturbation(0);
+  y[1] = x[1] + perturbation(1);
 
   return {y, 1.0};
 }
@@ -136,7 +183,7 @@ int main ()
   {
     return perturb(x, cov_matrix.get());
   },
-  100000
+  10000
   );
   std::cout << "Mean value = " << mean_value.get()[0] << std::endl;
   std::cout << "Mean value = " << mean_value.get()[1] << std::endl;
