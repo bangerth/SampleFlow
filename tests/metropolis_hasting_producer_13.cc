@@ -115,37 +115,6 @@ MatrixType cholesky(const MatrixType &A)
   return result;
 }
 
-//
-//
-//int cholesky_decompose(const MatrixType& A)
-//{
-//  namespace ublas = ::boost::numeric::ublas;
-//  
-//  const MatrixType& A_c(A);
-//
-//  const size_t n = A.size1();
-//  
-//  for (size_t k=0 ; k < n; k++) {
-//        
-//    double qL_kk = A_c(k,k) - ublas::inner_prod( ublas::project( row(A_c, k), ublas::range(0, k) ),
-//                                          ublas::project( ublas::row(A_c, k), ublas::range(0, k) ) );
-//    
-//    if (qL_kk <= 0) {
-//      return 1 + k;
-//    } else {
-//      double L_kk = ::std::sqrt( qL_kk );
-//      
-//      ublas::matrix_column<MatrixType> cLk(A, k);
-//      ublas::project( cLk, ublas::range(k+1, n) )
-//        = ( ublas::project( ublas::column(A_c, k), ublas::range(k+1, n) )
-//            - ublas::prod( ublas::project(A_c, ublas::range(k+1, n), ublas::range(0, k)), 
-//                    ublas::project(ublas::row(A_c, k), ublas::range(0, k) ) ) ) / L_kk;
-//      A(k,k) = L_kk;
-//    }
-//  }
-//  return 0;
-//}
-
 
 std::pair<SampleType, double> perturb (const SampleType &x, const MatrixType &cov)
 {
