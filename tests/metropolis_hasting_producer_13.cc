@@ -118,8 +118,8 @@ MatrixType cholesky(const MatrixType &A)
 
 std::pair<SampleType, double> perturb (const SampleType &x, const MatrixType &cov)
 {
-  std::mt19937 rng;
-  std::normal_distribution<double> dist(0, 1);
+  static std::mt19937 rng;
+  std::normal_distribution<double> dist(0, 2.88);
   VectorType delta(2);
   delta(0) = dist(rng);
   delta(1) = dist(rng);
