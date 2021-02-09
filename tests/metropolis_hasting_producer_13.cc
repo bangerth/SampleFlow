@@ -162,4 +162,8 @@ int main ()
   );
   std::cout << "Mean value = " << mean_value.get()[0] << std::endl;
   std::cout << "Mean value = " << mean_value.get()[1] << std::endl;
+  std::cout << "Covariance = " << cov_matrix.get()(0, 0) << std::endl;
+  std::cout << "Covariance = " << cov_matrix.get()(0, 1) << std::endl;
+  std::cout << "Covariance = " << cov_matrix.get()(1, 0) << std::endl;
+  std::cout << "Covariance = " << cov_matrix.get()(1, 1) << std::endl;
 }
