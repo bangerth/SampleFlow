@@ -76,43 +76,12 @@ double log_likelihood (const SampleType &x)
 
 MatrixType cholesky(const MatrixType &A)
 {
-  double L[2][2];
-  double D[2];
-  for (int i = 0; i < 2; ++i)
-    {
-      for (int j = 0; j < 2; ++j)
-        {
-          double partial_sum = 0;
-          for (int k = 0; k < j; ++k)
-          {
-            partial_sum += pow(L[j][k], 2) * D[k];
-          }
-          D[j] = A(i, j) - partial_sum;
-          if (i > j)
-            {
-              for (int k = 0; k < j; ++k)
-              {
-                partial_sum += L[i][k] * L[j][k] * D[k];
-              }
-              L[i][j] = 1 / D[j] * (A(i, j) - partial_sum);
-            }
-          else if (i == j)
-            L[i][j] = 1;
-          else
-            L[i][j] = 0;
-        }
-    }
-  MatrixType sqrtD(2, 2);
-  sqrtD(0, 0) = sqrt(D[0]);
-  sqrtD(1, 1) = sqrt(D[1]);
-  MatrixType Lmatrix(2, 2);
-  Lmatrix(0, 0) = L[0][0];
-  Lmatrix(0, 1) = L[0][1];
-  Lmatrix(1, 0) = L[1][0];
-  Lmatrix(1, 1) = L[1][1];
-  MatrixType result(2, 2);
-  boost::numeric::ublas::prod(Lmatrix, sqrtD, result);
-  return result;
+  MatrixType L(2, 2);
+  L(0, 0) = sqrt(A(0, 0));
+  L(1, 0) = A(1, 0) / L(0, 0);
+  L(1, 1) = sqrt(A(1, 1) - pow(L(1, 0), 2));
+  L(0, 1) = 0;
+  return L;
 }
 
 
@@ -125,10 +94,10 @@ std::pair<SampleType, double> perturb (const SampleType &x, const MatrixType &co
   delta(1) = dist(rng);
   VectorType perturbation(2);
 
-  if (int(cov.size1()) > 0)
+  if (int(cov.size1()) > 0 && cov(0, 0) != 0)
     {
       MatrixType L = cholesky(cov);
-      boost::numeric::ublas::prod(L, delta, perturbation);
+      perturbation = boost::numeric::ublas::prod(L, delta);
     }
   else
     {
