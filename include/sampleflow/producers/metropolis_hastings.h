@@ -21,7 +21,9 @@
 #include <sampleflow/types.h>
 
 #include <random>
+#include <functional>
 #include <cmath>
+#include <limits>
 
 namespace SampleFlow
 {
@@ -350,6 +352,25 @@ namespace SampleFlow
          *   output of
          *   [std::random_device()](https://en.cppreference.com/w/cpp/numeric/random/random_device)
          *   as argument.
+         *
+         * @note There are cases where the likelihood of a proposal sample,
+         *   $\pi(\tilde x)$, is zero. This can happen if the `perturb()` function
+         *   provided to this function proposes a sample location that is in an
+         *   area for which the likelihood is zero. The question is what the
+         *   `log_likelihood()` function should return in this case given that the
+         *   logarithm of zero is not defined. In such cases, the function should
+         *   either return `-std::numeric_limits<double>::max()` or
+         *   `-std::numeric_limits<double>::infinity()` to indicate this case. The
+         *   sampler will, if it encounters either of these two cases, reject
+         *   the sample, *unless* the previous sample also had a zero probability
+         *   as indicated by these special values. Of course, the previous sample
+         *   had to come from somewhere, and because samples with zero probability
+         *   are never accepted, the only case where this could have happened is if
+         *   the *initial* sample already had a zero probability. In this situation,
+         *   the code accepts the trial sample with a probability proportional to
+         *   the proposal distribution ratio; this leads to a random walk that
+         *   hopefully will eventually reach an area where samples have nonzero
+         *   probabilities.
          */
         void
         sample (const OutputType &starting_point,
@@ -394,7 +415,7 @@ namespace SampleFlow
           OutputType trial_sample = std::move(trial_sample_and_ratio.first);
           const double proposal_distribution_ratio = trial_sample_and_ratio.second;
 
-          const double     trial_log_likelihood = log_likelihood (trial_sample);
+          const double trial_log_likelihood = log_likelihood (trial_sample);
 
           // Then see if we want to accept the sample. This happens if either
           // the new sample has a higher likelihood (which happens if and
@@ -406,10 +427,33 @@ namespace SampleFlow
           //
           // If the sample is not accepted, then we simply stick with (i.e.,
           // repeat) the previous sample.
+          //
+          // There are two special cases to consider. If the probability of the
+          // new sample is zero (i.e., the log likelihood is either -infinity or
+          // -numeric_limits<double>::max()), then we never want to accept the
+          // sample and there is no need to do any arithmetic on it. If, on
+          // the other hand, the sample has a zero probability *and* the
+          // previous probability was *also* zero, then we always want to accept
+          // it so that we can do a random walk that hopefully at some point leads
+          // to an area of nonzero probabilities.
+          const bool trial_sample_has_zero_probability
+            = ((trial_log_likelihood == -std::numeric_limits<double>::max())
+               ||
+               (trial_log_likelihood == -std::numeric_limits<double>::infinity()));
+          const bool current_sample_has_zero_probability
+            = ((current_log_likelihood == -std::numeric_limits<double>::max())
+               ||
+               (current_log_likelihood == -std::numeric_limits<double>::infinity()));
+
           bool repeated_sample;
-          if ((trial_log_likelihood - std::log(proposal_distribution_ratio) > current_log_likelihood)
-              ||
-              (std::exp(trial_log_likelihood - current_log_likelihood) / proposal_distribution_ratio >= uniform_distribution(rng)))
+          if (!(trial_sample_has_zero_probability && !current_sample_has_zero_probability)
+              &&
+              ((trial_sample_has_zero_probability && current_sample_has_zero_probability
+                && (1. / proposal_distribution_ratio >= uniform_distribution(rng)))
+               ||
+               (trial_log_likelihood - std::log(proposal_distribution_ratio) > current_log_likelihood)
+               ||
+               (std::exp(trial_log_likelihood - current_log_likelihood) / proposal_distribution_ratio >= uniform_distribution(rng))))
             {
               current_sample         = trial_sample;
               current_log_likelihood = trial_log_likelihood;
