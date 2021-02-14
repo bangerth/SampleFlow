@@ -22,7 +22,7 @@
 #include <mutex>
 #include <deque>
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 
 
 namespace SampleFlow
@@ -256,7 +256,7 @@ namespace SampleFlow
         /**
          * The data type returned by the get() function.
          */
-        using value_type = std::vector<boost::numeric::ublas::matrix<scalar_type>>;
+        using value_type = std::vector<Eigen::Matrix<scalar_type,Eigen::Dynamic,Eigen::Dynamic>>;
 
         /**
          * Constructor.
@@ -445,7 +445,7 @@ namespace SampleFlow
               else if (n_samples >= l+2)
                 {
                   // Update alpha
-                  boost::numeric::ublas::matrix<scalar_type> alphaupd = -alpha[l];
+                  Eigen::Matrix<scalar_type,Eigen::Dynamic,Eigen::Dynamic> alphaupd = -alpha[l];
                   for (unsigned int i=0; i<Utilities::size(sample); ++i)
                     for (unsigned int j=0; j<Utilities::size(sample); ++j)
                       {

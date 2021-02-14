@@ -27,10 +27,10 @@
 #include <sampleflow/consumers/auto_covariance_matrix.h>
 
 template <typename T>
-T trace (const boost::numeric::ublas::matrix<T> &A)
+T trace (const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> &A)
 {
   T t = 0;
-  for (unsigned int i=0; i<A.size1(); ++i)
+  for (unsigned int i=0; i<A.rows(); ++i)
     t += A(i,i);
   return t;
 }
