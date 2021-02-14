@@ -27,7 +27,7 @@
 #include <random>
 
 #include <sampleflow/producers/metropolis_hastings.h>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 #include <sampleflow/consumers/acceptance_ratio.h>
 #include <sampleflow/consumers/auto_covariance_matrix.h>
 
@@ -35,10 +35,10 @@ using SampleType = std::valarray<double>;
 
 
 template <typename T>
-T trace (const boost::numeric::ublas::matrix<T> &A)
+T trace (const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> &A)
 {
   T t = 0;
-  for (unsigned int i=0; i<A.size1(); ++i)
+  for (unsigned int i=0; i<A.rows(); ++i)
     t += A(i,i);
   return t;
 }

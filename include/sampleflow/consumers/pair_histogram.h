@@ -19,7 +19,7 @@
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 
 #include <mutex>
 #include <type_traits>
@@ -270,7 +270,7 @@ namespace SampleFlow
          * A vector storing the number of samples so far encountered in each
          * of the bins of the PairHistogram.
          */
-        boost::numeric::ublas::matrix<types::sample_index> bins;
+        Eigen::Matrix<types::sample_index,Eigen::Dynamic,Eigen::Dynamic> bins;
 
         /**
          * For a given `value`, compute the number of the bin it lies
@@ -429,9 +429,9 @@ namespace SampleFlow
       const unsigned int x_bin = x_bin_number(sample[0]);
       const unsigned int y_bin = y_bin_number(sample[1]);
 
-      if (x_bin >= 0  &&  x_bin < bins.size1()
+      if (x_bin >= 0  &&  x_bin < bins.rows()
           &&
-          y_bin >= 0  &&  y_bin < bins.size2())
+          y_bin >= 0  &&  y_bin < bins.cols())
         {
           std::lock_guard<std::mutex> lock(mutex);
 
@@ -450,12 +450,12 @@ namespace SampleFlow
       // this without holding the lock since we're not accessing
       // information that is subject to change when a new sample
       // comes in.
-      value_type return_value (bins.size1() * bins.size2());
+      value_type return_value (bins.rows() * bins.cols());
 
-      for (unsigned int x_bin=0; x_bin<bins.size1(); ++x_bin)
-        for (unsigned int y_bin=0; y_bin<bins.size2(); ++y_bin)
+      for (unsigned int x_bin=0; x_bin<bins.rows(); ++x_bin)
+        for (unsigned int y_bin=0; y_bin<bins.cols(); ++y_bin)
           {
-            const unsigned int bin = x_bin * bins.size2() + y_bin;
+            const unsigned int bin = x_bin * bins.cols() + y_bin;
             std::get<0>(return_value[bin]) = {x_interval_points[x_bin], y_interval_points[y_bin]};
             std::get<1>(return_value[bin]) = {x_interval_points[x_bin+1], y_interval_points[y_bin+1]};
           }
@@ -463,10 +463,10 @@ namespace SampleFlow
       // Now fill the bin sizes under a lock as they are subject to
       // change from other threads:
       std::lock_guard<std::mutex> lock(mutex);
-      for (unsigned int x_bin=0; x_bin<bins.size1(); ++x_bin)
-        for (unsigned int y_bin=0; y_bin<bins.size2(); ++y_bin)
+      for (unsigned int x_bin=0; x_bin<bins.rows(); ++x_bin)
+        for (unsigned int y_bin=0; y_bin<bins.cols(); ++y_bin)
           {
-            const unsigned int bin = x_bin * bins.size2() + y_bin;
+            const unsigned int bin = x_bin * bins.cols() + y_bin;
             std::get<2>(return_value[bin]) = bins(x_bin,y_bin);
           }
 

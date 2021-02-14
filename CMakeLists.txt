@@ -29,6 +29,7 @@ SET (CMAKE_CXX_EXTENSIONS OFF)
 # Also make sure we link with the threads library in question
 FIND_PACKAGE (Threads)
 
+#########################################
 # Set paths correctly to take BOOST from wherever it is
 # installed on the current system
 FIND_PACKAGE(Boost 1.39 REQUIRED)
@@ -46,6 +47,21 @@ IF (NOT SF_HAVE_MATRIX)
   MESSAGE(FATAL_ERROR "Could not find boost/numeric/ublas/matrix.hpp")
 ENDIF()
 
+
+#########################################
+### Find the Eigen library
+FIND_PATH(_eigen_include_dir
+          NAMES eigen3/Eigen/Dense
+          HINTS ${EIGEN_DIR}/include)
+IF ("${_eigen_include_dir}" STREQUAL "_eigen_include_dir-NOTFOUND")
+  MESSAGE(FATAL_ERROR
+          "The Eigen library was not found. You have to specify a path "
+          "to that library by setting the EIGEN_DIR environment variable, "
+          "or passing '-DEIGEN_DIR=...' as an argument to 'cmake'.")
+ELSE()
+  MESSAGE(STATUS "Found EIGEN headers at ${_eigen_include_dir}")
+  INCLUDE_DIRECTORIES(${_eigen_include_dir})
+ENDIF()
 
 
 ############################################################

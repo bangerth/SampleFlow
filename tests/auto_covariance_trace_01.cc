@@ -23,7 +23,7 @@
 #include <iomanip>
 
 #include <sampleflow/producers/metropolis_hastings.h>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 #include <sampleflow/consumers/auto_covariance_trace.h>
 
 using SampleType = std::valarray<double>;

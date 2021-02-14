@@ -27,7 +27,7 @@
 #include <random>
 
 #include <sampleflow/producers/metropolis_hastings.h>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 #include <sampleflow/consumers/acceptance_ratio.h>
 #include <sampleflow/consumers/auto_covariance_trace.h>
 

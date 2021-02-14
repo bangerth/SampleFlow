@@ -8,7 +8,7 @@
 #include <list>
 #include <mutex>
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Dense>
 
 
 namespace SampleFlow
@@ -103,7 +103,7 @@ namespace SampleFlow
         /**
          * The data type, where we save multiple set of previous samples.
          */
-        using matrix_type = boost::numeric::ublas::matrix<scalar_type>;
+        using matrix_type = Eigen::Matrix<scalar_type,Eigen::Dynamic,Eigen::Dynamic>;
 
         /**
          * Current average cosine. Description of this is given above
