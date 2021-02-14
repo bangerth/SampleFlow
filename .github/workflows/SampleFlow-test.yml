@@ -18,8 +18,15 @@ jobs:
       run: |
         sudo apt-get install doxygen graphviz libboost-all-dev numdiff -y
         doxygen --version
+        git clone https://gitlab.com/libeigen/eigen.git
+        mkdir ./eigen/build
+        mkdir ./eigen/install
+        cd ./eigen/build
+        cmake ../ -DCMAKE_INSTALL_PREFIX=../install
+        make install
+        cd ../..
     - name: cmake
-      run: cmake .
+      run: cmake -DEIGEN_DIR="$PWD/eigen/install" .
     - name: ctest
       run: ctest --output-on-failure -j2
     - name: doc
