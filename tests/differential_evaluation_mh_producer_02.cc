@@ -21,7 +21,6 @@
 #include <iostream>
 #include <sampleflow/producers/differential_evaluation_mh.h>
 #include <sampleflow/consumers/count_samples.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

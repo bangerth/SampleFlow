@@ -22,7 +22,6 @@
 #include <iostream>
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/consumers/stream_output.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

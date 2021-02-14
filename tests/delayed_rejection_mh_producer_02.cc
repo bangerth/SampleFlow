@@ -42,7 +42,6 @@
 #include <sampleflow/filters/conversion.h>
 #include <sampleflow/consumers/mean_value.h>
 #include <sampleflow/consumers/stream_output.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

@@ -21,7 +21,6 @@
 #include <iostream>
 #include <sampleflow/producers/delayed_rejection_mh.h>
 #include <sampleflow/consumers/stream_output.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

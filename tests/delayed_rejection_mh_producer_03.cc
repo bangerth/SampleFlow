@@ -22,7 +22,6 @@
 #include <sampleflow/producers/delayed_rejection_mh.h>
 #include <sampleflow/filters/conversion.h>
 #include <sampleflow/consumers/mean_value.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

@@ -18,7 +18,6 @@
 
 
 #include <iostream>
-#include <valarray>
 #include <random>
 
 #include <sampleflow/producers/metropolis_hastings.h>

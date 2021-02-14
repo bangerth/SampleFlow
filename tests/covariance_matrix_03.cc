@@ -25,7 +25,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <valarray>
 
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/mean_value.h>
