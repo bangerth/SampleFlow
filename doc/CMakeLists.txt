@@ -61,5 +61,10 @@ DOXYGEN_ADD_DOCS(doxygen
 
 # Create a target that we can use for 'make doc'.
 ADD_CUSTOM_TARGET(doc
-  DEPENDS doxygen)
+  DEPENDS doxygen
+  COMMENT "Documentation was built successfully"
+  COMMAND echo '-- '
+  COMMAND echo '-- You can now find the documentation in 'doc/html/index.html'.'
+  COMMAND echo '-- '
+)
 
