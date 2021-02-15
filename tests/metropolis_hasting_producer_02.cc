@@ -23,7 +23,6 @@
 #include <iostream>
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/consumers/maximum_probability_sample.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 

@@ -28,7 +28,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <valarray>
 #include <complex>
 
 #include <sampleflow/producers/metropolis_hastings.h>

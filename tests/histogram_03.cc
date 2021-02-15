@@ -22,7 +22,6 @@
 
 
 #include <iostream>
-#include <valarray>
 
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/histogram.h>

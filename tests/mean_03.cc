@@ -20,7 +20,6 @@
 #include <iostream>
 #include <sampleflow/producers/metropolis_hastings.h>
 #include <sampleflow/consumers/mean_value.h>
-#include <valarray>
 #include <random>
 #include <cmath>
 #include <complex>

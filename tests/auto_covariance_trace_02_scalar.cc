@@ -21,7 +21,6 @@
 // samples, the current test just uses scalar values.
 
 #include <iostream>
-#include <valarray>
 
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/auto_covariance_trace.h>
