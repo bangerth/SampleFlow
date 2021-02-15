@@ -35,7 +35,7 @@ ENDIF()
 
 # First gather all of the input files that are to be used when creating
 # the documentation.
-FILE(GLOB_RECURSE _doxygen_inputs "${CMAKE_SOURCE_DIR}/*.h")
+FILE(GLOB_RECURSE _doxygen_inputs "${CMAKE_SOURCE_DIR}/include/sampleflow/*.h")
 
 # Then set up the doxygen infrastructure
 FIND_PACKAGE(Doxygen
