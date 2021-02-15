@@ -16,17 +16,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: |
+        pushd .
+        cd $HOME
         sudo apt-get install doxygen graphviz libboost-all-dev numdiff -y
         doxygen --version
         git clone https://gitlab.com/libeigen/eigen.git
-        mkdir ./eigen/build
-        mkdir ./eigen/install
-        cd ./eigen/build
-        cmake ../ -DCMAKE_INSTALL_PREFIX=../install
+        mkdir ./eigen-build
+        mkdir ./eigen-install
+        cd ./eigen-build
+        cmake ../eigen -DCMAKE_INSTALL_PREFIX=$HOME/eigen-install
         make install
-        cd ../..
+        popd
     - name: cmake
-      run: cmake -DEIGEN_DIR="$PWD/eigen/install" .
+      run: cmake -DEIGEN_DIR="$HOME/eigen-install" .
     - name: ctest
       run: ctest --output-on-failure -j2
     - name: doc
