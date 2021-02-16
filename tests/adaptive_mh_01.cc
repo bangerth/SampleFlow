@@ -72,7 +72,7 @@ std::pair<SampleType,double> perturb_adaptive (const SampleType &x,
   for (unsigned int i=0; i<random_vector.size(); ++i)
     random_vector[i] = std::normal_distribution<double>(0,1)(rng);
 
-  const SampleType y = (LLt.matrixL()) * random_vector + x;
+  const SampleType y = x + LLt.matrixL() * random_vector;
 
   return {y, 1.0};
 }
