@@ -118,7 +118,55 @@ namespace SampleFlow
                 const unsigned int max_delays,
                 const types::sample_index n_samples,
                 const std::mt19937::result_type random_seed = {});
+      private:
+        /**
+         * Recursively compute the acceptance ratio given the previous sample and
+         * a vector of proposed samples (all but one that have already been rejected).
+         *
+         * @param[in] x The previous accepted sample.
+         * @param[in] y Vector of proposed samples; all but the last element have already
+         *   been rejected.
+         * @param[in] log_likelihood Function that computes the log likelihood of a sample.
+         */
+        double
+        alpha_fn (const OutputType &x,
+                  const std::vector<OutputType> &y,
+                  const std::function<double (const OutputType &)> &log_likelihood);
     };
+
+
+    template <typename OutputType>
+    double 
+    DelayedRejectionMetropolisHastings<OutputType>::
+    alpha_fn (const OutputType &x,
+              const std::vector<OutputType> &y,
+              const std::function<double (const OutputType &)> &log_likelihood)
+      {
+         // define the current delay stage as the number of rejected samples
+         // (number of proposed samples minus 1)
+         const int num_rejected_samples = y.size() - 1;
+         // get the current proposed sample from the list of all proposed samples
+         const OutputType yi = y[num_rejected_samples];
+         // get the likelihood ratio of the previous sample to the current proposed sample
+         const double likelihood_ratio = std::exp(log_likelihood(yi) - log_likelihood(x));
+         // in the case where no samples have been rejected yet, the acceptance ratio is calculated
+         // the same as regular MH; we assume that the proposal is symmetric, so the acceptance
+         // ratio is simply the likelihood ratio
+         if (num_rejected_samples == 0)
+             return likelihood_ratio;
+         // otherwise, recursively compute acceptance ratio
+         double alpha = likelihood_ratio;
+         for (int j = 1; j <= num_rejected_samples; ++j)
+           {
+              const std::vector<OutputType> num_yvec_rev(y.begin() + (num_rejected_samples - j),
+                                                         y.begin() + num_rejected_samples);
+              const std::vector<OutputType> num_yvec(num_yvec_rev.rbegin(), num_yvec_rev.rend() + 1);
+              const std::vector<OutputType> den_yvec(y.begin(), y.begin() + j);
+              alpha *= (1 - alpha_fn(yi, num_yvec_rev, log_likelihood)) /
+                       (1 - alpha_fn(x, den_yvec, log_likelihood));
+           }
+         return alpha;
+      }
 
 
     template <typename OutputType>
@@ -151,40 +199,25 @@ namespace SampleFlow
       for (types::sample_index i=0; i<n_samples; ++i)
         {
           // Initialize a vector to store rejected samples
-          std::vector<OutputType> rejected_samples;
+          std::vector<OutputType> proposed_samples;
           // Initialize a bool to store whether a sample is accepted
           bool accepted_sample = false;
-          // Initialize a double to store the previous acceptance_ratio;
-          // this is multiplied to the current acceptance_ratio
-          double prev_acceptance_ratio = 1.0;
           // Delayed rejection loop
           for (unsigned int delay_stage = 0; delay_stage <= max_delays; ++delay_stage)
             {
               // Obtain a new sample by perturbation and evaluate its log likelihood
-              std::pair<OutputType,double> trial_sample_and_ratio = perturb(current_sample, rejected_samples);
+              std::pair<OutputType,double> trial_sample_and_ratio = perturb(current_sample, proposed_samples);
               OutputType trial_sample = std::move(trial_sample_and_ratio.first);
-              const double proposal_distribution_ratio = trial_sample_and_ratio.second;
-              const double trial_log_likelihood = log_likelihood (trial_sample);
-              // Accept trial sample with probability equal to ratio of likelihoods;
-              // (always accept if > 1)
-              double acceptance_ratio = (std::exp(trial_log_likelihood - current_log_likelihood) /
-                                         proposal_distribution_ratio) * prev_acceptance_ratio;
-              double u = uniform_distribution(rng);
-              if (acceptance_ratio > 1 || acceptance_ratio >= u)
+              double trial_log_likelihood = log_likelihood(trial_sample);
+              proposed_samples.push_back(trial_sample);
+              const double acceptance_ratio = alpha_fn(current_sample, proposed_samples, log_likelihood);
+              if (acceptance_ratio > 1 || acceptance_ratio >= uniform_distribution(rng))
                 accepted_sample = true;
               if (accepted_sample)
                 {
                   current_sample         = trial_sample;
                   current_log_likelihood = trial_log_likelihood;
-                  // TODO: should this be:
-                  // prev_acceptance_ratio = acceptance_ratio;
-                  prev_acceptance_ratio = 1.0;
                   break;
-                }
-              else
-                {
-                  rejected_samples.push_back(trial_sample);
-                  prev_acceptance_ratio = acceptance_ratio;
                 }
             }
 
