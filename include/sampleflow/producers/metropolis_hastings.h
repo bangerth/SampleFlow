@@ -288,6 +288,192 @@ namespace SampleFlow
      * @endcode
      *
      *
+     * <h3>Choosing the perturb() function for continuous variables</h3>
+     *
+     * A difficult aspect of sampling is how to choose the proposal distribution
+     * from which the `perturb()` function draws a proposed new sample that will
+     * then either be accepted or rejected.
+     *
+     * In the examples above, we have chosen the new sample $\tilde x$ within
+     * a certain expected distance from the previous sample $x$ by drawing a
+     * random number between `-delta` and `delta`. An alternative would be
+     * to draw a Gaussian-distributed perturbation of expected size `delta`:
+     * @code
+     * std::pair<SampleType,double>
+     * perturb (const SampleType &x)
+     * {
+     *   static std::mt19937 rng;
+     *   const double delta = 0.1;
+     *   std::normal_distribution<double> perturbation(0, delta);
+     *
+     *   return {x + perturbation(rng), 1.0};
+     * }
+     * @endcode
+     * In code such as this, the question is how to choose `delta`. Clearly, if
+     * the probability distribution we want to draw from is very broad, we
+     * should also choose `delta` to be large so that we can traverse the
+     * distribution rapidly; if `delta` is too small, it will take a large
+     * number of samples to visit all sides of the probability distribution
+     * repeatedly so that we can expect to have reasonable approximations of
+     * mean value and standard deviations of the distribution we are sampling
+     * from.
+     *
+     * A rule of thumb is that one wants to choose `delta` in such a way that
+     * the acceptance ratio of the Metropolis-Hastings sampler is approximately
+     * equal to 0.234, see @cite Gelman97 and @cite Sherlock2009 for example.
+     * The acceptance ratio of the sampler can be determined using the
+     * Consumers::AcceptanceRatio class.
+     *
+     * The issue becomes more complicated if the sample type is a vector. In
+     * this case, a typical `perturb()` function would look like this:
+     * @code
+     * std::pair<SampleType,double>
+     * perturb (const SampleType &x)
+     * {
+     *   static std::mt19937 rng;
+     *   const double delta = 0.1;
+     *   std::normal_distribution<double> perturbation(0,delta);
+     *
+     *   SampleType x_tilde = x;
+     *   for (unsigned int i=0; i<x.size(); ++i)
+     *     x_tilde[i] += perturbation(rng);
+     *
+     *   return {x_tilde, 1.0};
+     * }
+     * @endcode
+     * The problem here is that we have used the same `delta` for each component
+     * of the vector, and this only makes sense if the standard deviation of
+     * all components of the samples is approximately the same. In particular,
+     * if the different components of the `SampleType` vector have different
+     * physical units, this choice clearly will not make any sense. In those
+     * cases, one needs to use different values for `delta` for each component
+     * $i$ of the sample vector.
+     *
+     * That said, the recommendation to choose these `delta` values in such
+     * a way to achieve an overall acceptance ratio of 0.234 remains in place.
+     *
+     *
+     * <h3>Adaptive Metropolis for continuous variables</h3>
+     *
+     * One issue of the strategy described in the previous section arises
+     * from the fact that it is not clear how we should choose the
+     * multitude of `delta` values. It is conceivable that there are many
+     * choices of the array of `delta`s that yield the same optimal acceptance
+     * ratio of 0.234, but which one of those is best suited to explore the
+     * target distribution is not a priori clear.
+     *
+     * A similar problem to the one mentioned above arises if the target
+     * distribution we are trying to sample from is not aligned with
+     * the coordinate axes. In this case, one would want to choose a proposal
+     * distribution in the `perturb()` function that is aligned with the
+     * target distribution, whereas the examples above all led to proposal
+     * distributions that are axis-aligned.
+     *
+     * Both of these issues are addressed by "Adaptive Metropolis" samplers.
+     * In these methods, one chooses a proposed sample based on a Gaussian
+     * distribution centered at the current sample, and with a covariance
+     * matrix equal to the covariance matrix of the samples so far
+     * computed. There is an issue in the fact that in the beginning,
+     * we do not yet have a good approximation of the true covariance
+     * matrix, and as a consequence a typical strategy looks like this:
+     * @code
+     * // Use a non-adaptive proposal distribution for
+     * // the first several samples.
+     * std::pair<SampleType,double> perturb_simple (const SampleType &x)
+     * {
+     *   static std::mt19937 rng;
+     *   const double delta = 0.1;
+     *   std::uniform_real_distribution<double> distribution(-delta,delta);
+     *
+     *   SampleType y = x;
+     *   for (unsigned int i=0; i<x.size(); ++i)
+     *     y[i] = distribution(rng);
+     *
+     *   return {y, 1.0};
+     * }
+     *
+     *
+     *
+     * // After a certain point, draw from something that considers the
+     * // current covariance matrix.
+     * std::pair<SampleType,double> perturb_adaptive (const SampleType &x,
+     *                                                const Eigen::Matrix2d &C)
+     * {
+     *   const auto LLt = C.llt();
+     *
+     *   static std::mt19937 rng;
+     *   SampleType random_vector;
+     *   for (unsigned int i=0; i<random_vector.size(); ++i)
+     *     random_vector[i] = 2.4/std::sqrt(1.*x.size()) *
+     *                        std::normal_distribution<double>(0,1)(rng);
+     *
+     *   const SampleType y = x + LLt.matrixL() * random_vector;
+     *
+     *   return {y, 1.0};
+     * }
+     *
+     * @endcode
+     * The second of these functions draws a random variable from the
+     * distribution $y \sim N\left(x,\frac{2.4^2}{d} C\right)$ where
+     * $d$ is the dimensionality of the space of samples, and
+     * $C$ needs to be (some sort of approximation of) the covariance
+     * matrix of the target distribution. The method is explained
+     * in substantial detail in @cite HST01. The factor $\frac{2.4^2}{d}$
+     * with which the covariance matrix is multiplied is empirical and
+     * discussed in detail in @cite GRG95.
+     *
+     * The implementation above makes use of the fact that to draw
+     * a sample from the distribution $N\left(x,\frac{2.4^2}{d} C\right)$
+     * is equivalent to the following steps:
+     * - Decompose the covariance matrix $C=LL^T$ (i.e., into a Cholesky
+     *   factorization).
+     * - Create a vector $s \sim N(0,I_d)$ with independently distributed
+     *   Gaussian entries of mean value zero and unit standard deviation.
+     * - Multiply $t=Ls$ to obtain a vector $t\sim N(0,C)$.
+     * - Multiply everything by $\frac{2.4^2}{d}$.
+     * - Add it to the previous sample $x$.
+     * The code above combines some of these steps, but the general idea
+     * remains visible.
+     *
+     * Adaptive Metropolis thus has the advantage that we no longer have to
+     * think about how to scale each of the components of the `delta`
+     * array, nor how to deal with proposal distributions that are not
+     * aligned with the axes -- the covariance matrix $C$ takes care of
+     * all of this. (As explained in @cite HST01, one has to be careful
+     * in cases where $C$ might be singular since then, the $LL^T$
+     * decomposition may not exist. In those cases, one adds a small
+     * multiple of the identity matrix to $C$.)
+     *
+     * There remains the question of where to obtain (an approximation of)
+     * the covariance matrix. In general, we don't know it before we start
+     * sampling. The Adaptive Metropolis method therefore takes the
+     * covariance matrix obtained from the previous samples. Because this
+     * is not available during the first few samples, the method
+     * first runs a few samples with the `perturb_simple()` function
+     * above, and then switches to the `perturb_adaptive()` function
+     * that uses the current estimate of the covariance matrix. This
+     * can be implemented as follows:
+     * @code
+     *   SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+     *
+     *   SampleFlow::Consumers::CovarianceMatrix<SampleType> covariance_matrix;
+     *   covariance_matrix.connect_to_producer(mh_sampler);
+     *
+     *   SampleFlow::Consumers::CountSamples<SampleType> counter;
+     *   counter.connect_to_producer(mh_sampler);
+     *
+     *   mh_sampler.sample ({1,2},
+     *                      &log_likelihood,
+     *                      [&](const SampleType &x) {
+     *                         if (counter.get() < 1000)
+     *                           return perturb_simple(x);
+     *                         else
+     *                           return perturb_adaptive(x, covariance_matrix.get());
+     *                      },
+     *                      10000);
+     * @endcode
+     *
+     *
      * <h3>Other sample types</h3>
      *
      * The examples above have used either `SampleType=int` or
@@ -332,12 +518,14 @@ namespace SampleFlow
          *   ${\mathbb R}^n$, then the perturbation function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
          *   of $x$. If, for example, $\tilde x$ is chosen with a probability
-         *   that only depends on the distance $\|\tilde x-\x\|$ as is often
+         *   that only depends on the distance $\|\tilde x-x\|$ as is often
          *   done (e.g., uniformly in a disk of a certain radius around
          *   $x$, or using a Gaussian probability distribution centered at
          *   $x$), then the ratio returned as second argument is
          *   $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}=1$.
+         *   See the documentation of this class for examples of the
+         *   @p perturb function.
          * @param[in] n_samples The number of (new) samples to be produced
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
