@@ -50,7 +50,7 @@ std::pair<SampleType,double> perturb (const SampleType &x)
 
   SampleType y = x;
   for (unsigned int i=0; i<y.size(); ++i)
-    y[i] += distribution(rng);
+    y(i) += distribution(rng);
 
   return {y, 1.0};
 }
@@ -72,8 +72,8 @@ int main ()
                      10000);
 
   std::cout << "Mean value:\n";
-  std::cout << mean_value.get()[0] << std::endl;
-  std::cout << mean_value.get()[1] << std::endl;
+  std::cout << mean_value.get()(0) << std::endl;
+  std::cout << mean_value.get()(1) << std::endl;
 
   std::cout << "Covariance matrix:\n";
   std::cout << covariance_matrix.get()(0,0) << std::endl;

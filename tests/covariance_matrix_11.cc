@@ -59,7 +59,7 @@ std::pair<SampleType,double> perturb (const SampleType &x)
   static std::mt19937 rng;
   SampleType random_vector;
   for (unsigned int i=0; i<random_vector.size(); ++i)
-    random_vector[i] += std::normal_distribution<double>(0,1)(rng);
+    random_vector(i) += std::normal_distribution<double>(0,1)(rng);
 
   const SampleType y = (LLt.matrixL()) * random_vector + x;
 
@@ -83,8 +83,8 @@ int main ()
                      10000);
 
   std::cout << "Mean value:\n";
-  std::cout << mean_value.get()[0] << std::endl;
-  std::cout << mean_value.get()[1] << std::endl;
+  std::cout << mean_value.get()(0) << std::endl;
+  std::cout << mean_value.get()(1) << std::endl;
 
   std::cout << "Covariance matrix:\n";
   std::cout << covariance_matrix.get()(0,0) << std::endl;
