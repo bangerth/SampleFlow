@@ -123,50 +123,51 @@ namespace SampleFlow
          * Recursively compute the acceptance ratio given the previous sample and
          * a vector of proposed samples (all but one that have already been rejected).
          *
-         * @param[in] x The previous accepted sample.
-         * @param[in] y Vector of proposed samples; all but the last element have already
-         *   been rejected.
-         * @param[in] log_likelihood Function that computes the log likelihood of a sample.
+         * @param[in] x The previous accepted sample and its associated log likelihood.
+         * @param[in] y Vector of proposed samples and their corresponding log
+         *   likelihoods; all but the last element have already been rejected.
          */
         double
-        alpha_fn (const OutputType &x,
-                  const std::vector<OutputType> &y,
-                  const std::function<double (const OutputType &)> &log_likelihood);
+        alpha_fn (const std::pair<OutputType,double> &x,
+                  const std::vector<std::pair<OutputType,double>> &y);
     };
 
 
+
     template <typename OutputType>
-    double 
+    double
     DelayedRejectionMetropolisHastings<OutputType>::
-    alpha_fn (const OutputType &x,
-              const std::vector<OutputType> &y,
-              const std::function<double (const OutputType &)> &log_likelihood)
-      {
-         // define the current delay stage as the number of rejected samples
-         // (number of proposed samples minus 1)
-         const int num_rejected_samples = y.size() - 1;
-         // get the current proposed sample from the list of all proposed samples
-         const OutputType yi = y[num_rejected_samples];
-         // get the likelihood ratio of the previous sample to the current proposed sample
-         const double likelihood_ratio = std::exp(log_likelihood(yi) - log_likelihood(x));
-         // in the case where no samples have been rejected yet, the acceptance ratio is calculated
-         // the same as regular MH; we assume that the proposal is symmetric, so the acceptance
-         // ratio is simply the likelihood ratio
-         if (num_rejected_samples == 0)
-             return likelihood_ratio;
-         // otherwise, recursively compute acceptance ratio
-         double alpha = likelihood_ratio;
-         for (int j = 1; j <= num_rejected_samples; ++j)
-           {
-              const std::vector<OutputType> num_yvec_rev(y.begin() + (num_rejected_samples - j),
-                                                         y.begin() + num_rejected_samples);
-              const std::vector<OutputType> num_yvec(num_yvec_rev.rbegin(), num_yvec_rev.rend() + 1);
-              const std::vector<OutputType> den_yvec(y.begin(), y.begin() + j);
-              alpha *= (1 - alpha_fn(yi, num_yvec_rev, log_likelihood)) /
-                       (1 - alpha_fn(x, den_yvec, log_likelihood));
-           }
-         return alpha;
-      }
+    alpha_fn (const std::pair<OutputType,double> &x,
+              const std::vector<std::pair<OutputType,double>> &y)
+    {
+      // Define the current delay stage as the number of rejected samples
+      // (number of proposed samples minus 1)
+      const unsigned int num_rejected_samples = y.size() - 1;
+      // Get the current proposed sample from the list of all proposed samples
+      const auto yi = y[num_rejected_samples];
+
+      // Get the likelihood ratio of the previous sample to the current proposed sample
+      const double likelihood_ratio = std::exp(yi.second - x.second);
+
+      // In the case where no samples have been rejected yet, the acceptance ratio is calculated
+      // the same as regular MH; we assume that the proposal is symmetric, so the acceptance
+      // ratio is simply the likelihood ratio
+      if (num_rejected_samples == 0)
+        return likelihood_ratio;
+
+      // Otherwise, recursively compute acceptance ratio
+      double alpha = likelihood_ratio;
+      for (int j = 1; j <= num_rejected_samples; ++j)
+        {
+          const std::vector<std::pair<OutputType,double>> num_yvec_rev(y.begin() + (num_rejected_samples - j),
+                                                                       y.begin() + num_rejected_samples);
+          const std::vector<std::pair<OutputType,double>> num_yvec(num_yvec_rev.rbegin(), num_yvec_rev.rend() + 1);
+          const std::vector<std::pair<OutputType,double>> den_yvec(y.begin(), y.begin() + j);
+          alpha *= (1 - alpha_fn(yi, num_yvec_rev)) /
+                   (1 - alpha_fn(x, den_yvec));
+        }
+      return alpha;
+    }
 
 
     template <typename OutputType>
@@ -198,19 +199,34 @@ namespace SampleFlow
       // Loop over the desired number of samples
       for (types::sample_index i=0; i<n_samples; ++i)
         {
-          // Initialize a vector to store rejected samples
-          std::vector<OutputType> proposed_samples;
+          // Initialize a vector to store rejected samples, along with their
+          // log likelihoods
+          std::vector<std::pair<OutputType,double>> proposed_samples;
           // Initialize a bool to store whether a sample is accepted
           bool accepted_sample = false;
           // Delayed rejection loop
           for (unsigned int delay_stage = 0; delay_stage <= max_delays; ++delay_stage)
             {
-              // Obtain a new sample by perturbation and evaluate its log likelihood
-              std::pair<OutputType,double> trial_sample_and_ratio = perturb(current_sample, proposed_samples);
-              OutputType trial_sample = std::move(trial_sample_and_ratio.first);
-              double trial_log_likelihood = log_likelihood(trial_sample);
-              proposed_samples.push_back(trial_sample);
-              const double acceptance_ratio = alpha_fn(current_sample, proposed_samples, log_likelihood);
+              // Obtain a new sample by perturbation of the previous samples
+              // (the previously last accepted one, along with the rejected ones)
+              // and then evaluate its log likelihood.
+              //
+              // TODO: The current implementation discards the second part of the
+              // information returned by the 'perturb' function. This is based on
+              // the assumption that the proposal distributions used by 'perturb'
+              // are symmetric, and that the second number equals 1.0. We should
+              // generalize this.
+              std::vector<OutputType> proposed_samples_only (proposed_samples.size());
+              for (unsigned int i=0; i<proposed_samples.size(); ++i)
+                proposed_samples_only[i] = proposed_samples[i].first;
+              std::pair<OutputType,double> trial_sample_and_ratio = perturb(current_sample,
+                                                                            proposed_samples_only);
+              const OutputType trial_sample = std::move(trial_sample_and_ratio.first);
+              const double trial_log_likelihood = log_likelihood(trial_sample);
+              proposed_samples.push_back({trial_sample, trial_log_likelihood});
+
+              const double acceptance_ratio = alpha_fn({current_sample, current_log_likelihood},
+                                                       proposed_samples);
               if (acceptance_ratio > 1 || acceptance_ratio >= uniform_distribution(rng))
                 accepted_sample = true;
               if (accepted_sample)
