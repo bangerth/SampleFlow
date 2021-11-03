@@ -22,6 +22,7 @@
 #include <sampleflow/types.h>
 
 #include <algorithm>
+#include <future>
 #include <random>
 #include <cmath>
 
@@ -112,6 +113,14 @@ namespace SampleFlow
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
          *   sample is available.
+         * @param[in] asynchronous_likelihood_execution If `true` (the default),
+         *   then run the evaluation of the `log_likelihood` function asynchronously,
+         *   that is on separate threads or tasks, for the different chains
+         *   of the differential evaluation sampler. In each generation, this
+         *   may then run as many log likelihood evaluations in parallel as there
+         *   are chains. For this to work, the log likelihood function evaluators
+         *   obviously have to be reentrant (that is, can be run multiple times
+         *   in parallel).
          * @param[in] random_seed If not equal to the default value, this optional
          *   argument is used to "seed" the random number generator. Using the
          *   default, or passing the same seed every time this function is called
@@ -130,6 +139,7 @@ namespace SampleFlow
                 const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
                 const unsigned int crossover_gap,
                 const types::sample_index n_samples,
+                const bool asynchronous_likelihood_execution = true,
                 const std::mt19937::result_type random_seed = {});
     };
 
@@ -143,6 +153,7 @@ namespace SampleFlow
             const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
             const unsigned int crossover_gap,
             const types::sample_index n_samples,
+            const bool asynchronous_likelihood_execution,
             const std::mt19937::result_type random_seed)
     {
       const typename std::vector<OutputType>::size_type n_chains = starting_points.size();
@@ -173,14 +184,19 @@ namespace SampleFlow
       // samples.
       for (types::sample_index generation=0; true; ++generation)
         {
-          // Loop over the desired number of chains
+          // A vector that will contain the std::future objects used to
+          // hold results of either synchronous or asynchronous
+          // evaluation.
+          std::vector<std::future<bool>> chain_evaluation_results;
+          chain_evaluation_results.reserve(n_chains);
+
+          // Loop over the desired number of chains and set up the computation
+          // of log likelihoods for new samples:
           for (typename std::vector<OutputType>::size_type chain = 0; chain < n_chains; ++chain)
             {
-              // Return if we have already generated the desired number of
-              // samples. The ScopeExit object above also makes sure that
-              // we flush the downstream consumers.
+              // Skip if we have enough samples already:
               if (generation * n_chains + chain >= n_samples)
-                return;
+                break;
 
               // Determine trial sample and likelihood ratio; either from
               // crossover operation or regular perturbation
@@ -189,7 +205,7 @@ namespace SampleFlow
               // Perform crossover every crossover_gap iterations
               if ((generation % crossover_gap) == 0 && generation > 0)
                 {
-                  // Pick one of the other chains from which we want to draw
+                  // Pick one of the other chains from which we want to draw from:
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   a_dist(0, n_chains - 2);
 
@@ -198,7 +214,7 @@ namespace SampleFlow
                     a += 1;
                   const OutputType trial_a = current_samples[a];
 
-                  // Then the other chain to draw from
+                  // Then the other chain to draw from:
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   b_dist(0, n_chains - 3);
 
@@ -216,24 +232,81 @@ namespace SampleFlow
               else
                 trial_sample_and_ratio = perturb(current_samples[chain]);
 
-              OutputType trial_sample = std::move(trial_sample_and_ratio.first);
-              const double proposal_distribution_ratio = trial_sample_and_ratio.second;
-              const double trial_log_likelihood = log_likelihood (trial_sample);
-              // Accept trial sample with probability equal to ratio of likelihoods;
-              // (always accept if > 1)
-              double acceptance_ratio = (std::exp(trial_log_likelihood - current_log_likelihoods[chain]) /
-                                         proposal_distribution_ratio);
-              bool accepted_sample = false;
-              if (acceptance_ratio >= uniform_distribution(rng))
-                accepted_sample = true;
-              if (accepted_sample)
-                {
-                  next_samples[chain] = trial_sample;
-                  current_log_likelihoods[chain] = log_likelihood(trial_sample);
-                }
+              // Now that we have a trial sample, we need to evaluate the likelihood
+              // on it. We can do this sequentially or in parallel, and for this, we
+              // enclose everything into a lambda function that we can then execute
+              // either right away, or via a std::async. The only thing we need to pay
+              // attention to is that we create random numbers in a fixed order.
+              // We do this by evaluating the random number generator upon creating
+              // the lambda function.
+              const auto task
+              = [trial_sample = std::move(trial_sample_and_ratio.first),
+                 proposal_distribution_ratio = trial_sample_and_ratio.second,
+                 log_likelihood,
+                 uniform_random_number = uniform_distribution(rng),
+                 chain,
+                 &current_samples,
+                 &next_samples,
+                 &current_log_likelihoods]()
+              -> bool
+              {
+                const double trial_log_likelihood = log_likelihood (trial_sample);
+                // Accept trial sample with probability equal to ratio of likelihoods;
+                // (always accept if > 1)
+                double acceptance_ratio = (std::exp(trial_log_likelihood - current_log_likelihoods[chain]) /
+                proposal_distribution_ratio);
+                bool accepted_sample = false;
+                if (acceptance_ratio >= uniform_random_number)
+                  accepted_sample = true;
+                if (accepted_sample)
+                  {
+                    next_samples[chain] = trial_sample;
+                    current_log_likelihoods[chain] = log_likelihood(trial_sample);
+                  }
+                else
+                  next_samples[chain] = current_samples[chain];
+
+                return accepted_sample;
+              };
+
+
+              // Now either execute the evaluator asynchronously or synchronously.
+              // In the former case, get a future from the async call that we can
+              // later use to wait for the evaluator. In the latter case,
+              // create a packaged task that we can ask for a future, then
+              // just execute the task synchronously.
+              if (asynchronous_likelihood_execution)
+                chain_evaluation_results.emplace_back (std::async(task));
               else
-                next_samples[chain] = current_samples[chain];
-              // Output the new sample (which may be equal to the old sample).
+                {
+                  std::packaged_task<bool()> t(task);
+                  chain_evaluation_results.emplace_back (t.get_future());
+                  t();
+                }
+            }
+
+          // We have either executed the log likelihood function for
+          // all chains right away, or at least set up the asynchronous
+          // execution. Now it is time to let the cows come in for
+          // milking.
+          //
+          // In the following, we are in essence only issuing the new
+          // samples. We could have done that in the lambda function
+          // above, but that would have issued samples in unpredictable
+          // orders. Doing this relatively cheap step here sequentially
+          // guarantees a stable order.
+          for (typename std::vector<OutputType>::size_type chain = 0; chain < n_chains; ++chain)
+            {
+              // Return if we have already generated the desired number of
+              // samples. The ScopeExit object above also makes sure that
+              // we flush the downstream consumers.
+              if (generation * n_chains + chain >= n_samples)
+                return;
+
+              // Wait for the futures to be ready. Then output the new sample
+              // (which may of course be equal to the old sample).
+              assert (chain < chain_evaluation_results.size());
+              const bool accepted_sample = chain_evaluation_results[chain].get();
               this->issue_sample (next_samples[chain],
               {
                 {"relative log likelihood", boost::any(current_log_likelihoods[chain])},
