@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the DEMC producer. Check that we get the right
+// A simple test for the DEMH producer. Check that we get the right
 // number of samples if the requested number of samples is not a
 // multiple of the number of chains.
 

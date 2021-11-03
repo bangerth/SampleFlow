@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------
 
 
-// A simple test for the DEMC producer. This test
+// A simple test for the DEMH producer. This test
 // samples integers between 1 and 100, from a probability
 // distribution that has pi(x)=2^(-x). This happens to be an almost
 // normalized probability distribution because
