@@ -34,7 +34,7 @@ namespace SampleFlow
      * "A Differential Evaluation Markov Chain Monte Carlo Algorithm for
      * Bayesian Model Updating," Sherri et. al.
      * This producer functions very similarly to the regular Metropolis Hastings
-     * producer - consult the documentation of that class for more details.
+     * producer -- consult the documentation of that class for more details.
      * This class provides the same functionality as Metropolis Hastings but does
      * so over $N$ chains simultaneously, which can improve the rate of convergence. The
      * number of chains $N$ is given as an argument to the sample() function.
@@ -90,8 +90,22 @@ namespace SampleFlow
          *   ```
          *   return current_sample + gamma * (sample_a - sample_b)
          *   ```
-         *   where `gamma` is a scaling parameter that is typically chosen as $\frac{2.38}{\sqrt{2d}}$, where $d$ is the
-         *   dimension of the vector space.
+         *   where `gamma` is a scaling parameter that is typically chosen as
+         *   $\frac{2.38}{\sqrt{2d}}$, where $d$ is the dimension of the vector space.
+         *   The reason for this factor is the same as in adaptive Metropolis
+         *   methods: `sample_a` and `sample_b` are considered "typical"
+         *   draws from the probability distribution we are sampling, so
+         *   `sample_a - sample_b` is a quantity that can be expected to be
+         *   about one or two standard deviation away from each other if we were in
+         *   one space dimension. In higher dimensions, they are likely not
+         *   going to be on opposite  sides of the mean of the distribution,
+         *   but in quadrants (octants or, more generally, $n$-ants) that are
+         *   further away -- more specifically, $\sqrt{d}$ times as far away.
+         *   As a consequence, a random vector from the center of the distribution
+         *   to an arbitrary sample can be expected to be of the form
+         *   `(sample_a - sample_b) / sqrt{d}`; the 2.38 is then a further
+         *   geometric factor that is explained in many papers on adaptive
+         *   Metropolis algorithms.
          * @param[in] crossover_gap The number of iterations in between crossover
          *   iterations.
          * @param[in] n_samples The number of (new) samples to be produced
@@ -175,7 +189,7 @@ namespace SampleFlow
               // Perform crossover every crossover_gap iterations
               if ((generation % crossover_gap) == 0 && generation > 0)
                 {
-                  // Select two chains to combine
+                  // Pick one of the other chains from which we want to draw
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   a_dist(0, n_chains - 2);
 
@@ -184,6 +198,7 @@ namespace SampleFlow
                     a += 1;
                   const OutputType trial_a = current_samples[a];
 
+                  // Then the other chain to draw from
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   b_dist(0, n_chains - 3);
 
