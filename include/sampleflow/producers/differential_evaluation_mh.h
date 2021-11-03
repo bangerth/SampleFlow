@@ -234,7 +234,7 @@ namespace SampleFlow
               else
                 next_samples[chain] = current_samples[chain];
               // Output the new sample (which may be equal to the old sample).
-              this->issue_sample (current_samples[chain],
+              this->issue_sample (next_samples[chain],
               {
                 {"relative log likelihood", boost::any(current_log_likelihoods[chain])},
                 {"sample is repeated", boost::any(!accepted_sample)}
