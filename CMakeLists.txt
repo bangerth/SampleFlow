@@ -21,8 +21,8 @@ PROJECT (SampleFlow
 #########################################
 ### Set up compiler flags and input paths
 
-# Compile everything with C++11 and with debug flags
-SET (CMAKE_CXX_STANDARD 11)
+# Compile everything with C++14 and with debug flags
+SET (CMAKE_CXX_STANDARD 14)
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_EXTENSIONS OFF)
 
@@ -84,7 +84,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       INTERFACE
                       Threads::Threads)
-TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_11)
+TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_14)
 
 FILE(GLOB_RECURSE _header_files
      LIST_DIRECTORIES false
