@@ -108,7 +108,9 @@ namespace SampleFlow
          *   geometric factor that is explained in many papers on adaptive
          *   Metropolis algorithms.
          * @param[in] crossover_gap The number of iterations in between crossover
-         *   iterations.
+         *   iterations. In many implementations of the Differential Evaluation
+         *   method, crossover is performed in each iteration. This corresponds to
+         *   setting the `crossover_gap` argument to one.
          * @param[in] n_samples The number of (new) samples to be produced
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
@@ -131,6 +133,14 @@ namespace SampleFlow
          *   output of
          *   [std::random_device()](https://en.cppreference.com/w/cpp/numeric/random/random_device)
          *   as argument.
+         *
+         * @note When `asynchronous_likelihood_execution` is set to `true`, the
+         *   function evaluates the likelihoods for the current sample on all
+         *   chains in parallel by calling `std::async` with `std::launch::async`
+         *   as first argument. This may mean that the function evaluations are
+         *   run on separate threads; you may therefore want to limit the number
+         *   of chains to at most a small multiple of the number of processor
+         *   cores available on the machine.
          */
         void
         sample (const std::vector<OutputType> starting_points,
