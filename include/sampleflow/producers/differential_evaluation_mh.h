@@ -276,7 +276,7 @@ namespace SampleFlow
               // create a packaged task that we can ask for a future, then
               // just execute the task synchronously.
               if (asynchronous_likelihood_execution)
-                chain_evaluation_results.emplace_back (std::async(task));
+                chain_evaluation_results.emplace_back (std::async(std::launch::async, task));
               else
                 {
                   std::packaged_task<bool()> t(task);
