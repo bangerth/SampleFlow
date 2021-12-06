@@ -8,7 +8,8 @@ on:
 
 
 jobs:
-  build:
+
+  build-linux:
 
     runs-on: ubuntu-latest
 
@@ -41,3 +42,37 @@ jobs:
         cd ../../..
         ./doc/indent
         git --no-pager diff --exit-code
+
+  build-macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install dependencies
+      run: |
+        brew install cmake boost doxygen
+        git clone https://github.com/tjhei/numdiff.git
+        cd numdiff
+        ./configure
+        make && sudo make install
+        cd ..
+    - name: cmake
+      run: cmake .
+    - name: ctest
+      run: ctest --output-on-failure -j2
+
+  build-windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup-boost
+      run: |
+        $Env:BOOST_ROOT = $env:BOOST_ROOT_1_72_0
+        $Env:Boost_INCLUDE_DIR = "$env:BOOST_ROOT\include"
+    - name: cmake
+      run: cmake .  ||  cat CMakeFiles/CMakeError.log
+    - name: ctest
+      run: ctest --output-on-failure -j2
