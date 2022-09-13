@@ -56,28 +56,28 @@ namespace SampleFlow
     template <typename InputType>
     class PassThrough : public SampleFlow::Filter<InputType, InputType>
     {
-    public:
-      /**
-       * Destructor. This function also makes sure that all samples this
-       * object may have received have been fully processed. To this end,
-       * it calls the Consumers::disconnect_and_flush() function of the
-       * base class.
-       */
-      virtual ~PassThrough ();
+      public:
+        /**
+         * Destructor. This function also makes sure that all samples this
+         * object may have received have been fully processed. To this end,
+         * it calls the Consumers::disconnect_and_flush() function of the
+         * base class.
+         */
+        virtual ~PassThrough ();
 
-      /**
-       * Process one sample by simply passing it on
-       *
-       * @param[in] sample The sample to process.
-       * @param[in] aux_data Auxiliary data about this sample. The current
-       *   class does not know what to do with any such data and consequently
-       *   simply passes it on.
-       *
-       * @return The input sample and the auxiliary data
-       *   originally associated with the sample.
-       */
-      virtual
-      boost::optional<std::pair<InputType, SampleFlow::AuxiliaryData>>
+        /**
+         * Process one sample by simply passing it on
+         *
+         * @param[in] sample The sample to process.
+         * @param[in] aux_data Auxiliary data about this sample. The current
+         *   class does not know what to do with any such data and consequently
+         *   simply passes it on.
+         *
+         * @return The input sample and the auxiliary data
+         *   originally associated with the sample.
+         */
+        virtual
+        boost::optional<std::pair<InputType, SampleFlow::AuxiliaryData> >
         filter (InputType sample,
                 SampleFlow::AuxiliaryData aux_data) override;
     };
@@ -94,13 +94,13 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<InputType, SampleFlow::AuxiliaryData>>
-      PassThrough<InputType>::
-      filter (InputType sample,
-              SampleFlow::AuxiliaryData aux_data)
+    boost::optional<std::pair<InputType, SampleFlow::AuxiliaryData> >
+    PassThrough<InputType>::
+    filter (InputType sample,
+            SampleFlow::AuxiliaryData aux_data)
     {
       return std::pair<InputType, SampleFlow::AuxiliaryData>
-        { sample, aux_data };
+      { sample, aux_data };
     }
   }
 }
