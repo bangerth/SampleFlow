@@ -271,7 +271,7 @@ namespace SampleFlow
                 // Accept trial sample with probability equal to ratio of likelihoods;
                 // (always accept if > 1)
                 double acceptance_ratio = (std::exp(trial_log_likelihood - current_log_likelihoods[chain]) /
-                                           proposal_distribution_ratio);
+                proposal_distribution_ratio);
                 bool accepted_sample = false;
                 if (acceptance_ratio >= uniform_random_number)
                   accepted_sample = true;
