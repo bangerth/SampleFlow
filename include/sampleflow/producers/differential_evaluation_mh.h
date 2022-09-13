@@ -184,6 +184,9 @@ namespace SampleFlow
 
       std::vector<OutputType> current_samples = starting_points;
       std::vector<double> current_log_likelihoods(n_chains);
+      for (unsigned int i=0; i<n_chains; ++i)
+        current_log_likelihoods[i] = log_likelihood (starting_points[i]);
+
       // Include another array to store new values so that all crossovers
       // can be performed with the previous set of samples
       std::vector<OutputType> next_samples = starting_points;
