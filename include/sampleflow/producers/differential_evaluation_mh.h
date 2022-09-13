@@ -213,7 +213,11 @@ namespace SampleFlow
               std::pair<OutputType, double> trial_sample_and_ratio;
 
               // Perform crossover every crossover_gap iterations
-              if ((generation % crossover_gap) == 0 && generation > 0)
+              if (((crossover_gap == 0)
+                   ||
+                   ((generation % crossover_gap) == 0))
+                  &&
+                  (generation > 0))
                 {
                   // Pick one of the other chains from which we want to draw from:
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
