@@ -143,7 +143,7 @@ namespace SampleFlow
          *   cores available on the machine.
          */
         void
-        sample (const std::vector<OutputType> starting_points,
+        sample (const std::vector<OutputType> &starting_points,
                 const std::function<double (const OutputType &)> &log_likelihood,
                 const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
                 const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
@@ -157,7 +157,7 @@ namespace SampleFlow
     template <typename OutputType>
     void
     DifferentialEvaluationMetropolisHastings<OutputType>::
-    sample (const std::vector<OutputType> starting_points,
+    sample (const std::vector<OutputType> &starting_points,
             const std::function<double (const OutputType &)> &log_likelihood,
             const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
             const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
