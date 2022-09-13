@@ -89,7 +89,7 @@ namespace SampleFlow
          *   Hastings. If the `OutputType` belongs to a vector space, the simple
          *   solution is
          *   ```
-         *   return current_sample + gamma * (sample_a - sample_b)
+         *   return current_sample + gamma * (sample_a - sample_b);
          *   ```
          *   where `gamma` is a scaling parameter that is typically chosen as
          *   $\frac{2.38}{\sqrt{2d}}$, where $d$ is the dimension of the vector space.
