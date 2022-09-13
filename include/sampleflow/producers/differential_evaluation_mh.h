@@ -271,7 +271,7 @@ namespace SampleFlow
                 if (accepted_sample)
                   {
                     next_samples[chain] = trial_sample;
-                    current_log_likelihoods[chain] = log_likelihood(trial_sample);
+                    current_log_likelihoods[chain] = trial_log_likelihood;
                   }
                 else
                   next_samples[chain] = current_samples[chain];
