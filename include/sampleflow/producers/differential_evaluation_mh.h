@@ -320,7 +320,8 @@ namespace SampleFlow
               this->issue_sample (next_samples[chain],
               {
                 {"relative log likelihood", boost::any(current_log_likelihoods[chain])},
-                {"sample is repeated", boost::any(!accepted_sample)}
+                {"sample is repeated", boost::any(!accepted_sample)},
+                {"chain number", boost::any(std::size_t(chain))}
               });
             }
 
