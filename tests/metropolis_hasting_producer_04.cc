@@ -26,7 +26,7 @@
 //
 // and we neglect the difference.
 //
-// For this case, we can compute the mean value to pretty accuracy:
+// For this case, we can compute the mean value to pretty good accuracy:
 //
 //   \bar x \approx sum_{x=1}^{\infty} x pi(x)
 //          =       2
