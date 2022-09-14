@@ -62,10 +62,10 @@ FOREACH(_testfile ${_testfiles})
   #   it produces any output (which leaves the previous output file in place)
   # - execute the test and write the output to a .result file
   ADD_CUSTOM_COMMAND(
-    OUTPUT ${_testname}.result
-    COMMAND rm -f ${_testname}.result
-    COMMAND ${_testname} > ${_testname}.result
-    DEPENDS ${_testname}
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
+    COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_testname} > ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_testname}
     COMMENT "Running test <${_testname}>...")
 
   # Step 2 is to:
@@ -73,16 +73,16 @@ FOREACH(_testfile ${_testfiles})
   # - compare the .result file to the .output file
   # - if this succeeds, write a .ok file
   ADD_CUSTOM_COMMAND(
-    OUTPUT ${_testname}.ok
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.ok
     COMMAND rm -f ${_testname}.ok
-    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n\\r=,:;<>[](){}^'" ${CMAKE_CURRENT_SOURCE_DIR}/${_testname}.output ${_testname}.result
-    COMMAND touch ${_testname}.ok
-    DEPENDS ${_testname}.result ${_testname}.output
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n\\r=,:;<>[](){}^'" ${CMAKE_CURRENT_SOURCE_DIR}/${_testname}.output ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
+    COMMAND touch ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.ok
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result ${_testname}.output
     COMMENT "Comparing test <${_testname}>...")
 
   # Now make success of the test be dependent on there being an .ok file:
   ADD_CUSTOM_TARGET(run_${_testname}
-                    DEPENDS ${_testname}.ok)
+                    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.ok)
 
   # Define running the test as executing the cmake program
   # with the given target.
