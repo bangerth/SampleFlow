@@ -424,7 +424,7 @@ namespace SampleFlow
               // we can query for completion of the task, and we will hold on
               // to this future object because we need to wait for tasks to finish
               // in flush().
-              std::future<void> future = std::async(std::launch::async, worker);
+              std::future<void> future = std::async(worker);
 
               // Next emplace the shared future object into the queue, in order
               // to allow other threads to wait for the termination of
