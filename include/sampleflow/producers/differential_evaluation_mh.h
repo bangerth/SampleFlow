@@ -138,7 +138,8 @@ namespace SampleFlow
          *   function evaluates the likelihoods for the current sample on all
          *   chains in parallel by calling `std::async` with `std::launch::async`
          *   as first argument. This may mean that the function evaluations are
-         *   run on separate threads; you may therefore want to limit the number
+         *   run on separate threads, though the C++ standard does not actually
+         *   require this; in any case, you may therefore want to limit the number
          *   of chains to at most a small multiple of the number of processor
          *   cores available on the machine.
          */
@@ -293,7 +294,7 @@ namespace SampleFlow
               // create a packaged task that we can ask for a future, then
               // just execute the task synchronously.
               if (asynchronous_likelihood_execution)
-                chain_evaluation_results.emplace_back (std::async(std::launch::async, task));
+                chain_evaluation_results.emplace_back (std::async(task));
               else
                 {
                   std::packaged_task<bool()> t(task);
