@@ -3,7 +3,7 @@ SampleFlow -- a library for composing complex statistical sampling algorithms
 
 SampleFlow is a library that allows composing complex statistical sampling
 algorithms from building blocks without writing a lot of spaghetti
-code. It is written in C++11.
+code. It is written in C++14.
 
 
 ## The idea
@@ -68,7 +68,7 @@ generated samples, without having to intermingle the code for these
 two aspects.
 
 SampleFlow is written in standards conforming
-[C++11](https://en.wikipedia.org/wiki/C%2B%2B11).
+[C++14](https://en.wikipedia.org/wiki/C%2B%2B14).
 
 
 ## Installation
@@ -83,7 +83,7 @@ you are in the SampleFlow directory
 ```
 
 For this to work, you need to have `cmake` installed on your machine,
-along with a C++11-capable compiler that cmake can find.
+along with a C++14-capable compiler that cmake can find.
 
 If you work in an integrated development environment (IDE) such as
 [Eclipse](https://www.eclipse.org/), you may want to use a command
