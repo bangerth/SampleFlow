@@ -67,8 +67,23 @@ samples are generated based on the covariance matrix of previously
 generated samples, without having to intermingle the code for these
 two aspects.
 
+A secondary goal of SampleFlow is that it needs to be able to deal
+with very large numbers of samples. Most sampling software stores all
+samples previously generated in memory, for example because that makes
+visualization simpler. But this puts substantial limits on the numbers
+of samples that can be processed. In contrast, in SampleFlow, samples
+flow individually through the network of filters and consumers; none
+of the consumers implemented in SampleFlow itself ever store more than
+the current (or the last few) samples and any statistics that are
+computed are evaluated using *online* algorithms that only ever update
+the current state using the sample that just came in. As a
+consequence, SampleFlow has been used for sampling processes that
+generate billions of samples and terabytes of data.
+
 SampleFlow is written in standards conforming
-[C++14](https://en.wikipedia.org/wiki/C%2B%2B14).
+[C++14](https://en.wikipedia.org/wiki/C%2B%2B14). All of its
+components are type-safe and can utilize multiple threads when routing
+samples through filter and consumer networks.
 
 
 ## Installation
