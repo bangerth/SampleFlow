@@ -21,8 +21,8 @@ PROJECT (SampleFlow
 #########################################
 ### Set up compiler flags and input paths
 
-# Compile everything with C++14 and with debug flags
-SET (CMAKE_CXX_STANDARD 14)
+# Compile everything with C++20 and with debug flags
+SET (CMAKE_CXX_STANDARD 20)
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_EXTENSIONS OFF)
 
