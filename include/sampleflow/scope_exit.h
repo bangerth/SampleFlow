@@ -25,7 +25,7 @@ namespace SampleFlow
   {
     /**
      * A class that stores a function object (typically a lambda function)
-     * that is executed in the desctructor of the current object. Such
+     * that is executed in the destructor of the current object. Such
      * a class is useful to execute an action *whenever* the function in
      * which the object is declared exits, whether that is by falling
      * off the end of the function, an explicit `return` statement, or
