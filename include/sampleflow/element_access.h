@@ -179,7 +179,7 @@ namespace SampleFlow
     typename std::remove_reference<
     decltype(std::declval<SampleType>()[index])>::type>::type>::type
     {
-      assert (index < size(sample));
+      assert (index < Utilities::size(sample));
       return sample[index];
     }
 
@@ -197,7 +197,7 @@ namespace SampleFlow
     typename std::remove_reference<
     decltype(std::declval<SampleType>()[index])>::type>::type>::type &
     {
-      assert (index < size(sample));
+      assert (index < Utilities::size(sample));
       return sample[index];
     }
 
