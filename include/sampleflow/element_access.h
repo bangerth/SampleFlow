@@ -16,36 +16,14 @@
 #ifndef SAMPLEFLOW_UTILITIES_H
 #define SAMPLEFLOW_UTILITIES_H
 
+#include <sampleflow/concepts.h>
+
 #include <cstddef>
 #include <cassert>
 #include <type_traits>
 
 namespace SampleFlow
 {
-  /**
-   * A namespace in which we define C++20 concepts that are used throughout
-   * the library to describe properties of types.
-   */
-  namespace Concepts
-  {
-    template <typename SampleType>
-    concept has_subscript_operator = requires (SampleType &sample, std::size_t index)
-    {
-      {
-        sample[index]
-      };
-    };
-
-
-    template <typename SampleType>
-    concept has_size_function = requires (SampleType &sample)
-    {
-      {
-        sample.size()
-      };
-    };
-  }
-
   namespace Utilities
   {
     /**
@@ -61,7 +39,7 @@ namespace SampleFlow
      * is an array type.
      */
     template <typename SampleType>
-    requires Concepts::has_size_function<SampleType>
+    requires (Concepts::has_size_function<SampleType>)
     auto size (const SampleType &sample)
     {
       return sample.size();
@@ -112,7 +90,7 @@ namespace SampleFlow
      * entire sample itself.
      */
     template <typename SampleType>
-    requires Concepts::has_subscript_operator<SampleType>
+    requires (Concepts::has_subscript_operator<SampleType>)
     auto get_nth_element (const SampleType &sample,
                           const std::size_t index)
     -> std::remove_cv_t<std::remove_reference_t<decltype(std::declval<SampleType>()[index])>>
@@ -127,7 +105,7 @@ namespace SampleFlow
      * returned object is a reference to the elements of the `sample` object.
      */
     template <typename SampleType>
-    requires Concepts::has_subscript_operator<SampleType>
+    requires (Concepts::has_subscript_operator<SampleType>)
     auto get_nth_element (SampleType &sample,
                           const std::size_t index)
     -> std::remove_cv_t<std::remove_reference_t<decltype(std::declval<SampleType>()[index])>> &

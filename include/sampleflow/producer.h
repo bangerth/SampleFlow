@@ -17,7 +17,10 @@
 #define SAMPLEFLOW_PRODUCER_H
 
 #include <sampleflow/auxiliary_data.h>
+#include <sampleflow/concepts.h>
+
 #include <boost/signals2.hpp>
+
 #include <functional>
 
 
@@ -49,6 +52,7 @@ namespace SampleFlow
    *   sides of a coin, then `bool` may be the appropriate choice.
    */
   template <typename OutputType>
+  requires (Concepts::is_valid_sampletype<OutputType>)
   class Producer
   {
     public:
@@ -150,6 +154,7 @@ namespace SampleFlow
 
 
   template <typename OutputType>
+  requires (Concepts::is_valid_sampletype<OutputType>)
   std::pair<boost::signals2::connection,boost::signals2::connection>
   Producer<OutputType>::
   connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &new_sample_slot,

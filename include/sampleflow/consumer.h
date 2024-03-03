@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_CONSUMER_H
 
 #include <sampleflow/auxiliary_data.h>
+#include <sampleflow/concepts.h>
 #include <sampleflow/producer.h>
 #include <sampleflow/parallel_mode.h>
 #include <boost/signals2.hpp>
@@ -75,6 +76,7 @@ namespace SampleFlow
    *   sides of a coin, then `bool` may be the appropriate choice.
    */
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   class Consumer
   {
     public:
@@ -268,6 +270,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   Consumer<InputType>::Consumer (const ParallelMode supported_parallel_modes)
     :
     parallel_mode (static_cast<int>(ParallelMode::synchronous)),
@@ -278,6 +281,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   Consumer<InputType>::~Consumer ()
   {
     // The destructor of derived classes needs to call
@@ -288,6 +292,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   void
   Consumer<InputType>::
   connect_to_producer (Producer<InputType> &producer)
@@ -465,6 +470,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   void
   Consumer<InputType>::
   set_parallel_mode (const ParallelMode parallel_mode,
@@ -482,6 +488,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   void
   Consumer<InputType>::
   disconnect_and_flush()
@@ -510,6 +517,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   void
   Consumer<InputType>::
   flush()
@@ -532,6 +540,7 @@ namespace SampleFlow
 
 
   template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
   void
   Consumer<InputType>::
   trim_background_queue()

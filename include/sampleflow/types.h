@@ -72,6 +72,7 @@ namespace SampleFlow
      * and consequently simply returns the argument itself.
      */
     template <typename T>
+    requires (std::is_arithmetic_v<T>)
     T conj (const T &value)
     {
       return value;
@@ -84,6 +85,7 @@ namespace SampleFlow
      * template is chosen when the argument is complex-valued.
      */
     template <typename T>
+    requires (std::is_arithmetic_v<T>)
     std::complex<T> conj (const std::complex<T> &value)
     {
       return std::conj(value);
