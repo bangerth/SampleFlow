@@ -142,12 +142,11 @@ namespace SampleFlow
          * specialization below to output each component separately.
          */
         template <typename SampleType>
-        auto write (const SampleType &sample,
+        requires ((Concepts::has_size_function<SampleType> == false)
+                  ||
+                  (Concepts::has_subscript_operator<SampleType> == false))
+        void write (const SampleType &sample,
                     std::ostream &output_stream)
-        -> typename std::enable_if<Utilities::internal::has_size_function<SampleType>::value == false
-        ||
-        Utilities::internal::has_subscript_operator<SampleType>::value == false,
-                  void>::type
         {
           output_stream << sample;
         }
@@ -159,12 +158,11 @@ namespace SampleFlow
          * each component separated by spaces.
          */
         template <typename SampleType>
-        auto write (const SampleType &sample,
+        requires (Concepts::has_size_function<SampleType>
+                  &&
+                  Concepts::has_subscript_operator<SampleType>)
+        void write (const SampleType &sample,
                     std::ostream &output_stream)
-        -> typename std::enable_if<Utilities::internal::has_size_function<SampleType>::value == true
-        &&
-        Utilities::internal::has_subscript_operator<SampleType>::value == true,
-                  void>::type
         {
           for (unsigned int i=0; i<Utilities::size(sample); ++i)
             {

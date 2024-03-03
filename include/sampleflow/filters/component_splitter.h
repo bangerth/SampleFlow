@@ -39,12 +39,24 @@ namespace SampleFlow
      * @tparam InputType The C++ type used to describe the incoming samples.
      *   For the current class, the output type of samples is the `value_type`
      *   of the `InputType`, i.e., `typename InputType::value_type`, as this
-     *   indicates the type of individual components of the `InputType`.
+     *   indicates the type of individual components of the `InputType`. The
+     *   `InputType` also needs to have an `operator[]` by which to extract
+     *   a component.
      */
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              requires ()
+    {
+      typename InputType::value_type;
+    })
     class ComponentSplitter : public Filter<InputType, typename InputType::value_type>
     {
       public:
+        /**
+         * The type that describes the output type for this filter.
+         */
+        using OutputType = typename InputType::value_type;
+
         /**
          * Constructor.
          *
@@ -79,7 +91,7 @@ namespace SampleFlow
          *   originally associated with the sample.
          */
         virtual
-        boost::optional<std::pair<typename InputType::value_type, AuxiliaryData> >
+        boost::optional<std::pair<OutputType, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
@@ -117,7 +129,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<typename InputType::value_type, AuxiliaryData> >
+    boost::optional<std::pair<typename ComponentSplitter<InputType>::OutputType, AuxiliaryData> >
     ComponentSplitter<InputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)
