@@ -240,8 +240,8 @@ namespace SampleFlow
           // Output the new sample (which may be equal to the old sample).
           this->issue_sample (current_sample,
           {
-            {"relative log likelihood", boost::any(current_log_likelihood)},
-            {"sample is repeated", boost::any(!accepted_sample)}
+            {"relative log likelihood", std::any(current_log_likelihood)},
+            {"sample is repeated", std::any(!accepted_sample)}
           });
         }
 

@@ -91,7 +91,7 @@ namespace SampleFlow
          *   originally associated with the sample.
          */
         virtual
-        boost::optional<std::pair<OutputType, AuxiliaryData> >
+        std::optional<std::pair<OutputType, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
@@ -129,7 +129,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<typename ComponentSplitter<InputType>::OutputType, AuxiliaryData> >
+    std::optional<std::pair<typename ComponentSplitter<InputType>::OutputType, AuxiliaryData> >
     ComponentSplitter<InputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)

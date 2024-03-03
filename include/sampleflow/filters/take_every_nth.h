@@ -86,7 +86,7 @@ namespace SampleFlow
          *   sample and $k \mod n = 0$. Otherwise, an empty object.
          */
         virtual
-        boost::optional<std::pair<InputType, AuxiliaryData> >
+        std::optional<std::pair<InputType, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
@@ -130,7 +130,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<InputType, AuxiliaryData> >
+    std::optional<std::pair<InputType, AuxiliaryData> >
     TakeEveryNth<InputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)

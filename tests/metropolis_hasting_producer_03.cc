@@ -84,9 +84,9 @@ class MyStreamOutput : public SampleFlow::Consumer<InputType>
           output_stream << "   " << data.first;
 
           // Then see if we can interpret the value via a known type:
-          if (const bool *p = boost::any_cast<bool>(&data.second))
+          if (const bool *p = std::any_cast<bool>(&data.second))
             output_stream << " -> " << (*p ? "true" : "false") << std::endl;
-          else if (const double *p = boost::any_cast<double>(&data.second))
+          else if (const double *p = std::any_cast<double>(&data.second))
             output_stream << " -> " << *p << std::endl;
           else
             output_stream << std::endl;

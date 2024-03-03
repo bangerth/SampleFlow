@@ -82,7 +82,7 @@ namespace SampleFlow
          *   $n$ is the argument passed to the constructor.
          */
         virtual
-        boost::optional<std::pair<InputType, AuxiliaryData> >
+        std::optional<std::pair<InputType, AuxiliaryData> >
         filter (InputType sample,
                 AuxiliaryData aux_data) override;
 
@@ -124,7 +124,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    boost::optional<std::pair<InputType, AuxiliaryData> >
+    std::optional<std::pair<InputType, AuxiliaryData> >
     DiscardFirstN<InputType>::
     filter (InputType sample,
             AuxiliaryData aux_data)
