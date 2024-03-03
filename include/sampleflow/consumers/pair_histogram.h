@@ -79,11 +79,11 @@ namespace SampleFlow
     class PairHistogram : public Consumer<InputType>
     {
       public:
-        static_assert (Utilities::internal::has_subscript_operator<InputType>::value == true,
+        static_assert (Concepts::has_subscript_operator<InputType>,
                        "This class can only be used for vector-like types that "
                        "allow applying the [] operator to obtain individual "
                        "components");
-        static_assert (Utilities::internal::has_size_function<InputType>::value == true,
+        static_assert (Concepts::has_size_function<InputType>,
                        "This class can only be used for vector-like types that "
                        "have a size() member function.");
         static_assert (std::is_arithmetic<types::ScalarType<InputType>>::value == true,
