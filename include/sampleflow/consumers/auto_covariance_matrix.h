@@ -243,8 +243,8 @@ namespace SampleFlow
      *   have to hold as listed for the MeanValue class (we need to be able to
      *   calculate mean, divide by positive integers, etc.).
      */
-
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     class AutoCovarianceMatrix : public Consumer<InputType>
     {
       public:

@@ -285,6 +285,7 @@ namespace SampleFlow
      */
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     class AutoCovarianceTrace: public Consumer<InputType>
     {
       public:

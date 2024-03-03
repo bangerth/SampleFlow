@@ -56,6 +56,7 @@ namespace SampleFlow
      *   have to hold as listed for the MeanValue class.
      */
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     class CovarianceMatrix : public Consumer<InputType>
     {
       public:

@@ -142,9 +142,15 @@ namespace SampleFlow
          * specialization below to output each component separately.
          */
         template <typename SampleType>
-        requires ((Concepts::has_size_function<SampleType> == false)
-                  ||
-                  (Concepts::has_subscript_operator<SampleType> == false))
+        requires (((Concepts::has_size_function<SampleType> == false)
+                   ||
+                   (Concepts::has_subscript_operator<SampleType> == false))
+                  &&
+                  requires (const SampleType &sample,
+                            std::ostream &output_stream)
+        {
+          output_stream << sample;
+        })
         void write (const SampleType &sample,
                     std::ostream &output_stream)
         {
@@ -160,7 +166,13 @@ namespace SampleFlow
         template <typename SampleType>
         requires (Concepts::has_size_function<SampleType>
                   &&
-                  Concepts::has_subscript_operator<SampleType>)
+                  Concepts::has_subscript_operator<SampleType>
+                  &&
+                  requires (const SampleType &sample,
+                            std::ostream &output_stream)
+        {
+          output_stream << Utilities::get_nth_element(sample, 0);
+        })
         void write (const SampleType &sample,
                     std::ostream &output_stream)
         {

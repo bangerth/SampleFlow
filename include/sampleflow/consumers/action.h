@@ -175,7 +175,7 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      action_function (std::move (sample), std::move(aux_data));
+      action_function (std::move(sample), std::move(aux_data));
     }
   }
 }
