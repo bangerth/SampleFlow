@@ -19,8 +19,9 @@
 #include <sampleflow/producer.h>
 #include <sampleflow/consumer.h>
 
-#include <boost/optional.hpp>
 #include <mutex>
+#include <optional>
+
 
 namespace SampleFlow
 {
@@ -142,7 +143,7 @@ namespace SampleFlow
        *
        * Implementations of this function in derived classes do not
        * *have* to produce a new sample. If the returned object is an
-       * empty `boost::optional` object, then this is meant to indicate that
+       * empty `std::optional` object, then this is meant to indicate that
        * the sample may have been processed but was simply swallowed up without
        * producing another sample for further distribution.
        *
@@ -151,14 +152,14 @@ namespace SampleFlow
        *   generated the sample may have wanted to convey along with
        *   the same value itself.
        *
-       * @return If the returned `boost::optional` object is empty, then
+       * @return If the returned `std::optional` object is empty, then
        * nothing further happens. If it is non-empty, then the pair that the
-       * `boost::optional` stores is interpreted as a new sample (of type
+       * `std::optional` stores is interpreted as a new sample (of type
        * OutputType) and auxiliary data that is then sent to all consumers
        * connected to this filter.
        */
       virtual
-      boost::optional<std::pair<OutputType, AuxiliaryData> >
+      std::optional<std::pair<OutputType, AuxiliaryData> >
       filter (InputType sample,
               AuxiliaryData aux_data) = 0;
   };
@@ -182,7 +183,7 @@ namespace SampleFlow
   {
     // Call the virtual function that needs to be implemented by derived
     // classes and store the result in a local variable.
-    boost::optional<std::pair<OutputType, AuxiliaryData> >
+    std::optional<std::pair<OutputType, AuxiliaryData> >
     maybe_sample =
       filter (std::move (sample), std::move (aux_data));
 

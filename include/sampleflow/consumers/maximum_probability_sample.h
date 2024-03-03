@@ -164,7 +164,7 @@ namespace SampleFlow
       // attribute we would like to evaluate
       if (aux_data.find ("relative log likelihood") != aux_data.end())
         {
-          const double log_likelihood = boost::any_cast<double>(aux_data["relative log likelihood"]);
+          const double log_likelihood = std::any_cast<double>(aux_data["relative log likelihood"]);
 
           std::lock_guard<std::mutex> lock(mutex);
 

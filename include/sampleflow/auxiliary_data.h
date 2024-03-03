@@ -16,8 +16,9 @@
 #ifndef SAMPLEFLOW_AUXILIARY_DATA_H
 #define SAMPLEFLOW_AUXILIARY_DATA_H
 
+#include <any>
 #include <map>
-#include <boost/any.hpp>
+
 
 namespace SampleFlow
 {
@@ -43,11 +44,11 @@ namespace SampleFlow
    * Since different producer (or filter) classes may want to pass along
    * different kinds of information, the data type used is rather general:
    * It is a map with string keys that identify what the additional
-   * information is, and an object of type boost::any that stores the
-   * information itself. boost::any is a data type that wraps around an
+   * information is, and an object of type std::any that stores the
+   * information itself. std::any is a data type that wraps around an
    * object of any kind, in essence by storing something like a `void`
    * pointer. One must know the type of the object so stored to retrieve
-   * it from a boost::any object, but this is not a restriction here
+   * it from a std::any object, but this is not a restriction here
    * because a consumer wishing to process additional data clearly
    * needs to know something about what kind of information a producer
    * may have attached in the first place.
@@ -56,7 +57,7 @@ namespace SampleFlow
    * under which the data is stored in the map and the type of the data
    * so stored.
    */
-  using AuxiliaryData = std::map<std::string, boost::any>;
+  using AuxiliaryData = std::map<std::string, std::any>;
 }
 
 
