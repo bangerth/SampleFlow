@@ -18,6 +18,7 @@
 
 #include <sampleflow/producer.h>
 #include <sampleflow/consumer.h>
+#include <sampleflow/concepts.h>
 
 #include <mutex>
 #include <optional>
@@ -67,6 +68,7 @@ namespace SampleFlow
    *   i.e., the type of the objects generated after processing or selection.
    */
   template <typename InputType, typename OutputType>
+  requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
   class Filter : public Consumer<InputType>, public Producer<OutputType>
   {
     public:
@@ -167,6 +169,7 @@ namespace SampleFlow
 
 
   template <typename InputType, typename OutputType>
+  requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
   Filter<InputType,OutputType>::
   Filter (const ParallelMode supported_parallel_modes)
     :
@@ -176,6 +179,7 @@ namespace SampleFlow
 
 
   template <typename InputType, typename OutputType>
+  requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
   void
   Filter<InputType,OutputType>::
   consume (InputType sample,
@@ -197,6 +201,7 @@ namespace SampleFlow
 
 
   template <typename InputType, typename OutputType>
+  requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
   void
   Filter<InputType,OutputType>::
   flush()
