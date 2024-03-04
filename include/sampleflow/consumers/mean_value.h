@@ -78,9 +78,12 @@ namespace SampleFlow
      *   used to represent the outcomes (the integers). To avoid this,
      *   you will want to convert the sample type to one that can represent
      *   these things, for example `double`. This can be done using the
-     *   Filters::Conversion filter class, for example.
+     *   Filters::Conversion filter class, for example. In practice,
+     *   the requirement on `InputType` is that it models a "vector space",
+     *   and this requirement is enforced by the compiler.
      */
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     class MeanValue : public Consumer<InputType>
     {
       public:

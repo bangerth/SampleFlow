@@ -27,7 +27,7 @@ namespace SampleFlow
     /**
      * A Consumer class that implements storing the most likely among the
      * samples seen so far. This is an approximation to the Maximum
-     * A Posterior probability point of the probability distribution
+     * A Posterior (MAP) probability point of the probability distribution
      * being sampled. To do its work, this class evaluates the
      * AuxiliaryData object passed along with each sample and
      * looks at whether it contains an entry named "relative log likelihood"

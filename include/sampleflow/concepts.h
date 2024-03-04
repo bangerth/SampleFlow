@@ -39,6 +39,45 @@ namespace SampleFlow
                                    std::movable<SampleType> &&
                                    std::move_constructible<SampleType>);
 
+    /**
+     * A concept that describes whether a given `SampleType` models an object
+     * in a vector space. In particular, one needs to be able to add objects
+     * in vector spaces, and one needs to be able to multiply them by a scalar
+     * (real) number. This concept is used, for example, in order to guarantee
+     * that one can implement computing a mean value of samples.
+     */
+    template <typename SampleType>
+    concept is_vector_space_type = requires (SampleType       &a,
+                                             const SampleType &b,
+                                             const std::size_t i,
+                                             const double      d)
+    {
+      {
+        a += b
+      } -> std::convertible_to<SampleType>;
+      {
+        a -= b
+      } -> std::convertible_to<SampleType>;
+      {
+        d *a
+      } -> std::convertible_to<SampleType>;
+      {
+        a *d
+      } -> std::convertible_to<SampleType>;
+      a /= i;
+    };
+
+
+
+    /**
+     * A concept that tests whether a class has a member type `value_type`.
+     */
+    template <typename SampleType>
+    concept has_value_type = requires ()
+    {
+      typename SampleType::value_type;
+    };
+
 
     /**
      * A concept that describes whether one can call `sample[index]` where

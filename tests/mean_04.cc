@@ -72,12 +72,35 @@ MyTriangle &operator-=(MyTriangle &tri1, const MyTriangle &tri2)
 }
 
 
-MyTriangle &operator/=(MyTriangle &tri1, const int b)
+MyTriangle &operator*=(MyTriangle &tri1, const double b)
+{
+  tri1.side_lengths[0] *= b;
+  tri1.side_lengths[1] *= b;
+  tri1.side_lengths[2] *= b;
+  return tri1;
+}
+
+
+MyTriangle &operator/=(MyTriangle &tri1, const double b)
 {
   tri1.side_lengths[0] /= b;
   tri1.side_lengths[1] /= b;
   tri1.side_lengths[2] /= b;
   return tri1;
+}
+
+
+MyTriangle operator*(const MyTriangle &tri1, const double b)
+{
+  MyTriangle tri = tri1;
+  tri *= b;
+  return tri;
+}
+
+
+MyTriangle operator*(const double b, const MyTriangle &tri1)
+{
+  return (tri1 * b);
 }
 
 

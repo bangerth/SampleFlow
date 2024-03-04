@@ -16,6 +16,7 @@
 #ifndef SAMPLEFLOW_CONSUMERS_ACCEPTANCE_RATIO_H
 #define SAMPLEFLOW_CONSUMERS_ACCEPTANCE_RATIO_H
 
+#include <sampleflow/auxiliary_data.h>
 #include <sampleflow/consumer.h>
 #include <sampleflow/types.h>
 #include <mutex>
@@ -162,6 +163,7 @@ namespace SampleFlow
          * return a single boolean.
          */
         template <typename T>
+        requires (std::equality_comparable<T>)
         bool is_equal (const T &t1,
                        const T &t2)
         {
@@ -189,7 +191,6 @@ namespace SampleFlow
 
           return true;
         }
-
       }
     }
 
