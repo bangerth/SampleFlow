@@ -134,12 +134,10 @@ namespace SampleFlow
       ++counter;
       if (counter > initial_n_samples)
         {
-          return
-          {{ std::move(sample), std::move(aux_data)}};
+          return {{ std::move(sample), std::move(aux_data)}};
         }
       else
-        return
-          {};
+        return {};
     }
 
   }

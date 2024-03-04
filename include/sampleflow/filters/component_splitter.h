@@ -45,10 +45,7 @@ namespace SampleFlow
      */
     template <typename InputType>
     requires (Concepts::has_subscript_operator<InputType> &&
-              requires ()
-    {
-      typename InputType::value_type;
-    })
+              Concepts::has_value_type<InputType>)
     class ComponentSplitter : public Filter<InputType, typename InputType::value_type>
     {
       public:
@@ -105,6 +102,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_value_type<InputType>)
     ComponentSplitter<InputType>::
     ComponentSplitter (const unsigned int selected_component)
       : selected_component(selected_component)
@@ -113,6 +112,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_value_type<InputType>)
     ComponentSplitter<InputType>::
     ComponentSplitter (const ComponentSplitter<InputType> &o)
       : selected_component(o.selected_component)
@@ -121,6 +122,8 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_value_type<InputType>)
     ComponentSplitter<InputType>::
     ~ComponentSplitter ()
     {
@@ -129,10 +132,12 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    std::optional<std::pair<typename ComponentSplitter<InputType>::OutputType, AuxiliaryData> >
-    ComponentSplitter<InputType>::
-    filter (InputType sample,
-            AuxiliaryData aux_data)
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_value_type<InputType>)
+    std::optional<std::pair<typename ComponentSplitter<InputType>::OutputType, AuxiliaryData>>
+        ComponentSplitter<InputType>::
+        filter (InputType sample,
+                AuxiliaryData aux_data)
     {
       assert (selected_component < sample.size());
 
