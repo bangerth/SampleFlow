@@ -59,21 +59,21 @@ namespace SampleFlow
          * @param[in] log_likelihood A function object that, when called
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
-         * @param[in] perturb A function object that, when given a sample
+         * @param[in] propose_sample A function object that, when given a sample
          *   $x$, returns a pair of values containing the following:
          *   <ol>
-         *   <li> A different sample $\tilde x$ that is perturbed
+         *   <li> A different sample $\tilde x$, often chosen as a perturbed
          *     in some way from the given sample $x$.
          *   <li> The relative probability of the transition $x\to\tilde x$
          *     divided by the probability of the transition $\tilde x\to x$.
          *     Specifically, if the proposal distribution is given by
          *     $\pi_\text{proposal}(\tilde x|x)$, then the second element
-         *     of the pair returned by the `perturb` argument is
+         *     of the pair returned by the `propose_sample` argument is
          *     $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}$.
          *   </ol>
          *   If samples are from some continuous space, say
-         *   ${\mathbb R}^n$, then the perturbation function is often
+         *   ${\mathbb R}^n$, then the proposal function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
          *   of $x$. If, for example, $\tilde x$ is chosen with a probability
          *   that only depends on the distance $\|\tilde x-\x\|$ as is often
@@ -146,7 +146,7 @@ namespace SampleFlow
         void
         sample (const std::vector<OutputType> &starting_points,
                 const std::function<double (const OutputType &)> &log_likelihood,
-                const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
+                const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
                 const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
                 const unsigned int crossover_gap,
                 const types::sample_index n_samples,
@@ -160,7 +160,7 @@ namespace SampleFlow
     DifferentialEvaluationMetropolisHastings<OutputType>::
     sample (const std::vector<OutputType> &starting_points,
             const std::function<double (const OutputType &)> &log_likelihood,
-            const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
+            const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
             const std::function<OutputType (const OutputType &, const OutputType &, const OutputType &)> &crossover,
             const unsigned int crossover_gap,
             const types::sample_index n_samples,
@@ -245,10 +245,10 @@ namespace SampleFlow
 
                   // Combine trial a and trial b
                   const OutputType crossover_result = crossover(current_samples[chain], trial_a, trial_b);
-                  trial_sample_and_ratio = perturb(crossover_result);
+                  trial_sample_and_ratio = propose_sample(crossover_result);
                 }
               else
-                trial_sample_and_ratio = perturb(current_samples[chain]);
+                trial_sample_and_ratio = propose_sample(current_samples[chain]);
 
               // Now that we have a trial sample, we need to evaluate the likelihood
               // on it. We can do this sequentially or in parallel, and for this, we

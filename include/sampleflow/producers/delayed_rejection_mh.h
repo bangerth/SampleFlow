@@ -34,7 +34,7 @@ namespace SampleFlow
      * producer - consult the documentation of that class for more details.
      * This class provides the same functionality as Metropolis Hastings but with
      * the additional capability to perform delayed rejection. This requries a slightly
-     * different perturb function that accepts both the current sample and a vector
+     * different propose_sample function that accepts both the current sample and a vector
      * of rejected samples as arguments. These rejected samples can be used for a more
      * sophisticated perturbation strategy.
      */
@@ -52,23 +52,23 @@ namespace SampleFlow
          * @param[in] log_likelihood A function object that, when called
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
-         * @param[in] perturb A function object that, when given a sample
+         * @param[in] propose_sample A function object that, when given a sample
          *   $x$ as well as a (possibly empty) vector of rejected samples
          *   $\{y_1,\ldots,y_n\}$, returns a pair of values containing the
          *   following:
          *   <ol>
-         *   <li> A different sample $\tilde x$ that is perturbed
+         *   <li> A different sample $\tilde x$, often chosen as a perturbed
          *     in some way from the given sample $x$.
          *   <li> The relative probability of the transition $x\to\tilde x$
          *     divided by the probability of the transition $\tilde x\to x$.
          *     Specifically, if the proposal distribution is given by
          *     $\pi_\text{proposal}(\tilde x|x)$, then the second element
-         *     of the pair returned by the `perturb` argument is
+         *     of the pair returned by the `propose_sample` argument is
          *     $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}$.
          *   </ol>
          *   If samples are from some continuous space, say
-         *   ${\mathbb R}^n$, then the perturbation function is often
+         *   ${\mathbb R}^n$, then the proposal function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
          *   of $x$. If, for example, $\tilde x$ is chosen with a probability
          *   that only depends on the distance $\|\tilde x-x\|$ as is often
@@ -114,7 +114,7 @@ namespace SampleFlow
         void
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
-                const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &perturb,
+                const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &propose_sample,
                 const unsigned int max_delays,
                 const types::sample_index n_samples,
                 const std::mt19937::result_type random_seed = {});
@@ -175,7 +175,7 @@ namespace SampleFlow
     DelayedRejectionMetropolisHastings<OutputType>::
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
-            const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &perturb,
+            const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &propose_sample,
             const unsigned int max_delays,
             const types::sample_index n_samples,
             const std::mt19937::result_type random_seed)
@@ -207,20 +207,20 @@ namespace SampleFlow
           // Delayed rejection loop
           for (unsigned int delay_stage = 0; delay_stage <= max_delays; ++delay_stage)
             {
-              // Obtain a new sample by perturbation of the previous samples
+              // Obtain a new proposed sample
               // (the previously last accepted one, along with the rejected ones)
               // and then evaluate its log likelihood.
               //
               // TODO: The current implementation discards the second part of the
-              // information returned by the 'perturb' function. This is based on
-              // the assumption that the proposal distributions used by 'perturb'
+              // information returned by the 'propose_sample' function. This is based on
+              // the assumption that the proposal distributions used by 'propose_sample'
               // are symmetric, and that the second number equals 1.0. We should
               // generalize this.
               std::vector<OutputType> proposed_samples_only (proposed_samples.size());
               for (unsigned int i=0; i<proposed_samples.size(); ++i)
                 proposed_samples_only[i] = proposed_samples[i].first;
-              std::pair<OutputType,double> trial_sample_and_ratio = perturb(current_sample,
-                                                                            proposed_samples_only);
+              std::pair<OutputType,double> trial_sample_and_ratio = propose_sample(current_sample,
+                                                                                   proposed_samples_only);
               const OutputType trial_sample = std::move(trial_sample_and_ratio.first);
               const double trial_log_likelihood = log_likelihood(trial_sample);
               proposed_samples.push_back({trial_sample, trial_log_likelihood});
