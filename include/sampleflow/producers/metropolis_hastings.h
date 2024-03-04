@@ -41,7 +41,7 @@ namespace SampleFlow
      * "MH sampler" requires three inputs: a starting sample, a way to
      * evaluate the value of the (non-normalized) probability density
      * function for some value of the sample space, and a way to
-     * "perturb" a given sample to get a new sample. In the context
+     * "propose" a new sample (oftentimes by "perturbing" a given sample). In the context
      * of sampling algorithms, the non-normalized probability
      * density $\pi(x)$ is typically called the "likelihood";
      * for implementational stability, this class requires users
@@ -129,7 +129,7 @@ namespace SampleFlow
      * be encoded in the following function:
      * @code
      * std::pair<SampleType,double>
-     * perturb (const SampleType &x)
+     * propose_sample (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   static std::bernoulli_distribution distribution(0.5);
@@ -162,7 +162,7 @@ namespace SampleFlow
      *
      *   mh_sampler.sample ({3},
      *                      &log_likelihood,
-     *                      &perturb,
+     *                      &propose_sample,
      *                      100);
      * @endcode
      * The output for this (written to `std::cout`) will contain the value "3"
@@ -184,10 +184,10 @@ namespace SampleFlow
      * we choose $\tilde x=x+1$ with a probability $p$ that is different
      * from the probability $1-p$ with which we choose $\tilde x=x-1$.
      *
-     * To account for this, we can use the following `perturb()` function:
+     * To account for this, we can use the following `propose_sample()` function:
      * @code
      * std::pair<SampleType,double>
-     * perturb (const SampleType &x)
+     * propose_sample (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   const double p = 0.9;
@@ -262,7 +262,7 @@ namespace SampleFlow
      * that draws $\tilde x$ randomly in the interval $[x-\delta,x+\delta]$:
      * @code
      * std::pair<SampleType,double>
-     * perturb (const SampleType &x)
+     * propose_sample (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   const double delta = 0.1;
@@ -283,15 +283,15 @@ namespace SampleFlow
      *
      *   mh_sampler.sample ({3},
      *                      &log_likelihood,
-     *                      &perturb,
+     *                      &propose_sample,
      *                      100);
      * @endcode
      *
      *
-     * <h3>Choosing the perturb() function for continuous variables</h3>
+     * <h3>Choosing the propose_sample() function for continuous variables</h3>
      *
      * A difficult aspect of sampling is how to choose the proposal distribution
-     * from which the `perturb()` function draws a proposed new sample that will
+     * from which the `propose_sample()` function draws a proposed new sample that will
      * then either be accepted or rejected.
      *
      * In the examples above, we have chosen the new sample $\tilde x$ within
@@ -300,7 +300,7 @@ namespace SampleFlow
      * to draw a Gaussian-distributed perturbation of expected size `delta`:
      * @code
      * std::pair<SampleType,double>
-     * perturb (const SampleType &x)
+     * propose_sample (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   const double delta = 0.1;
@@ -325,10 +325,10 @@ namespace SampleFlow
      * Consumers::AcceptanceRatio class.
      *
      * The issue becomes more complicated if the sample type is a vector. In
-     * this case, a typical `perturb()` function would look like this:
+     * this case, a typical `propose_sample()` function would look like this:
      * @code
      * std::pair<SampleType,double>
-     * perturb (const SampleType &x)
+     * propose_sample (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   const double delta = 0.1;
@@ -365,7 +365,7 @@ namespace SampleFlow
      * A similar problem to the one mentioned above arises if the target
      * distribution we are trying to sample from is not aligned with
      * the coordinate axes. In this case, one would want to choose a proposal
-     * distribution in the `perturb()` function that is aligned with the
+     * distribution in the `propose_sample()` function that is aligned with the
      * target distribution, whereas the examples above all led to proposal
      * distributions that are axis-aligned.
      *
@@ -379,7 +379,8 @@ namespace SampleFlow
      * @code
      * // Use a non-adaptive proposal distribution for
      * // the first several samples.
-     * std::pair<SampleType,double> perturb_simple (const SampleType &x)
+     * std::pair<SampleType,double>
+     * propose_sample_simple (const SampleType &x)
      * {
      *   static std::mt19937 rng;
      *   const double delta = 0.1;
@@ -396,8 +397,9 @@ namespace SampleFlow
      *
      * // After a certain point, draw from something that considers the
      * // current covariance matrix.
-     * std::pair<SampleType,double> perturb_adaptive (const SampleType &x,
-     *                                                const Eigen::Matrix2d &C)
+     * std::pair<SampleType,double>
+     * propose_sample_adaptive (const SampleType &x,
+     *                          const Eigen::Matrix2d &C)
      * {
      *   const auto LLt = C.llt();
      *
@@ -449,8 +451,8 @@ namespace SampleFlow
      * sampling. The Adaptive Metropolis method therefore takes the
      * covariance matrix obtained from the previous samples. Because this
      * is not available during the first few samples, the method
-     * first runs a few samples with the `perturb_simple()` function
-     * above, and then switches to the `perturb_adaptive()` function
+     * first runs a few samples with the `propose_sample_simple()` function
+     * above, and then switches to the `propose_sample_adaptive()` function
      * that uses the current estimate of the covariance matrix. This
      * can be implemented as follows:
      * @code
@@ -466,9 +468,9 @@ namespace SampleFlow
      *                      &log_likelihood,
      *                      [&](const SampleType &x) {
      *                         if (counter.get() < 1000)
-     *                           return perturb_simple(x);
+     *                           return propose_sample_simple(x);
      *                         else
-     *                           return perturb_adaptive(x, covariance_matrix.get());
+     *                           return propose_sample_adaptive(x, covariance_matrix.get());
      *                      },
      *                      10000);
      * @endcode
@@ -480,7 +482,7 @@ namespace SampleFlow
      * `SampleType=double`. But the current class doesn't actually care what
      * type the samples have as long as the given `log_likelihood` function
      * returns a probability value for a given sample, and as long as the
-     * `perturb` function generates a new sample and returns it along with
+     * `propose_sample` function generates a new sample and returns it along with
      * the ratio of proposal distribution likelihoods. Common types for samples
      * are vectors (e.g., represented by `std::valarray`), but one can also
      * draw samples from `std::complex` numbers, quaternions, graphs, or,
@@ -501,21 +503,21 @@ namespace SampleFlow
          * @param[in] log_likelihood A function object that, when called
          *   with a sample $x$, returns $\log(\pi(x))$, i.e., the natural
          *   logarithm of the likelihood function evaluated at the sample.
-         * @param[in] perturb A function object that, when given a sample
+         * @param[in] propose_sample A function object that, when given a sample
          *   $x$, returns a pair of values containing the following:
          *   <ol>
-         *   <li> A different sample $\tilde x$ that is perturbed
+         *   <li> A different sample $\tilde x$, often chosen as a perturbed
          *     in some way from the given sample $x$.
          *   <li> The relative probability of the transition $x\to\tilde x$
          *     divided by the probability of the transition $\tilde x\to x$.
          *     Specifically, if the proposal distribution is given by
          *     $\pi_\text{proposal}(\tilde x|x)$, then the second element
-         *     of the pair returned by the `perturb` argument is
+         *     of the pair returned by the `propose_sample` argument is
          *     $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}$.
          *   </ol>
          *   If samples are from some continuous space, say
-         *   ${\mathbb R}^n$, then the perturbation function is often
+         *   ${\mathbb R}^n$, then the proposal function is often
          *   implemented by choosing $\tilde x$ from a neighborhood
          *   of $x$. If, for example, $\tilde x$ is chosen with a probability
          *   that only depends on the distance $\|\tilde x-x\|$ as is often
@@ -525,7 +527,7 @@ namespace SampleFlow
          *   $\frac{\pi_\text{proposal}(\tilde x|x)}
          *           {\pi_\text{proposal}(x|\tilde x)}=1$.
          *   See the documentation of this class for examples of the
-         *   @p perturb function.
+         *   @p propose_sample function.
          * @param[in] n_samples The number of (new) samples to be produced
          *   by this function. This is also the number of times the
          *   signal is called that notifies Consumer objects that a new
@@ -542,7 +544,7 @@ namespace SampleFlow
          *   as argument.
          *
          * @note There are cases where the likelihood of a proposal sample,
-         *   $\pi(\tilde x)$, is zero. This can happen if the `perturb()` function
+         *   $\pi(\tilde x)$, is zero. This can happen if the `propose_sample()` function
          *   provided to this function proposes a sample location that is in an
          *   area for which the likelihood is zero. The question is what the
          *   `log_likelihood()` function should return in this case given that the
@@ -563,7 +565,7 @@ namespace SampleFlow
         void
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
-                const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
+                const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
                 const types::sample_index n_samples,
                 const std::mt19937::result_type random_seed = {});
     };
@@ -574,7 +576,7 @@ namespace SampleFlow
     MetropolisHastings<OutputType>::
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
-            const std::function<std::pair<OutputType,double> (const OutputType &)> &perturb,
+            const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
             const types::sample_index n_samples,
             const std::mt19937::result_type random_seed)
     {
@@ -597,9 +599,9 @@ namespace SampleFlow
       // Loop over the desired number of samples
       for (types::sample_index i=0; i<n_samples; ++i)
         {
-          // Obtain a new sample by perturbation and evaluate the
+          // Obtain a new proposed sample and evaluate the
           // log likelihood for it
-          std::pair<OutputType,double> trial_sample_and_ratio = perturb (current_sample);
+          std::pair<OutputType,double> trial_sample_and_ratio = propose_sample (current_sample);
           OutputType trial_sample = std::move(trial_sample_and_ratio.first);
           const double proposal_distribution_ratio = trial_sample_and_ratio.second;
 
