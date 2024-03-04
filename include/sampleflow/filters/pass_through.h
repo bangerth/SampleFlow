@@ -54,7 +54,7 @@ namespace SampleFlow
      *   indicates the type of individual components of the `InputType`.
      */
     template <typename InputType>
-    class PassThrough : public SampleFlow::Filter<InputType, InputType>
+    class PassThrough : public Filter<InputType, InputType>
     {
       public:
         /**
@@ -94,13 +94,12 @@ namespace SampleFlow
 
 
     template <typename InputType>
-    std::optional<std::pair<InputType, SampleFlow::AuxiliaryData> >
-    PassThrough<InputType>::
-    filter (InputType sample,
-            SampleFlow::AuxiliaryData aux_data)
+    std::optional<std::pair<InputType, SampleFlow::AuxiliaryData>>
+                                                                PassThrough<InputType>::
+                                                                filter (InputType sample,
+                                                                        SampleFlow::AuxiliaryData aux_data)
     {
-      return std::pair<InputType, SampleFlow::AuxiliaryData>
-      { sample, aux_data };
+      return {{ sample, aux_data }};
     }
   }
 }

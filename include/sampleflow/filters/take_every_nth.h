@@ -141,12 +141,10 @@ namespace SampleFlow
       if (counter % every_nth == 0)
         {
           counter = 0;
-          return
-          {{ std::move(sample), std::move(aux_data)}};
+          return {{ std::move(sample), std::move(aux_data)}};
         }
       else
-        return
-          {};
+        return {};
     }
 
   }
