@@ -27,7 +27,8 @@ namespace SampleFlow
   namespace Producers
   {
     /**
-     * A class that produces samples from another container, such as a
+     * A class that produces samples from an iterator range, such as the
+     * range that corresponds to a
      * std::vector or std::list, or simply a C-style array. This class is
      * often useful to test filters and consumers because the exact sequence
      * of samples is known.
@@ -55,6 +56,27 @@ namespace SampleFlow
      * In this case, `samples` has type `std::initializer_list<int>`, which can
      * also serve the source of samples of type `double`, letting the compiler
      * do the conversion.
+     *
+     * This class is also useful if the input range does not actually store the
+     * elements. An example is
+     * [std::ranges::iota_view](https://en.cppreference.com/w/cpp/ranges/iota_view)
+     * which is the range of values provided by a begin and end element. For
+     * example, the previous example could also have been written as
+     * @code
+     *   SampleFlow::Producers::Range<double> range_producer;
+     *
+     *   ...connect consumers and filters to this producer...
+     *
+     *   range_producer.sample (std::ranges::iota_view(1,7));
+     * @endcode
+     * or equivalently
+     * @code
+     *   SampleFlow::Producers::Range<double> range_producer;
+     *
+     *   ...connect consumers and filters to this producer...
+     *
+     *   range_producer.sample (std::views::iota(1,7));
+     * @endcode
      *
      * @tparam OutputType The type the samples sent downstream should have.
      *   This need not necessarily be the same type as the one of the objects
