@@ -94,8 +94,7 @@ int main ()
     mh_sampler.sample ({3},
                        &log_likelihood,
                        &perturb,
-                       20,
-                       {});
+                       20);
   }
 
   // Now check with an explicit zero seed, which should result in the same output
@@ -103,7 +102,9 @@ int main ()
     std::cout << "Explicit zero seed\n";
     rng = std::mt19937();
 
-    SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+    SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters p;
+    p.random_seed = 0;
+    SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler (p);
 
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
     stream_output.connect_to_producer(mh_sampler);
@@ -111,8 +112,7 @@ int main ()
     mh_sampler.sample ({3},
                        &log_likelihood,
                        &perturb,
-                       20,
-                       0);
+                       20);
   }
 
 
@@ -121,7 +121,9 @@ int main ()
     std::cout << "Explicit seed=42\n";
     rng = std::mt19937();
 
-    SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler;
+    SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters p;
+    p.random_seed = 42;
+    SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler(p);
 
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
     stream_output.connect_to_producer(mh_sampler);
@@ -129,7 +131,6 @@ int main ()
     mh_sampler.sample ({3},
                        &log_likelihood,
                        &perturb,
-                       20,
-                       42);
+                       20);
   }
 }
