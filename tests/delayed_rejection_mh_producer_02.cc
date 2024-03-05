@@ -82,7 +82,9 @@ std::pair<SampleType,double> perturb (const SampleType &x, const std::vector<Sam
 
 int main ()
 {
-  SampleFlow::Producers::DelayedRejectionMetropolisHastings<SampleType> drmh_sampler;
+  SampleFlow::Producers::DelayedRejectionMetropolisHastings<SampleType>::Parameters p;
+  p.random_seed = 1;
+  SampleFlow::Producers::DelayedRejectionMetropolisHastings<SampleType> drmh_sampler(p);
 
   SampleFlow::Filters::Conversion<SampleType,double> conversion;
   conversion.connect_to_producer (drmh_sampler);
@@ -95,8 +97,7 @@ int main ()
                        &log_likelihood,
                        &perturb,
                        0,
-                       100000,
-                       1);
+                       100000);
 
   std::cout << "Mean value = " << mean_value.get() << std::endl;
 }
