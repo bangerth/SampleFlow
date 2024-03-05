@@ -102,8 +102,8 @@ int main ()
     std::cout << "Explicit zero seed\n";
     rng = std::mt19937();
 
-    SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters p;
-    p.random_seed = 0;
+    const SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters
+    p = { .random_seed = 0 };
     SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler (p);
 
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
@@ -121,8 +121,8 @@ int main ()
     std::cout << "Explicit seed=42\n";
     rng = std::mt19937();
 
-    SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters p;
-    p.random_seed = 42;
+    const SampleFlow::Producers::MetropolisHastings<SampleType>::Parameters
+    p = { .random_seed = 42 };
     SampleFlow::Producers::MetropolisHastings<SampleType> mh_sampler(p);
 
     SampleFlow::Consumers::StreamOutput<SampleType> stream_output(std::cout);
