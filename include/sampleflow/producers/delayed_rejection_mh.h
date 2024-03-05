@@ -43,6 +43,24 @@ namespace SampleFlow
     {
       public:
         /**
+         * A structure that stores parameters controlling specific aspects of
+         * sampling algorithm.
+         */
+        struct Parameters
+        {
+          /**
+           * A random seed to be used to initialize the random number
+           * generators used by the sampling algorithm.
+           */
+          std::mt19937::result_type random_seed = {};
+        };
+
+        /**
+         * Constructor.
+         */
+        DelayedRejectionMetropolisHastings (const Parameters &parameters = {});
+
+        /**
          * The principal function of this class. Starting from the given
          * initial sample $x_0$, it produces a sequence of samples $x_k$
          * that are passed through the signal of the base class to
@@ -116,9 +134,20 @@ namespace SampleFlow
                 const std::function<double (const OutputType &)> &log_likelihood,
                 const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &propose_sample,
                 const unsigned int max_delays,
-                const types::sample_index n_samples,
-                const std::mt19937::result_type random_seed = {});
+                const types::sample_index n_samples);
+
       private:
+        /**
+         * A variable that stores parameters controlling specific aspects of
+         * sampling algorithm.
+         */
+        Parameters parameters;
+
+        /**
+         * The random number generator used by the sampler.
+         */
+        std::mt19937 rng;
+
         /**
          * Recursively compute the acceptance ratio given the previous sample and
          * a vector of proposed samples (all but one that have already been rejected).
@@ -170,6 +199,18 @@ namespace SampleFlow
     }
 
 
+
+    template <typename OutputType>
+    DelayedRejectionMetropolisHastings<OutputType>::
+    DelayedRejectionMetropolisHastings (const Parameters &parameters)
+      : parameters (parameters)
+    {
+      if (parameters.random_seed != std::mt19937::result_type {})
+        rng.seed (parameters.random_seed);
+    }
+
+
+
     template <typename OutputType>
     void
     DelayedRejectionMetropolisHastings<OutputType>::
@@ -177,8 +218,7 @@ namespace SampleFlow
             const std::function<double (const OutputType &)> &log_likelihood,
             const std::function<std::pair<OutputType,double> (const OutputType &, const std::vector<OutputType> &)> &propose_sample,
             const unsigned int max_delays,
-            const types::sample_index n_samples,
-            const std::mt19937::result_type random_seed)
+            const types::sample_index n_samples)
     {
       // Make sure the flush_consumers() function is called at any point
       // where we exit the current function.
@@ -186,10 +226,6 @@ namespace SampleFlow
       {
         this->flush_consumers();
       });
-
-      std::mt19937 rng;
-      if (random_seed != std::mt19937::result_type {})
-        rng.seed(random_seed);
 
       std::uniform_real_distribution<> uniform_distribution(0,1);
 

@@ -493,7 +493,6 @@ namespace SampleFlow
     class MetropolisHastings : public Producer<OutputType>
     {
       public:
-
         /**
          * A structure that stores parameters controlling specific aspects of
          * sampling algorithm.
@@ -507,6 +506,10 @@ namespace SampleFlow
           std::mt19937::result_type random_seed = {};
         };
 
+
+        /**
+         * Constructor.
+         */
         MetropolisHastings (const Parameters &parameters = {});
 
         /**
