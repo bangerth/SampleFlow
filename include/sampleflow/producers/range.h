@@ -19,6 +19,9 @@
 #include <sampleflow/producer.h>
 #include <sampleflow/scope_exit.h>
 
+#include <ranges>
+
+
 namespace SampleFlow
 {
   namespace Producers
@@ -76,6 +79,7 @@ namespace SampleFlow
          * a range-based for loop.
          */
         template <typename RangeType>
+        requires (std::ranges::range<RangeType>)
         void
         sample (const RangeType &range);
     };
@@ -83,6 +87,7 @@ namespace SampleFlow
 
     template <typename OutputType>
     template <typename RangeType>
+    requires (std::ranges::range<RangeType>)
     void
     Range<OutputType>::
     sample (const RangeType &range)
