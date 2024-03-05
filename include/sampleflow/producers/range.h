@@ -98,10 +98,13 @@ namespace SampleFlow
          * @endcode
          * In other words, the *type* of the given range needs to satisfy
          * the requirement that it can be used in the right hand side of
-         * a range-based for loop.
+         * a range-based for loop. Furthermore, the values produced in
+         * the loop (i.e., the `sample` objects above) need to be convertible
+         * to `OutputType`.
          */
         template <typename RangeType>
-        requires (std::ranges::range<RangeType>)
+        requires (std::ranges::input_range<RangeType> &&
+                  std::convertible_to<std::ranges::range_value_t<RangeType>,OutputType>)
         void
         sample (const RangeType &range);
     };
@@ -109,7 +112,8 @@ namespace SampleFlow
 
     template <typename OutputType>
     template <typename RangeType>
-    requires (std::ranges::range<RangeType>)
+    requires (std::ranges::input_range<RangeType> &&
+              std::convertible_to<std::ranges::range_value_t<RangeType>,OutputType>)
     void
     Range<OutputType>::
     sample (const RangeType &range)
