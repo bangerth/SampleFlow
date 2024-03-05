@@ -493,6 +493,22 @@ namespace SampleFlow
     class MetropolisHastings : public Producer<OutputType>
     {
       public:
+
+        /**
+         * A structure that stores parameters controlling specific aspects of
+         * sampling algorithm.
+         */
+        struct Parameters
+        {
+          /**
+           * A random seed to be used to initialize the random number
+           * generators used by the sampling algorithm.
+           */
+          std::mt19937::result_type random_seed = {};
+        };
+
+        MetropolisHastings (const Parameters &parameters = {});
+
         /**
          * The principal function of this class. Starting from the given
          * initial sample $x_0$, it produces a sequence of samples $x_k$
@@ -566,9 +582,31 @@ namespace SampleFlow
         sample (const OutputType &starting_point,
                 const std::function<double (const OutputType &)> &log_likelihood,
                 const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
-                const types::sample_index n_samples,
-                const std::mt19937::result_type random_seed = {});
+                const types::sample_index n_samples);
+
+      private:
+        /**
+         * A variable that stores parameters controlling specific aspects of
+         * sampling algorithm.
+         */
+        Parameters parameters;
+
+        /**
+         * The random number generator used by the sampler.
+         */
+        std::mt19937 rng;
     };
+
+
+
+    template <typename OutputType>
+    MetropolisHastings<OutputType>::
+    MetropolisHastings (const Parameters &parameters)
+      : parameters (parameters)
+    {
+      if (parameters.random_seed != std::mt19937::result_type {})
+        rng.seed (parameters.random_seed);
+    }
 
 
     template <typename OutputType>
@@ -577,8 +615,7 @@ namespace SampleFlow
     sample (const OutputType &starting_point,
             const std::function<double (const OutputType &)> &log_likelihood,
             const std::function<std::pair<OutputType,double> (const OutputType &)> &propose_sample,
-            const types::sample_index n_samples,
-            const std::mt19937::result_type random_seed)
+            const types::sample_index n_samples)
     {
       // Make sure the flush_consumers() function is called at any point
       // where we exit the current function.
@@ -586,10 +623,6 @@ namespace SampleFlow
       {
         this->flush_consumers();
       });
-
-      std::mt19937 rng;
-      if (random_seed != std::mt19937::result_type {})
-        rng.seed (random_seed);
 
       std::uniform_real_distribution<> uniform_distribution(0,1);
 
