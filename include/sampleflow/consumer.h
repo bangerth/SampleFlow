@@ -81,6 +81,11 @@ namespace SampleFlow
   {
     public:
       /**
+       * A type alias for the input type.
+       */
+      using input_type = InputType;
+
+      /**
        * Constructor. The only meaningful action of this constructor is to
        * set the parallel mode of this object to its default,
        * ParallelMode::synchronous.

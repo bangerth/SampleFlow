@@ -57,6 +57,11 @@ namespace SampleFlow
   {
     public:
       /**
+       * A type alias for the output type.
+       */
+      using output_type = OutputType;
+
+      /**
        * Connect the function passed as argument to the signal that is
        * triggered whenever a new sample is produced. All function
        * objects attached by calling the current function are then called
