@@ -67,21 +67,25 @@ namespace SampleFlow
       } -> std::convertible_to<SampleType>;
       a /= i;
     };
+  }
 
 
-    // Forward declarations of Consumer and Producer, as well as Filter:
-    template <typename InputType>
-    requires (Concepts::is_valid_sampletype<InputType>)
-    class Consumer;
+  // Forward declarations of Consumer and Producer, as well as Filter:
+  template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
+  class Consumer;
 
-    template <typename OutputType>
-    requires (Concepts::is_valid_sampletype<OutputType>)
-    class Producer;
+  template <typename OutputType>
+  requires (Concepts::is_valid_sampletype<OutputType>)
+  class Producer;
 
-    template <typename InputType, typename OutputType>
-    requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
-    class Filter;
+  template <typename InputType, typename OutputType>
+  requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
+  class Filter;
 
+
+  namespace Concepts
+  {
     /**
      * A concept that describes whether a class `C` is derived
      * from `Consumer<T>` for some `T`.
@@ -94,7 +98,7 @@ namespace SampleFlow
      * from `Producer<T>` for some `T`.
      */
     template <typename C>
-    concept is_producer = std::derived_from<C, Producer<typename C::input_type>>;
+    concept is_producer = std::derived_from<C, Producer<typename C::output_type>>;
 
 
     /**
