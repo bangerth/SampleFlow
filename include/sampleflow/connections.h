@@ -34,10 +34,12 @@ namespace SampleFlow
    * of `operator<<`.
    */
   template <typename LeftType, typename RightType>
-  requires (Concepts::is_producer<LeftType> && Concepts::is_consumer<RightType>)
-  void operator>> (LeftType &producer, RightType &consumer)
+  requires (Concepts::is_producer<LeftType>  &&Concepts::is_consumer<RightType>)
+  RightType &
+  operator>> (LeftType &producer, RightType &consumer)
   {
     consumer.connect_to_producer (producer);
+    return consumer;
   }
 }
 
