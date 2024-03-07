@@ -39,6 +39,7 @@ namespace SampleFlow
                                    std::movable<SampleType> &&
                                    std::move_constructible<SampleType>);
 
+
     /**
      * A concept that describes whether a given `SampleType` models an object
      * in a vector space. In particular, one needs to be able to add objects
@@ -68,6 +69,40 @@ namespace SampleFlow
     };
 
 
+    // Forward declarations of Consumer and Producer, as well as Filter:
+    template <typename InputType>
+    requires (Concepts::is_valid_sampletype<InputType>)
+    class Consumer;
+
+    template <typename OutputType>
+    requires (Concepts::is_valid_sampletype<OutputType>)
+    class Producer;
+
+    template <typename InputType, typename OutputType>
+    requires (Concepts::is_valid_sampletype<InputType>  &&Concepts::is_valid_sampletype<OutputType>)
+    class Filter;
+
+    /**
+     * A concept that describes whether a class `C` is derived
+     * from `Consumer<T>` for some `T`.
+     */
+    template <typename C>
+    concept is_consumer = std::derived_from<C, Consumer<typename C::input_type>>;
+
+    /**
+     * A concept that describes whether a class `C` is derived
+     * from `Producer<T>` for some `T`.
+     */
+    template <typename C>
+    concept is_producer = std::derived_from<C, Producer<typename C::input_type>>;
+
+
+    /**
+     * A concept that describes whether a class `C` is derived
+     * from `Filter<T,U>` for some `T` and `U`.
+     */
+    template <typename C>
+    concept is_filter = std::derived_from<C, Filter<typename C::input_type, typename C::output_type>>;
 
     /**
      * A concept that tests whether a class has a member type `value_type`.
