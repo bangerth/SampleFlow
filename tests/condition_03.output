@@ -1,0 +1,51 @@
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 2
+   relative log likelihood -> -0.02
+   sample is repeated -> false
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 0
+   relative log likelihood -> 0
+   sample is repeated -> false
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 0
+   relative log likelihood -> 0
+   sample is repeated -> false
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 2
+   relative log likelihood -> -0.02
+   sample is repeated -> false
+Sample: 3
+   relative log likelihood -> -0.03
+   sample is repeated -> false
+Sample: 2
+   relative log likelihood -> -0.02
+   sample is repeated -> false
+Sample: 3
+   relative log likelihood -> -0.03
+   sample is repeated -> false
+Sample: 2
+   relative log likelihood -> -0.02
+   sample is repeated -> false
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 0
+   relative log likelihood -> 0
+   sample is repeated -> false
+Sample: 1
+   relative log likelihood -> -0.01
+   sample is repeated -> false
+Sample: 2
+   relative log likelihood -> -0.02
+   sample is repeated -> false
+Sample: 3
+   relative log likelihood -> -0.03
+   sample is repeated -> false
