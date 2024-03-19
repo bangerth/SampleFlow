@@ -18,6 +18,9 @@
 
 #include <sampleflow/filter.h>
 
+#include <type_traits>
+
+
 namespace SampleFlow
 {
   namespace Filters
@@ -56,7 +59,9 @@ namespace SampleFlow
          * @param[in] predicate A function object that is used to
          *   select whether a sample should be passed through.
          */
-        Condition (const std::function<bool (const SampleType &)> &predicate);
+        template <typename PredicateType>
+        requires (std::is_invocable_r_v<bool,PredicateType,SampleType>)
+        Condition (const PredicateType &predicate);
 
         /**
          * Constructor. This constructor is used when you pass in a predicate
@@ -67,7 +72,9 @@ namespace SampleFlow
          * @param[in] predicate A function object that is used to
          *   select whether a sample should be passed through.
          */
-        Condition (const std::function<bool (const SampleType &, const AuxiliaryData &)> &predicate);
+        template <typename PredicateType>
+        requires (std::is_invocable_r_v<bool,PredicateType,SampleType,AuxiliaryData>)
+        Condition (const PredicateType &predicate);
 
         /**
          * Destructor. This function also makes sure that all samples this
@@ -105,8 +112,10 @@ namespace SampleFlow
 
 
     template <typename SampleType>
+    template <typename PredicateType>
+    requires (std::is_invocable_r_v<bool,PredicateType,SampleType>)
     Condition<SampleType>::
-    Condition (const std::function<bool (const SampleType &)> &predicate)
+    Condition (const PredicateType &predicate)
     // Wrap the predicate and pass it on to the other constructor. Capture the
     // predicate by value copy.
       : Condition([p = predicate](const SampleType &sample, const AuxiliaryData &) -> bool
@@ -116,8 +125,10 @@ namespace SampleFlow
 
 
     template <typename SampleType>
+    template <typename PredicateType>
+    requires (std::is_invocable_r_v<bool,PredicateType,SampleType,AuxiliaryData>)
     Condition<SampleType>::
-    Condition (const std::function<bool (const SampleType &, const AuxiliaryData &)> &predicate)
+    Condition (const PredicateType &predicate)
       : predicate(predicate)
     {}
 
