@@ -94,6 +94,7 @@ namespace SampleFlow
        *   is triggered, the function previously attached is no longer
        *   called.
        */
+      virtual
       std::pair<boost::signals2::connection,boost::signals2::connection>
       connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
                           const std::function<void ()> &flush_slot);
