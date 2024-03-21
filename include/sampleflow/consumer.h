@@ -98,6 +98,16 @@ namespace SampleFlow
        */
       Consumer (const ParallelMode supported_parallel_modes = ParallelMode::synchronous);
 
+      /**
+       * Move constructor. This constructor can only be called if no
+       * connections from producers to the moved-from consumer already
+       * exist. This is because if you move a consumer that does already
+       * have connections to it, you will create dangling connections
+       * where samples will be sent to an object that no longer exists.
+       * This is not likely what you intended.
+       */
+      Consumer (Consumer &&);
+
       /*
        * The destructor.
        *
@@ -135,6 +145,7 @@ namespace SampleFlow
        * @param[in] producer A reference to the producer object whose
        *   samples we want to consumer in the current object.
        */
+      virtual
       void
       connect_to_producer (Producer<InputType> &producer);
 
@@ -282,6 +293,24 @@ namespace SampleFlow
     supported_parallel_modes (supported_parallel_modes),
     queue_size (1)
   {}
+
+
+  template <typename InputType>
+  requires (Concepts::is_valid_sampletype<InputType>)
+  Consumer<InputType>::Consumer (Consumer &&consumer)
+    :
+    parallel_mode (consumer.parallel_mode.load()),
+    supported_parallel_modes (consumer.supported_parallel_modes)
+  {
+    // Assert that there are no connections yet, as stated in the documentation.
+    // If there are no connections, then there can also be no samples
+    // in the queue yet.
+    std::lock_guard<std::mutex> parallel_lock (consumer.parallel_mode_mutex);
+
+    assert (consumer.connections_to_producers.size() == 0);
+    assert (queue_size == 0);
+    assert (background_tasks.size()==0);
+  }
 
 
 
