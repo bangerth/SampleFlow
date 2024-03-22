@@ -94,11 +94,12 @@ namespace SampleFlow
        * *right* subobject.
        */
       virtual
-      std::pair<boost::signals2::connection,boost::signals2::connection>
+      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
       connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot) override
+                          const std::function<void ()> &flush_slot,
+                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
       {
-        return get_right_object().connect_to_signals(signal_slot, flush_slot);
+        return get_right_object().connect_to_signals(signal_slot, flush_slot, disconnect_slot);
       }
 
       /**
@@ -352,11 +353,12 @@ namespace SampleFlow
        * objects.
        */
       virtual
-      std::pair<boost::signals2::connection,boost::signals2::connection>
+      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
       connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot) override
+                          const std::function<void ()> &flush_slot,
+                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
       {
-        return get_right_object().connect_to_signals(signal_slot, flush_slot);
+        return get_right_object().connect_to_signals(signal_slot, flush_slot, disconnect_slot);
       }
 
     private:
