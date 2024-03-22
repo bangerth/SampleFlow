@@ -77,6 +77,11 @@ namespace SampleFlow
         Condition (const PredicateType &predicate);
 
         /**
+         * Move constructor.
+         */
+        Condition (Condition &&) = default;
+
+        /**
          * Destructor. This function also makes sure that all samples this
          * object may have received have been fully processed. To this end,
          * it calls the Consumers::disconnect_and_flush() function of the
