@@ -99,6 +99,12 @@ namespace SampleFlow
       Consumer (const ParallelMode supported_parallel_modes = ParallelMode::synchronous);
 
       /**
+       * Copy constructor. Consumer objects can not be copied, and so
+       * this operator is deleted.
+       */
+      Consumer (const Consumer &consumer) = delete;
+
+      /**
        * Move constructor. This constructor can only be called if no
        * connections from producers to the moved-from consumer already
        * exist. This is because if you move a consumer that does already
@@ -106,7 +112,7 @@ namespace SampleFlow
        * where samples will be sent to an object that no longer exists.
        * This is not likely what you intended.
        */
-      Consumer (Consumer &&);
+      Consumer (Consumer &&consumer);
 
       /*
        * The destructor.

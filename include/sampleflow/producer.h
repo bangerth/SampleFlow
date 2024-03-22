@@ -62,6 +62,22 @@ namespace SampleFlow
       using output_type = OutputType;
 
       /**
+       * Default constructor.
+       */
+      Producer() = default;
+
+      /**
+       * Copy constructor. Producer objects can not be copied, and so
+       * this operator is deleted.
+       */
+      Producer (const Producer &producer) = delete;
+
+      /**
+       * Move constructor.
+       */
+      Producer (Producer &&producer) = default;
+
+      /**
        * Connect the function passed as argument to the signal that is
        * triggered whenever a new sample is produced. All function
        * objects attached by calling the current function are then called
