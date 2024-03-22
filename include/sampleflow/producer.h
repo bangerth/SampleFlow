@@ -22,6 +22,7 @@
 #include <boost/signals2.hpp>
 
 #include <functional>
+#include <tuple>
 
 
 namespace SampleFlow
@@ -111,9 +112,10 @@ namespace SampleFlow
        *   called.
        */
       virtual
-      std::pair<boost::signals2::connection,boost::signals2::connection>
+      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
       connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot);
+                          const std::function<void ()> &flush_slot,
+                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot);
 
     protected:
       /**
@@ -171,20 +173,30 @@ namespace SampleFlow
        * current function exiting as well).
        */
       boost::signals2::signal<void ()> flush_consumers;
+
+      /**
+       * A signal that is used to notify downstream consumer or filter objects
+       * that they need to disconnect from the current object (provided as
+       * argument to the signal) because the current object is going out of
+       * scope.
+       */
+      boost::signals2::signal<void (const Producer<OutputType> &)> disconnect_consumers;
   };
 
 
 
   template <typename OutputType>
   requires (Concepts::is_valid_sampletype<OutputType>)
-  std::pair<boost::signals2::connection,boost::signals2::connection>
+  std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
   Producer<OutputType>::
   connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &new_sample_slot,
-                      const std::function<void ()> &flush_slot)
+                      const std::function<void ()> &flush_slot,
+                      const std::function<void (const Producer<OutputType> &)> &disconnect_slot)
   {
     // Connect with the signal and return the connection object.
     return { issue_sample.connect (new_sample_slot),
-             flush_consumers.connect (flush_slot)
+             flush_consumers.connect (flush_slot),
+             disconnect_consumers.connect (disconnect_slot)
            };
   }
 

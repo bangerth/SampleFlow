@@ -22,7 +22,7 @@
 #include <sampleflow/parallel_mode.h>
 #include <boost/signals2.hpp>
 
-#include <list>
+#include <map>
 #include <utility>
 #include <future>
 #include <atomic>
@@ -239,8 +239,14 @@ namespace SampleFlow
        * a slot that no longer exists if the originally connected
        * producer decides to generate a sample after the current object
        * has been destroyed.
+       *
+       * The connections are indexed by the producer object we are
+       * connected to. This is a multimap because a consumer may be connected
+       * to the same producer more than once.
        */
-      std::list<std::pair<boost::signals2::connection,boost::signals2::connection>> connections_to_producers;
+      std::multimap<const Producer<InputType> *,
+          std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>>
+          connections_to_producers;
 
       /**
        * How newly incoming samples should be processed.
@@ -492,19 +498,45 @@ namespace SampleFlow
       }
 
 
-    // Finally also build something that we can connect to the `flush_consumers`
+    // Also build something that we can connect to the `flush_consumers`
     // signal. For this, we call flush(), which in the case of Filters is
     // overloaded to also call the flush_consumers() signal of the Producer
     // side of the Filter
-    std::function<void ()> flush_slot
-      = [&]()
+    auto flush_slot = [this]()
     {
       this->flush();
     };
 
+    auto disconnect_from_producer = [this](const Producer<InputType> &p)
+    {
+      assert (connections_to_producers.contains(&p));
+
+      // Find one of the connections to the producer (there may be multiple,
+      // but we don't care about that) and terminate it. We have to be mindful
+      // that this function may have been called at the same time as a sample
+      // was sent, and because the sample processing machinery queries the
+      // state of the connections, we need to do things under a
+      // mutex
+      {
+        std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+
+        auto x = connections_to_producers.find(&p);
+
+        std::get<0>(x->second).disconnect ();
+        std::get<1>(x->second).disconnect ();
+        std::get<2>(x->second).disconnect ();
+
+        // Having terminated these connections, remove the entry from the map too.
+        connections_to_producers.erase (x);
+      }
+    };
+
     // Finally hook it all up:
-    connections_to_producers.emplace_back (
-      producer.connect_to_signals (sample_consumer, flush_slot));
+    connections_to_producers.insert (
+    {
+      &producer,
+      producer.connect_to_signals (sample_consumer, flush_slot, disconnect_from_producer)
+    });
   }
 
 
@@ -542,10 +574,11 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
 
-      for (auto &connection : connections_to_producers)
+      for (auto &[producer,connection] : connections_to_producers)
         {
-          connection.first.disconnect ();
-          connection.second.disconnect ();
+          std::get<0>(connection).disconnect ();
+          std::get<1>(connection).disconnect ();
+          std::get<2>(connection).disconnect ();
         }
       connections_to_producers.clear();
     }
