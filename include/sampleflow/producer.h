@@ -76,7 +76,19 @@ namespace SampleFlow
       /**
        * Move constructor.
        */
-      Producer (Producer &&producer) = default;
+      Producer (Producer &&producer)
+        :
+        issue_sample (std::move(producer.issue_sample)),
+        flush_consumers (std::move(producer.flush_consumers)),
+        disconnect_consumers (std::move(producer.disconnect_consumers))
+      {
+        producer.object_has_been_moved = true;
+      }
+
+      /**
+       * Destructor.
+       */
+      ~Producer ();
 
       /**
        * Connect the function passed as argument to the signal that is
@@ -118,6 +130,16 @@ namespace SampleFlow
                           const std::function<void (const Producer<OutputType> &)> &disconnect_slot);
 
     protected:
+      /**
+       * We need to work around a bug in BOOST whereby a moved-from signals2::signal
+       * object ends up in an invalid state that we can no longer query. As
+       * a consequence, we have to store whether an object has been moved
+       * from.
+       *
+       * See https://github.com/boostorg/signals2/issues/75 for more information.
+       */
+      bool object_has_been_moved = false;
+
       /**
        * The signal that is used to notify downstream objects of the
        * availability of a new sample. Implementations of derived
@@ -174,6 +196,7 @@ namespace SampleFlow
        */
       boost::signals2::signal<void ()> flush_consumers;
 
+    private:
       /**
        * A signal that is used to notify downstream consumer or filter objects
        * that they need to disconnect from the current object (provided as
@@ -183,6 +206,16 @@ namespace SampleFlow
       boost::signals2::signal<void (const Producer<OutputType> &)> disconnect_consumers;
   };
 
+
+
+  template <typename OutputType>
+  Producer<OutputType>::~Producer ()
+  {
+    // Tell all consumers still connected to this producer that they need to
+    // disconnect now because the producer is going away
+    if (object_has_been_moved == false)
+      disconnect_consumers(*this);
+  }
 
 
   template <typename OutputType>

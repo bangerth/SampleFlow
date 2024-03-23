@@ -212,7 +212,8 @@ namespace SampleFlow
 
     // Then also trigger a flush operation on all downstream Consumer
     // objects connected to this Filter
-    this->flush_consumers();
+    if (this->object_has_been_moved == false)
+      this->flush_consumers();
   }
 
 }
