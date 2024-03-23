@@ -66,6 +66,16 @@ namespace SampleFlow
         virtual ~PassThrough ();
 
         /**
+         * Default constructor.
+         */
+        PassThrough () = default;
+
+        /**
+         * Move constructor.
+         */
+        PassThrough (PassThrough &&) = default;
+
+        /**
          * Process one sample by simply passing it on
          *
          * @param[in] sample The sample to process.
