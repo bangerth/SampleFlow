@@ -28,7 +28,7 @@ jobs:
         make install
         popd
     - name: cmake
-      run: cmake -DEIGEN_DIR="$HOME/eigen-install" .
+      run: cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug .
     - name: ctest
       run: ctest --output-on-failure -j2
     - name: doc
