@@ -88,7 +88,7 @@ namespace SampleFlow
       /**
        * Destructor.
        */
-      ~Producer ();
+      virtual ~Producer ();
 
       /**
        * Connect the function passed as argument to the signal that is
