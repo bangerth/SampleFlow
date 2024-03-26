@@ -532,11 +532,9 @@ namespace SampleFlow
     };
 
     // Finally hook it all up:
-    connections_to_producers.insert (
-    {
-      &producer,
-      producer.connect_to_signals (sample_consumer, flush_slot, disconnect_from_producer)
-    });
+    connections_to_producers.insert (producer.connect_to_signals (sample_consumer,
+                                                                  flush_slot,
+                                                                  disconnect_from_producer));
   }
 
 

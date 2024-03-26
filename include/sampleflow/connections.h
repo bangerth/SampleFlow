@@ -85,6 +85,18 @@ namespace SampleFlow
         get_right_object().connect_to_producer (get_left_object());
       }
 
+      /**
+       * Move constructor.
+       */
+      Compound (Compound &&c) = default;
+
+
+      /**
+       * Destructor.
+       */
+      virtual
+      ~Compound () override = default;
+
 
       /**
        * A function that overrides the one in the base class. In
@@ -94,10 +106,11 @@ namespace SampleFlow
        * *right* subobject.
        */
       virtual
-      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
-      connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot,
-                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
+      std::pair<const Producer<OutputType> *,
+          std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>>
+          connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
+                              const std::function<void ()> &flush_slot,
+                              const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
       {
         return get_right_object().connect_to_signals(signal_slot, flush_slot, disconnect_slot);
       }
@@ -134,7 +147,7 @@ namespace SampleFlow
        * References or copies of the objects passed in.
        */
       std::variant<std::reference_wrapper<Filter<InputType,IntermediateType>>,
-          std::unique_ptr<Filter<InputType,IntermediateType>>> left_object;
+                                                                           std::unique_ptr<Filter<InputType,IntermediateType>>> left_object;
       std::variant<std::reference_wrapper<Filter<IntermediateType,OutputType>>,
           std::unique_ptr<Filter<IntermediateType,OutputType>>> right_object;
 
@@ -222,6 +235,18 @@ namespace SampleFlow
         // Finally connect the right to the left object
         get_right_object().connect_to_producer (get_left_object());
       }
+
+      /**
+       * Move constructor.
+       */
+      Compound (Compound &&c) = default;
+
+
+      /**
+       * Destructor.
+       */
+      virtual
+      ~Compound () override = default;
 
       /**
        * A function that overrides the one in the base class. In
@@ -346,6 +371,18 @@ namespace SampleFlow
       }
 
       /**
+       * Move constructor.
+       */
+      Compound (Compound &&c) = default;
+
+
+      /**
+       * Destructor.
+       */
+      virtual
+      ~Compound () override = default;
+
+      /**
        * A function that overrides the one in the base class. In
        * particular, while the current object is derived from the
        * Filter base class, and consequently has output slots, what
@@ -353,10 +390,11 @@ namespace SampleFlow
        * objects.
        */
       virtual
-      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
-      connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot,
-                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
+      std::pair<const Producer<OutputType> *,
+          std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>>
+          connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
+                              const std::function<void ()> &flush_slot,
+                              const std::function<void (const Producer<OutputType> &)> &disconnect_slot) override
       {
         return get_right_object().connect_to_signals(signal_slot, flush_slot, disconnect_slot);
       }
@@ -366,7 +404,7 @@ namespace SampleFlow
        * References or copies of the objects passed in.
        */
       std::variant<std::reference_wrapper<Producer<IntermediateType>>,
-          std::unique_ptr<Producer<IntermediateType>>> left_object;
+                                                                   std::unique_ptr<Producer<IntermediateType>>> left_object;
       std::variant<std::reference_wrapper<Filter<IntermediateType,OutputType>>,
           std::unique_ptr<Filter<IntermediateType,OutputType>>> right_object;
 
@@ -455,6 +493,18 @@ namespace SampleFlow
         // Finally connect the right to the left object
         get_right_object().connect_to_producer (get_left_object());
       }
+
+      /**
+       * Move constructor.
+       */
+      Compound (Compound &&c) = default;
+
+
+      /**
+       * Destructor.
+       */
+      virtual
+      ~Compound () = default;
 
     private:
       /**

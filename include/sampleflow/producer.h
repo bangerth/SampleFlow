@@ -74,16 +74,10 @@ namespace SampleFlow
       Producer (const Producer &producer) = delete;
 
       /**
-       * Move constructor.
+       * Move constructor. This constructor will only succeed if the
+       * moved-from object does not yet have any connections.
        */
-      Producer (Producer &&producer)
-        :
-        issue_sample (std::move(producer.issue_sample)),
-        flush_consumers (std::move(producer.flush_consumers)),
-        disconnect_consumers (std::move(producer.disconnect_consumers))
-      {
-        producer.object_has_been_moved = true;
-      }
+      Producer (Producer &&producer);
 
       /**
        * Destructor.
@@ -119,27 +113,25 @@ namespace SampleFlow
        *   the signal to which the caller wants to attach `f`. Callers
        *   may want to store this connection object and, if the calling
        *   object is destroyed, terminate the connection using
-       *   `connection.disconnect()`. This ensures that whenever the signal
+       *   `connection.disconnect()` in order to ensure that whenever the signal
        *   is triggered, the function previously attached is no longer
-       *   called.
+       *   called. The first element of the returned pair is a pointer to the
+       *   producer the caller is being connected to. Typically, this is simply
+       *   the current object (i.e., the object this function is being called
+       *   on, but objects (such as SampleFlow::Compound) may decide to forward
+       *   the call to this function to a different producer object, which will
+       *   then return its own address. The calling site stores this for
+       *   later comparison to the address it is being called with in the
+       *   disconnect slot.
        */
       virtual
-      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
-      connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
-                          const std::function<void ()> &flush_slot,
-                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot);
+      std::pair<const Producer<OutputType> *,
+          std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>>
+          connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &signal_slot,
+                              const std::function<void ()> &flush_slot,
+                              const std::function<void (const Producer<OutputType> &)> &disconnect_slot);
 
     protected:
-      /**
-       * We need to work around a bug in BOOST whereby a moved-from signals2::signal
-       * object ends up in an invalid state that we can no longer query. As
-       * a consequence, we have to store whether an object has been moved
-       * from.
-       *
-       * See https://github.com/boostorg/signals2/issues/75 for more information.
-       */
-      bool object_has_been_moved = false;
-
       /**
        * The signal that is used to notify downstream objects of the
        * availability of a new sample. Implementations of derived
@@ -209,28 +201,50 @@ namespace SampleFlow
 
 
   template <typename OutputType>
+  Producer<OutputType>::Producer (Producer &&producer)
+    :
+    // Conceptually, it would be nice to move the rhs signals
+    // here, even if we later need to check that these signals
+    // do not have any connections yet. Alas, moving BOOST signals
+    // is broken: https://github.com/boostorg/signals2/issues/75
+    issue_sample (),
+    flush_consumers (),
+    disconnect_consumers ()
+  {
+    assert(producer.issue_sample.empty());
+    assert(producer.flush_consumers.empty());
+    assert(producer.disconnect_consumers.empty());
+  }
+
+
+
+  template <typename OutputType>
   Producer<OutputType>::~Producer ()
   {
-    // Tell all consumers still connected to this producer that they need to
-    // disconnect now because the producer is going away
-    if (object_has_been_moved == false)
-      disconnect_consumers(*this);
+    disconnect_consumers(*this);
   }
+
 
 
   template <typename OutputType>
   requires (Concepts::is_valid_sampletype<OutputType>)
-  std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>
-  Producer<OutputType>::
-  connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &new_sample_slot,
-                      const std::function<void ()> &flush_slot,
-                      const std::function<void (const Producer<OutputType> &)> &disconnect_slot)
+  std::pair<const Producer<OutputType> *,
+      std::tuple<boost::signals2::connection,boost::signals2::connection,boost::signals2::connection>>
+      Producer<OutputType>::
+      connect_to_signals (const std::function<void (OutputType, AuxiliaryData)> &new_sample_slot,
+                          const std::function<void ()> &flush_slot,
+                          const std::function<void (const Producer<OutputType> &)> &disconnect_slot)
   {
     // Connect with the signal and return the connection object.
-    return { issue_sample.connect (new_sample_slot),
-             flush_consumers.connect (flush_slot),
-             disconnect_consumers.connect (disconnect_slot)
-           };
+    return
+    {
+      this,
+      {
+        issue_sample.connect (new_sample_slot),
+        flush_consumers.connect (flush_slot),
+        disconnect_consumers.connect (disconnect_slot)
+      }
+    };
   }
 
 
