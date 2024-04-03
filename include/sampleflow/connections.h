@@ -557,149 +557,92 @@ namespace SampleFlow
    * object, and in chains such as the second code example, the second
    * call to `operator>>` will get a Compound object as its left argument.
    *
-   * This particular variant of the `operator>>` overload set is used when
-   * creating the connection between a producer and consumer as in
-   * the first code example above, where neither of the two objects are
-   * filters. (This overload also applies to the second call to
-   * `operator>>` in the second example above: The left two arguments have
-   * already been combined into a compound producer, and they are not
-   * combined with a consumer that is not a filter.)
+   * There are four cases this function has to differentiate:
+   *
+   * 1. Creating the connection between a producer and consumer as in
+   *    the first code example above, where neither of the two objects are
+   *    filters. (This case also applies to the second call to
+   *    `operator>>` in the second example above: The left two arguments have
+   *    already been combined into a compound producer, and they are not
+   *    combined with a consumer that is not a filter.)
+   *
+   *    In this case, the return value is an object of type
+   *    `Compound<void, typename std::remove_reference_t<LeftType>::output_type, void>`.
+   *
+   * 2. Creating the connection between a producer and filter as in
+   *    the left half of the second code example above, where the leftmost
+   *    object is not a filter.
+   *
+   *    In this case, the return value is an object of type
+   *    `Compound<void,typename std::remove_reference_t<LeftType>::output_type,
+   *    typename std::remove_reference_t<RightType>::output_type>`.
+   *
+   * 3. Creating the connection a filter and a consumer. This does not happen
+   *    in either of the two examples above, but would happen if you wrote
+   *    in the parentheses of the code
+   *    @code
+   *      producer >> (filter >> consumer);
+   *    @endcode
+   *    which functionally is identical to writing
+   *    @code
+   *      producer >> filter >> consumer;
+   *    @endcode
+   *
+   *    In this case, the return value is an object of type
+   *    `Compound<typename std::remove_reference_t<LeftType>::input_type,
+   *    typename std::remove_reference_t<LeftType>::output_type, void>`.
+   *
+   * 4. Creating the connection between two filters. This would happen in
+   *    the parenthesized part of code such as
+   *    @code
+   *      producer >> (filter1 >> filter2) >> consumer;
+   *    @endcode
+   *    which functionally is identical to writing
+   *    @code
+   *      producer >> filter1 >> filter2 >> consumer;
+   *    @endcode
+   *
+   *    In this case, the return value is an object of type
+   *    `Compound<typename std::remove_reference_t<LeftType>::input_type,
+   *    typename std::remove_reference_t<LeftType>::output_type,
+   *    typename std::remove_reference_t<RightType>::output_type>`.
    */
   template <typename LeftType, typename RightType>
   requires (Concepts::is_producer<std::remove_reference_t<LeftType>>  &&
-            !Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
             Concepts::is_consumer<std::remove_reference_t<RightType>> &&
-            !Concepts::is_filter<std::remove_reference_t<RightType>> &&
             std::same_as<typename std::remove_reference_t<LeftType>::output_type,
             typename std::remove_reference_t<RightType>::input_type>)
-  Compound<void,
-           typename std::remove_reference_t<LeftType>::output_type,
-           void>
-           operator>> (LeftType &&producer, RightType &&consumer)
+  auto
+  operator>> (LeftType &&producer, RightType &&consumer)
   {
-    return { std::forward<LeftType>(producer), std::forward<RightType>(consumer) };
+    if constexpr (!Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
+                  !Concepts::is_filter<std::remove_reference_t<RightType>>)
+      return Compound<void, typename std::remove_reference_t<LeftType>::output_type, void>
+             (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
+    else if constexpr (!Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
+                       Concepts::is_filter<std::remove_reference_t<RightType>>)
+      return Compound<void,
+             typename std::remove_reference_t<LeftType>::output_type,
+             typename std::remove_reference_t<RightType>::output_type>
+             (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
+    else if constexpr (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
+                       !Concepts::is_filter<std::remove_reference_t<RightType>>)
+      return
+        Compound<typename std::remove_reference_t<LeftType>::input_type,
+        typename std::remove_reference_t<LeftType>::output_type,
+        void>
+        (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
+    else if constexpr (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
+                       Concepts::is_filter<std::remove_reference_t<RightType>>)
+      return
+        Compound<typename std::remove_reference_t<LeftType>::input_type,
+        typename std::remove_reference_t<LeftType>::output_type,
+        typename std::remove_reference_t<RightType>::output_type>
+        (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
+    else
+      assert (false);
   }
 
-
-  /**
-   * Connect a consumer to a producer of samples, by writing chains such as
-   * @code
-   *   producer >> consumer;
-   * @endcode
-   * or
-   * @code
-   *   producer >> filter >> consumer;
-   * @endcode
-   * Both consumer and producer may themselves be "filters", i.e.,
-   * derived from the Filter class. (Filters are both consumers and
-   * producers, and so qualify for both the left and right hand side
-   * of `operator>>`.) The result of calling `operator>>` is a Compound
-   * object, and in chains such as the second code example, the second
-   * call to `operator>>` will get a Compound object as its left argument.
-   *
-   * This particular variant of the `operator>>` overload set is used when
-   * creating the connection between a producer and filter as in
-   * the left half of the second code example above, where the leftmost
-   * object is not a filter.
-   */
-  template <typename LeftType, typename RightType>
-  requires (Concepts::is_producer<std::remove_reference_t<LeftType>>  &&
-            !Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-            Concepts::is_filter<std::remove_reference_t<RightType>> &&
-            std::same_as<typename std::remove_reference_t<LeftType>::output_type,
-            typename std::remove_reference_t<RightType>::input_type>)
-  Compound<void,
-           typename std::remove_reference_t<LeftType>::output_type,
-           typename std::remove_reference_t<RightType>::output_type>
-           operator>> (LeftType &&producer, RightType &&consumer)
-  {
-    return { std::forward<LeftType>(producer), std::forward<RightType>(consumer) };
-  }
-
-
-
-  /**
-   * Connect a consumer to a producer of samples, by writing chains such as
-   * @code
-   *   producer >> consumer;
-   * @endcode
-   * or
-   * @code
-   *   producer >> filter >> consumer;
-   * @endcode
-   * Both consumer and producer may themselves be "filters", i.e.,
-   * derived from the Filter class. (Filters are both consumers and
-   * producers, and so qualify for both the left and right hand side
-   * of `operator>>`.) The result of calling `operator>>` is a Compound
-   * object, and in chains such as the second code example, the second
-   * call to `operator>>` will get a Compound object as its left argument.
-   *
-   * This particular variant of the `operator>>` overload set is used when
-   * creating the connection a filter and a consumer. This does not happen
-   * in either of the two examples above, but would happen if you wrote
-   * @code
-   *   producer >> (filter >> consumer);
-   * @endcode
-   * which functionally is identical to writing
-   * @code
-   *   producer >> filter >> consumer;
-   * @endcode
-   */
-  template <typename LeftType, typename RightType>
-  requires (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-            Concepts::is_consumer<std::remove_reference_t<RightType>> &&
-            !Concepts::is_filter<std::remove_reference_t<RightType>> &&
-            std::same_as<typename std::remove_reference_t<LeftType>::output_type,
-            typename std::remove_reference_t<RightType>::input_type>)
-  Compound<typename std::remove_reference_t<LeftType>::input_type,
-           typename std::remove_reference_t<LeftType>::output_type,
-           void>
-           operator>> (LeftType &&producer, RightType &&consumer)
-  {
-    return { std::forward<LeftType>(producer), std::forward<RightType>(consumer) };
-  }
-
-
-  /**
-   * Connect a consumer to a producer of samples, by writing chains such as
-   * @code
-   *   producer >> consumer;
-   * @endcode
-   * or
-   * @code
-   *   producer >> filter >> consumer;
-   * @endcode
-   * Both consumer and producer may themselves be "filters", i.e.,
-   * derived from the Filter class. (Filters are both consumers and
-   * producers, and so qualify for both the left and right hand side
-   * of `operator>>`.) The result of calling `operator>>` is a Compound
-   * object, and in chains such as the second code example, the second
-   * call to `operator>>` will get a Compound object as its left argument.
-   *
-   * This particular variant of the `operator>>` overload set is used when
-   * creating the connection between two filters. This would happen in
-   * the parenthesized part of code such as
-   * @code
-   *   producer >> (filter1 >> filter2) >> consumer;
-   * @endcode
-   * which functionally is identical to writing
-   * @code
-   *   producer >> filter1 >> filter2 >> consumer;
-   * @endcode
-   */
-  template <typename LeftType, typename RightType>
-  requires (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-            Concepts::is_filter<std::remove_reference_t<RightType>> &&
-            std::same_as<typename std::remove_reference_t<LeftType>::output_type,
-            typename std::remove_reference_t<RightType>::input_type>)
-  Compound<typename std::remove_reference_t<LeftType>::input_type,
-           typename std::remove_reference_t<LeftType>::output_type,
-           typename std::remove_reference_t<RightType>::output_type>
-           operator>> (LeftType &&producer, RightType &&consumer)
-  {
-    return { std::forward<LeftType>(producer), std::forward<RightType>(consumer) };
-  }
 }
-
 
 #endif /* SAMPLEFLOW_CONNECTIONS_H */
