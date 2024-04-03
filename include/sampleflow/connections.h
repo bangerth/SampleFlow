@@ -52,7 +52,7 @@ namespace SampleFlow
    * in `IntermediateType` and outputs `OutputType`.
    */
   template <typename InputType, typename IntermediateType, typename OutputType>
-  class Compound : public Filter<InputType,OutputType>
+  class Chain : public Filter<InputType,OutputType>
   {
     public:
       /**
@@ -66,7 +66,7 @@ namespace SampleFlow
        * type, in which case we store a reference to the object.
        */
       template <typename LeftType, typename RightType>
-      Compound (LeftType &&left, RightType &&right)
+      Chain (LeftType &&left, RightType &&right)
         :
         left_object (nullptr),
         right_object (nullptr)
@@ -88,14 +88,14 @@ namespace SampleFlow
       /**
        * Move constructor.
        */
-      Compound (Compound &&c) = default;
+      Chain (Chain &&c) = default;
 
 
       /**
        * Destructor.
        */
       virtual
-      ~Compound () override = default;
+      ~Chain () override = default;
 
 
       /**
@@ -203,7 +203,7 @@ namespace SampleFlow
    * nothing (indicated by the `void` template argument in last position.)
    */
   template <typename InputType, typename IntermediateType>
-  class Compound<InputType,IntermediateType,void> : public Consumer<InputType>
+  class Chain<InputType,IntermediateType,void> : public Consumer<InputType>
   {
     public:
       /**
@@ -217,7 +217,7 @@ namespace SampleFlow
        * type, in which case we store a reference to the object.
        */
       template <typename LeftType, typename RightType>
-      Compound (LeftType &&left, RightType &&right)
+      Chain (LeftType &&left, RightType &&right)
         :
         left_object (nullptr),
         right_object (nullptr)
@@ -239,14 +239,14 @@ namespace SampleFlow
       /**
        * Move constructor.
        */
-      Compound (Compound &&c) = default;
+      Chain (Chain &&c) = default;
 
 
       /**
        * Destructor.
        */
       virtual
-      ~Compound () override = default;
+      ~Chain () override = default;
 
       /**
        * A function that overrides the one in the base class. In
@@ -337,7 +337,7 @@ namespace SampleFlow
    * `OutputType` samples.
    */
   template <typename IntermediateType, typename OutputType>
-  class Compound<void,IntermediateType,OutputType> : public Producer<OutputType>
+  class Chain<void,IntermediateType,OutputType> : public Producer<OutputType>
   {
     public:
       /**
@@ -351,7 +351,7 @@ namespace SampleFlow
        * type, in which case we store a reference to the object.
        */
       template <typename LeftType, typename RightType>
-      Compound (LeftType &&left, RightType &&right)
+      Chain (LeftType &&left, RightType &&right)
         :
         left_object (nullptr),
         right_object (nullptr)
@@ -373,14 +373,14 @@ namespace SampleFlow
       /**
        * Move constructor.
        */
-      Compound (Compound &&c) = default;
+      Chain (Chain &&c) = default;
 
 
       /**
        * Destructor.
        */
       virtual
-      ~Compound () override = default;
+      ~Chain () override = default;
 
       /**
        * A function that overrides the one in the base class. In
@@ -461,7 +461,7 @@ namespace SampleFlow
    * nothing (indicated by the `void` right template argument).
    */
   template <typename IntermediateType>
-  class Compound<void,IntermediateType,void>
+  class Chain<void,IntermediateType,void>
   {
     public:
       /**
@@ -475,7 +475,7 @@ namespace SampleFlow
        * type, in which case we store a reference to the object.
        */
       template <typename LeftType, typename RightType>
-      Compound (LeftType &&left, RightType &&right)
+      Chain (LeftType &&left, RightType &&right)
         :
         left_object (nullptr),
         right_object (nullptr)
@@ -497,14 +497,14 @@ namespace SampleFlow
       /**
        * Move constructor.
        */
-      Compound (Compound &&c) = default;
+      Chain (Chain &&c) = default;
 
 
       /**
        * Destructor.
        */
       virtual
-      ~Compound () = default;
+      ~Chain () = default;
 
     private:
       /**
@@ -553,9 +553,9 @@ namespace SampleFlow
    * Both consumer and producer may themselves be "filters", i.e.,
    * derived from the Filter class. (Filters are both consumers and
    * producers, and so qualify for both the left and right hand side
-   * of `operator>>`.) The result of calling `operator>>` is a Compound
+   * of `operator>>`.) The result of calling `operator>>` is a Chain
    * object, and in chains such as the second code example, the second
-   * call to `operator>>` will get a Compound object as its left argument.
+   * call to `operator>>` will get a Chain object as its left argument.
    *
    * There are four cases this function has to differentiate (where in the
    * following we use `ProducerType = std::remove_reference_t<LeftType>`
@@ -571,14 +571,14 @@ namespace SampleFlow
    *    combined with a consumer that is not a filter.)
    *
    *    In this case, the return value is an object of type
-   *    `Compound<void, ProducerType::output_type, void>`.
+   *    `Chain<void, ProducerType::output_type, void>`.
    *
    * 2. Creating the connection between a producer and filter as in
    *    the left half of the second code example above, where the leftmost
    *    object is not a filter.
    *
    *    In this case, the return value is an object of type
-   *    `Compound<void, ProducerType::output_type, ConsumerType::output_type>`.
+   *    `Chain<void, ProducerType::output_type, ConsumerType::output_type>`.
    *
    * 3. Creating the connection a filter and a consumer. This does not happen
    *    in either of the two examples above, but would happen if you wrote
@@ -592,7 +592,7 @@ namespace SampleFlow
    *    @endcode
    *
    *    In this case, the return value is an object of type
-   *    `Compound<ProducerType::input_type, ProducerType::output_type, void>`.
+   *    `Chain<ProducerType::input_type, ProducerType::output_type, void>`.
    *
    * 4. Creating the connection between two filters. This would happen in
    *    the parenthesized part of code such as
@@ -605,7 +605,7 @@ namespace SampleFlow
    *    @endcode
    *
    *    In this case, the return value is an object of type
-   *    `Compound<ProducerType::input_type, ProducerType::output_type, ConsumerType::output_type>`.
+   *    `Chain<ProducerType::input_type, ProducerType::output_type, ConsumerType::output_type>`.
    */
   template <typename LeftType, typename RightType>
   requires (Concepts::is_producer<std::remove_reference_t<LeftType>>  &&
@@ -620,25 +620,25 @@ namespace SampleFlow
 
     if constexpr (!Concepts::is_filter<ProducerType>  &&
                   !Concepts::is_filter<ConsumerType>)
-      return Compound<void, typename ProducerType::output_type, void>
+      return Chain<void, typename ProducerType::output_type, void>
              (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
     else if constexpr (!Concepts::is_filter<ProducerType>  &&
                        Concepts::is_filter<ConsumerType>)
-      return Compound<void,
+      return Chain<void,
              typename ProducerType::output_type,
              typename ConsumerType::output_type>
              (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
     else if constexpr (Concepts::is_filter<ProducerType>  &&
                        !Concepts::is_filter<ConsumerType>)
       return
-        Compound<typename ProducerType::input_type,
+        Chain<typename ProducerType::input_type,
         typename ProducerType::output_type,
         void>
         (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
     else if constexpr (Concepts::is_filter<ProducerType>  &&
                        Concepts::is_filter<ConsumerType>)
       return
-        Compound<typename ProducerType::input_type,
+        Chain<typename ProducerType::input_type,
         typename ProducerType::output_type,
         typename ConsumerType::output_type>
         (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
