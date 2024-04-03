@@ -557,7 +557,11 @@ namespace SampleFlow
    * object, and in chains such as the second code example, the second
    * call to `operator>>` will get a Compound object as its left argument.
    *
-   * There are four cases this function has to differentiate:
+   * There are four cases this function has to differentiate (where in the
+   * following we use `ProducerType = std::remove_reference_t<LeftType>`
+   * and `ConsumerType = std::remove_reference_t<RightType>`, i.e., the
+   * types of the left and right arguments without possible reference
+   * qualification):
    *
    * 1. Creating the connection between a producer and consumer as in
    *    the first code example above, where neither of the two objects are
@@ -567,15 +571,14 @@ namespace SampleFlow
    *    combined with a consumer that is not a filter.)
    *
    *    In this case, the return value is an object of type
-   *    `Compound<void, typename std::remove_reference_t<LeftType>::output_type, void>`.
+   *    `Compound<void, ProducerType::output_type, void>`.
    *
    * 2. Creating the connection between a producer and filter as in
    *    the left half of the second code example above, where the leftmost
    *    object is not a filter.
    *
    *    In this case, the return value is an object of type
-   *    `Compound<void,typename std::remove_reference_t<LeftType>::output_type,
-   *    typename std::remove_reference_t<RightType>::output_type>`.
+   *    `Compound<void, ProducerType::output_type, ConsumerType::output_type>`.
    *
    * 3. Creating the connection a filter and a consumer. This does not happen
    *    in either of the two examples above, but would happen if you wrote
@@ -589,8 +592,7 @@ namespace SampleFlow
    *    @endcode
    *
    *    In this case, the return value is an object of type
-   *    `Compound<typename std::remove_reference_t<LeftType>::input_type,
-   *    typename std::remove_reference_t<LeftType>::output_type, void>`.
+   *    `Compound<ProducerType::input_type, ProducerType::output_type, void>`.
    *
    * 4. Creating the connection between two filters. This would happen in
    *    the parenthesized part of code such as
@@ -603,9 +605,7 @@ namespace SampleFlow
    *    @endcode
    *
    *    In this case, the return value is an object of type
-   *    `Compound<typename std::remove_reference_t<LeftType>::input_type,
-   *    typename std::remove_reference_t<LeftType>::output_type,
-   *    typename std::remove_reference_t<RightType>::output_type>`.
+   *    `Compound<ProducerType::input_type, ProducerType::output_type, ConsumerType::output_type>`.
    */
   template <typename LeftType, typename RightType>
   requires (Concepts::is_producer<std::remove_reference_t<LeftType>>  &&
@@ -615,29 +615,32 @@ namespace SampleFlow
   auto
   operator>> (LeftType &&producer, RightType &&consumer)
   {
-    if constexpr (!Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-                  !Concepts::is_filter<std::remove_reference_t<RightType>>)
-      return Compound<void, typename std::remove_reference_t<LeftType>::output_type, void>
+    using ProducerType = std::remove_reference_t<LeftType>;
+    using ConsumerType = std::remove_reference_t<RightType>;
+
+    if constexpr (!Concepts::is_filter<ProducerType>  &&
+                  !Concepts::is_filter<ConsumerType>)
+      return Compound<void, typename ProducerType::output_type, void>
              (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
-    else if constexpr (!Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-                       Concepts::is_filter<std::remove_reference_t<RightType>>)
+    else if constexpr (!Concepts::is_filter<ProducerType>  &&
+                       Concepts::is_filter<ConsumerType>)
       return Compound<void,
-             typename std::remove_reference_t<LeftType>::output_type,
-             typename std::remove_reference_t<RightType>::output_type>
+             typename ProducerType::output_type,
+             typename ConsumerType::output_type>
              (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
-    else if constexpr (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-                       !Concepts::is_filter<std::remove_reference_t<RightType>>)
+    else if constexpr (Concepts::is_filter<ProducerType>  &&
+                       !Concepts::is_filter<ConsumerType>)
       return
-        Compound<typename std::remove_reference_t<LeftType>::input_type,
-        typename std::remove_reference_t<LeftType>::output_type,
+        Compound<typename ProducerType::input_type,
+        typename ProducerType::output_type,
         void>
         (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
-    else if constexpr (Concepts::is_filter<std::remove_reference_t<LeftType>>  &&
-                       Concepts::is_filter<std::remove_reference_t<RightType>>)
+    else if constexpr (Concepts::is_filter<ProducerType>  &&
+                       Concepts::is_filter<ConsumerType>)
       return
-        Compound<typename std::remove_reference_t<LeftType>::input_type,
-        typename std::remove_reference_t<LeftType>::output_type,
-        typename std::remove_reference_t<RightType>::output_type>
+        Compound<typename ProducerType::input_type,
+        typename ProducerType::output_type,
+        typename ConsumerType::output_type>
         (std::forward<LeftType>(producer), std::forward<RightType>(consumer));
     else
       assert (false);
