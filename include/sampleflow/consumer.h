@@ -365,12 +365,12 @@ namespace SampleFlow
         // lambda function we create here is called multiple times and on
         // separate threads. We don't want to synchronize these calls
         // (though implementations of the `consume()` function in
-        // derived classes typically want to). So we need
-        // to expose this fact to the `disconnect_and_flush()` function.
-        // This we do by wrapping up the task at hand into a std::task
-        // object that we place into the task queue, but instead of
-        // calling `std::async` on it, we immediately execute it. The
-        // point is that while we wait for it, it exists in a state so
+        // derived classes typically want to). So we need to expose to the
+        // `disconnect_and_flush()` function which calls to `consume()` are
+        // currently running or scheduled to run. We do this by creating
+        // a std::future object that we place in the task queue at the
+        // beginning, and make ready at the end. The point is that while
+        // the consume() function is running, it exists in a state so
         // that `disconnect_and_flush()` can also wait for it.
         //
         // Because we may still get multiple samples in parallel from
@@ -395,19 +395,20 @@ namespace SampleFlow
           sample_consumer =
             [&](InputType sample, AuxiliaryData aux_data)
           {
-            // Create a task that calls `consume()`. We're eventually going to
-            // run this task synchronously, so we can take all arguments of the
-            // underlying lambda as references. The point of wrapping it all
-            // up in a std::packaged_task is so that we can extract a
-            // std::future from it.
-            std::packaged_task<void ()> worker
-            ([&]()
-            {
-              this->consume (std::move(sample), std::move(aux_data));
-            });
+            // Call `consume()`, but do it in a way so that the background
+            // task queue knows that we're doing that right now. We could
+            // do this by using a std::packaged_task that calls the
+            // consumer, get its std::future, push that into background_tasks
+            // queue, and then execute the packaged task. That seems like
+            // more work than necessary.
+            //
+            // Instead we use a simpler scheme where we just use an empty
+            // std::promise, get its future, execute the consumer, and then
+            // make the promise read (which also makes the std::future
+            // ready).
+            std::promise<void> dummy_promise;
 
-            // Now do the actual work of setting up the task and extracting
-            // the future object:
+            // Now extract the future object and put it in the queue:
             {
               std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
 
@@ -420,16 +421,16 @@ namespace SampleFlow
               // Next emplace the future object into the queue, in order
               // to allow other threads to wait for the termination of
               // the current job
-              background_tasks.emplace_back (worker.get_future());
+              background_tasks.emplace_back (dummy_promise.get_future());
             }
 
-            // At this point, we have created a task and put its corresponding
-            // future into the queue. Instead of putting the task into the
-            // background, just execute it right away. This can happen outside
+            // At this point, we have put a future into the queue. Next execute
+            // the consumer. This can happen outside
             // the mutex guard because we do not touch the parallel data
-            // structures at this point. The future will then immediately be
-            // ready once we task has finished executing.
-            worker();
+            // structures at this point. Finally, make the future
+            // ready by making the promise ready.
+            consume (std::move(sample), std::move(aux_data));
+            dummy_promise.set_value();
 
             // Finally, ensure that the queue does not grow beyond bound by
             // removing futures at the front that have already been satisfied.
