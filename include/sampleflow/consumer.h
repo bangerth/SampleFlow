@@ -27,6 +27,9 @@
 #include <future>
 #include <atomic>
 #include <deque>
+#include <mutex>
+#include <shared_mutex>
+
 
 
 namespace SampleFlow
@@ -275,11 +278,22 @@ namespace SampleFlow
 
       /**
        * A mutex that controls access to all of the data structures involved
-       * in parallel processing of samples. In particular, this includes
-       * the task queue, but also shutting down the process of accepting
-       * samples.
+       * in parallel processing of samples in asynchronous mode. In particular,
+       * this includes the task queue, but also shutting down the process
+       * of accepting samples.
        */
-      std::mutex parallel_mode_mutex;
+      std::mutex asynchronous_mode_mutex;
+
+      /**
+       * A mutex that controls access to all of the data structures involved
+       * in parallel processing of samples in synchronous mode. In synchronous
+       * mode, we can consume multiple items at the same time on different
+       * threads (and so a shared mutex is appropriate) but when shutting things
+       * down, we really need to have unique access to it. This is facilitated
+       * by using shared_lock for the former operation, and unique_lock for the
+       * latter.
+       */
+      std::shared_mutex synchronous_mode_mutex;
 
       /**
        * A queue of std::future objects that correspond to tasks that
@@ -319,7 +333,7 @@ namespace SampleFlow
     // Assert that there are no connections yet, as stated in the documentation.
     // If there are no connections, then there can also be no samples
     // in the queue yet.
-    std::lock_guard<std::mutex> parallel_lock (consumer.parallel_mode_mutex);
+    std::lock_guard<std::mutex> parallel_lock (consumer.asynchronous_mode_mutex);
 
     assert (consumer.connections_to_producers.size() == 0);
     assert (queue_size == 0);
@@ -362,21 +376,15 @@ namespace SampleFlow
         //
         // But it isn't so simple. If some *upstream* filter is working
         // with tasks, then we may still end up in a situation where the
-        // lambda function we create here is called multiple times and on
+        // consume() function is called multiple times and on
         // separate threads. We don't want to synchronize these calls
         // (though implementations of the `consume()` function in
         // derived classes typically want to). So we need to expose to the
-        // `disconnect_and_flush()` function which calls to `consume()` are
-        // currently running or scheduled to run. We do this by creating
-        // a std::future object that we place in the task queue at the
-        // beginning, and make ready at the end. The point is that while
-        // the consume() function is running, it exists in a state so
-        // that `disconnect_and_flush()` can also wait for it.
-        //
-        // Because we may still get multiple samples in parallel from
-        // upstream (for example, because an upstream filter runs in
-        // asynchronous mode), we need to do the set-up of all of this
-        // under a mutex.
+        // `disconnect_and_flush()` function that some calls to `consume()` are
+        // currently running. We do this by acquiring a shared mutex in shared
+        // lock state for each call to `consume()`. The shutdown procedure
+        // then needs to use a unique lock to ensure that no other `consume()`
+        // calls are happening at the same time as we are shutting things down.
         //
         // Finally, we need to be mindful that we could have received a sample
         // just at the same time as someone called `disconnect_and_flush()`.
@@ -384,7 +392,7 @@ namespace SampleFlow
         // the OS has interrupted us and while we had to wait, the connection
         // to upstream was severed and `flush()` was called (or not yet, but
         // will soon). In that case, we don't want to process more samples.
-        // If that is the case, once we get the parallel_mode_mutex,
+        // If that is the case, once we get the asynchronous_mode_mutex,
         // we need to decide that we don't want to process this sample
         // any more -- as if the connection had been severed just *before*,
         // not just *after* the sample had been sent. This ensures that once
@@ -395,46 +403,16 @@ namespace SampleFlow
           sample_consumer =
             [&](InputType sample, AuxiliaryData aux_data)
           {
-            // Call `consume()`, but do it in a way so that the background
-            // task queue knows that we're doing that right now. We could
-            // do this by using a std::packaged_task that calls the
-            // consumer, get its std::future, push that into background_tasks
-            // queue, and then execute the packaged task. That seems like
-            // more work than necessary.
-            //
-            // Instead we use a simpler scheme where we just use an empty
-            // std::promise, get its future, execute the consumer, and then
-            // make the promise read (which also makes the std::future
-            // ready).
-            std::promise<void> dummy_promise;
+            std::shared_lock<std::shared_mutex> one_of_many_lock(synchronous_mode_mutex);
 
-            // Now extract the future object and put it in the queue:
-            {
-              std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+            // If all connections have been severed since we actually
+            // got here (via a connection, of course), we pretend that we
+            // never received the sample.
+            if (connections_to_producers.size() == 0)
+              return;
 
-              // If all connections have been severed since we actually
-              // got here (via a connection, of course), we pretend that we
-              // never received the sample.
-              if (connections_to_producers.size() == 0)
-                return;
-
-              // Next emplace the future object into the queue, in order
-              // to allow other threads to wait for the termination of
-              // the current job
-              background_tasks.emplace_back (dummy_promise.get_future());
-            }
-
-            // At this point, we have put a future into the queue. Next execute
-            // the consumer. This can happen outside
-            // the mutex guard because we do not touch the parallel data
-            // structures at this point. Finally, make the future
-            // ready by making the promise ready.
+            // Execute the consumer
             consume (std::move(sample), std::move(aux_data));
-            dummy_promise.set_value();
-
-            // Finally, ensure that the queue does not grow beyond bound by
-            // removing futures at the front that have already been satisfied.
-            trim_background_queue();
           };
 
           break;
@@ -464,7 +442,7 @@ namespace SampleFlow
             // state, we need to access it under a lock. Once we are under the
             // lock, we can also commit to actually launching the task
             {
-              std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+              std::lock_guard<std::mutex> parallel_lock (asynchronous_mode_mutex);
 
               // If all connections have been severed since we actually
               // got here (via a connection, of course), we pretend that we
@@ -521,7 +499,7 @@ namespace SampleFlow
       // state of the connections, we need to do things under a
       // mutex
       {
-        std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+        std::lock_guard<std::mutex> parallel_lock (asynchronous_mode_mutex);
 
         auto x = connections_to_producers.find(&p);
 
@@ -571,9 +549,16 @@ namespace SampleFlow
     // may have been called at the same time as a sample was sent,
     // and because the sample processing machinery queries the
     // state of the connections, we need to do things under a
-    // mutex
+    // mutex.
+    //
+    // In fact, we have to do that under *both* of the locks used
+    // for synchronous and asynchronous processing. In practice, each
+    // consumer only ever uses one or the other approach, so we need
+    // not worry about creating deadlocks by trying to acquire two
+    // locks at the same time.
     {
-      std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+      std::lock_guard<std::mutex> parallel_lock_1 (asynchronous_mode_mutex);
+      std::unique_lock<std::shared_mutex> parallel_lock_2 (synchronous_mode_mutex);
 
       for (auto &[producer,connection] : connections_to_producers)
         {
@@ -596,7 +581,7 @@ namespace SampleFlow
   Consumer<InputType>::
   flush()
   {
-    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+    std::lock_guard<std::mutex> parallel_lock (asynchronous_mode_mutex);
 
     // For each std::future object, first check whether it
     // has already been waited on. If that is the case, then just
@@ -619,7 +604,7 @@ namespace SampleFlow
   Consumer<InputType>::
   trim_background_queue()
   {
-    std::lock_guard<std::mutex> parallel_lock (parallel_mode_mutex);
+    std::lock_guard<std::mutex> parallel_lock (asynchronous_mode_mutex);
 
     // Drop elements on the front of the list that have completed (either because
     // someone has waited for it, or because it has finished since someone last looked).
