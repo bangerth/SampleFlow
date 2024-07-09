@@ -496,10 +496,11 @@ namespace SampleFlow
       // but we don't care about that) and terminate it. We have to be mindful
       // that this function may have been called at the same time as a sample
       // was sent, and because the sample processing machinery queries the
-      // state of the connections, we need to do things under a
-      // mutex
+      // state of the connections, we need to do things under the
+      // mutices for both synchronous and asynchronous mode:
       {
-        std::lock_guard<std::mutex> parallel_lock (asynchronous_mode_mutex);
+        std::lock_guard<std::mutex> parallel_lock_1 (asynchronous_mode_mutex);
+        std::unique_lock<std::shared_mutex> parallel_lock_2 (synchronous_mode_mutex);
 
         auto x = connections_to_producers.find(&p);
 
