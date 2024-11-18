@@ -21,13 +21,14 @@
 // Eratosthenes for computing primes.
 
 
-#include <iostream>
-#include <functional>
-
 #include <sampleflow/producers/range.h>
 #include <sampleflow/filters/condition.h>
 #include <sampleflow/consumers/stream_output.h>
 #include <sampleflow/connections.h>
+
+#include <iostream>
+#include <functional>
+#include <ranges>
 
 
 int main ()

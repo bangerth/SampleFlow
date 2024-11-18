@@ -18,12 +18,13 @@
 // the aux_data.
 
 
-#include <iostream>
-
 #include <sampleflow/producers/range.h>
 #include <sampleflow/filters/condition.h>
 #include <sampleflow/consumers/stream_output.h>
 #include <sampleflow/connections.h>
+
+#include <iostream>
+#include <ranges>
 
 
 int main ()

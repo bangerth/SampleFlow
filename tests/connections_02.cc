@@ -25,15 +25,16 @@
 // use temporary objects (created in-place) for these.
 
 
-#include <iostream>
-#include <functional>
-
 #include <sampleflow/producers/range.h>
 #include <sampleflow/filters/condition.h>
 #include <sampleflow/consumers/stream_output.h>
 #include <sampleflow/connections.h>
 
 #include <sstream>
+#include <iostream>
+#include <functional>
+#include <ranges>
+
 
 int main ()
 {
