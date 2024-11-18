@@ -27,7 +27,8 @@ namespace SampleFlow
   {
     /**
      * An implementation of the Filter interface in which every $n$th sample
-     * is passed on and all other samples are simply discarded. This filter
+     * (including the zeroth, i.e., initial sample) is passed on
+     * and all other samples are simply discarded. This filter
      * is useful to reduce the amount of data produced by a sampling
      * algorithm. This is often warranted in Markov Chain sampling algorithms
      * in which samples are highly correlated and consequently not every sample
@@ -137,14 +138,16 @@ namespace SampleFlow
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      ++counter;
       if (counter % every_nth == 0)
         {
-          counter = 0;
+          counter = 1;
           return {{ std::move(sample), std::move(aux_data)}};
         }
       else
-        return {};
+        {
+          ++counter;
+          return {};
+        }
     }
 
   }
