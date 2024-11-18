@@ -19,11 +19,11 @@
 // class.
 
 
-#include <iostream>
-
 #include <sampleflow/producers/range.h>
 #include <sampleflow/consumers/stream_output.h>
 
+#include <iostream>
+#include <ranges>
 
 
 int main ()
