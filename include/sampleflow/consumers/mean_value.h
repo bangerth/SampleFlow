@@ -156,6 +156,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     MeanValue<InputType>::
     MeanValue ()
       :
@@ -168,6 +169,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     MeanValue<InputType>::
     ~MeanValue ()
     {
@@ -177,6 +179,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     void
     MeanValue<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -207,6 +210,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     typename MeanValue<InputType>::value_type
     MeanValue<InputType>::
     get () const

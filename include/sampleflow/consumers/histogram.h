@@ -254,6 +254,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     Histogram<InputType>::
     Histogram (const double min_value,
                const double max_value,
@@ -278,6 +279,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     Histogram<InputType>::
     Histogram (const double min_pre_value,
                const double max_pre_value,
@@ -312,6 +314,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     Histogram<InputType>::
     Histogram (const Histogram<InputType> &o)
       :
@@ -325,6 +328,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     Histogram<InputType>::
     ~Histogram ()
     {
@@ -334,6 +338,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     void
     Histogram<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -355,6 +360,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     typename Histogram<InputType>::value_type
     Histogram<InputType>::
     get () const
@@ -384,6 +390,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     void
     Histogram<InputType>::
     write_gnuplot(std::ostream &&output_stream) const
@@ -406,6 +413,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (std::is_arithmetic_v<InputType>)
     unsigned int
     Histogram<InputType>::
     bin_number (const double value) const

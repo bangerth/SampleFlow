@@ -140,6 +140,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     CovarianceMatrix<InputType>::
     CovarianceMatrix ()
       :
@@ -152,6 +153,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     CovarianceMatrix<InputType>::
     ~CovarianceMatrix ()
     {
@@ -161,6 +163,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     void
     CovarianceMatrix<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -206,6 +209,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     typename CovarianceMatrix<InputType>::value_type
     CovarianceMatrix<InputType>::
     get () const
