@@ -28,11 +28,18 @@ jobs:
         make install
         popd
     - name: cmake
-      run: cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug .
+      run: |
+           mkdir build-gcc
+           cd build-gcc
+           cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug ..
     - name: ctest
-      run: ctest --output-on-failure -j2
+      run: |
+           cd build-gcc
+           ctest --output-on-failure -j2
     - name: doc
-      run: make doc
+      run: |
+           cd build-gcc
+           make doc
     - name: style
       run: |
         wget -O astyle_2.04_linux.tar.gz https://sourceforge.net/projects/astyle/files/astyle/astyle%202.04/astyle_2.04_linux.tar.gz/download
