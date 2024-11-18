@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_PRODUCER_H
 #define SAMPLEFLOW_PRODUCER_H
 
+#include <sampleflow/config.h>
+
 #include <sampleflow/auxiliary_data.h>
 #include <sampleflow/concepts.h>
 

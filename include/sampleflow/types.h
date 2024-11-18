@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_TYPES_H
 #define SAMPLEFLOW_TYPES_H
 
+#include <sampleflow/config.h>
+
 #include <cstddef>
 #include <complex>
 

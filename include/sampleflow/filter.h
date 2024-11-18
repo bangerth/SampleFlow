@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_FILTER_H
 #define SAMPLEFLOW_FILTER_H
 
+#include <sampleflow/config.h>
+
 #include <sampleflow/producer.h>
 #include <sampleflow/consumer.h>
 #include <sampleflow/concepts.h>

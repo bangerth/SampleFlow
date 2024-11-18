@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_UTILITIES_H
 #define SAMPLEFLOW_UTILITIES_H
 
+#include <sampleflow/config.h>
+
 #include <sampleflow/concepts.h>
 
 #include <cstddef>

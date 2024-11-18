@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_CONSUMER_H
 #define SAMPLEFLOW_CONSUMER_H
 
+#include <sampleflow/config.h>
+
 #include <sampleflow/auxiliary_data.h>
 #include <sampleflow/concepts.h>
 #include <sampleflow/producer.h>

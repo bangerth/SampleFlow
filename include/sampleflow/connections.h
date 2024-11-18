@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_CONNECTIONS_H
 #define SAMPLEFLOW_CONNECTIONS_H
 
+#include <sampleflow/config.h>
+
 #include <sampleflow/concepts.h>
 #include <sampleflow/consumer.h>
 #include <sampleflow/producer.h>

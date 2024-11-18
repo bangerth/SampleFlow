@@ -17,6 +17,7 @@
 #define SAMPLEFLOW_PARALLEL_MODE_H
 
 
+#include <sampleflow/config.h>
 
 namespace SampleFlow
 {
