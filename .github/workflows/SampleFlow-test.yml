@@ -41,6 +41,7 @@ jobs:
            mkdir build-clang
            cd build-clang
            export CXX=clang++
+           export CXXFLAGS="-stdlib=libc++"
            cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug ..
     - name: ctest-clang
       run: |
