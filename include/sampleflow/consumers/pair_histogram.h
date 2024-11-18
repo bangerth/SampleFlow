@@ -279,6 +279,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     PairHistogram<InputType>::
     PairHistogram (const double min_x_value,
                    const double max_x_value,
@@ -322,6 +325,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     PairHistogram<InputType>::
     PairHistogram (const double min_x_pre_value,
                    const double max_x_pre_value,
@@ -381,6 +387,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     PairHistogram<InputType>::
     PairHistogram (const PairHistogram<InputType> &o)
       :
@@ -395,6 +404,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     PairHistogram<InputType>::
     ~PairHistogram ()
     {
@@ -404,6 +416,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     void
     PairHistogram<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -433,6 +448,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     typename PairHistogram<InputType>::value_type
     PairHistogram<InputType>::
     get () const
@@ -467,6 +485,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     void
     PairHistogram<InputType>::
     write_gnuplot(std::ostream &&output_stream) const
@@ -549,6 +570,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     unsigned int
     PairHistogram<InputType>::
     x_bin_number (const double value) const
@@ -572,6 +596,9 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::has_subscript_operator<InputType> &&
+              Concepts::has_size_function<InputType> &&
+              std::is_arithmetic_v<types::ScalarType<InputType>>)
     unsigned int
     PairHistogram<InputType>::
     y_bin_number (const double value) const

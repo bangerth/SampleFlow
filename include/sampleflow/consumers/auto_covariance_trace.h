@@ -397,6 +397,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     AutoCovarianceTrace<InputType>::
     AutoCovarianceTrace (unsigned int lag_length)
       :
@@ -408,6 +409,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     AutoCovarianceTrace<InputType>::
     ~AutoCovarianceTrace ()
     {
@@ -415,7 +417,9 @@ namespace SampleFlow
     }
 
 
+
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     void
     AutoCovarianceTrace<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -520,6 +524,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     typename AutoCovarianceTrace<InputType>::value_type
     AutoCovarianceTrace<InputType>::
     get () const

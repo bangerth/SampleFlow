@@ -129,6 +129,7 @@ namespace SampleFlow
     };
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     AverageCosineBetweenSuccessiveSamples<InputType>::
     AverageCosineBetweenSuccessiveSamples (const unsigned int length)
       :
@@ -141,6 +142,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     AverageCosineBetweenSuccessiveSamples<InputType>::
     ~AverageCosineBetweenSuccessiveSamples ()
     {
@@ -150,6 +152,7 @@ namespace SampleFlow
 
 
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     void
     AverageCosineBetweenSuccessiveSamples<InputType>::
     consume (InputType sample, AuxiliaryData /*aux_data*/)
@@ -216,8 +219,10 @@ namespace SampleFlow
         }
     }
 
-//return value
+
+
     template <typename InputType>
+    requires (Concepts::is_vector_space_type<InputType>)
     std::vector<typename InputType::value_type>
     AverageCosineBetweenSuccessiveSamples<InputType>::
     get () const

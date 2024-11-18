@@ -201,6 +201,7 @@ namespace SampleFlow
 
 
   template <typename OutputType>
+  requires (Concepts::is_valid_sampletype<OutputType>)
   Producer<OutputType>::Producer (Producer &&producer)
     :
     // Conceptually, it would be nice to move the rhs signals
@@ -219,6 +220,7 @@ namespace SampleFlow
 
 
   template <typename OutputType>
+  requires (Concepts::is_valid_sampletype<OutputType>)
   Producer<OutputType>::~Producer ()
   {
     disconnect_consumers(*this);
