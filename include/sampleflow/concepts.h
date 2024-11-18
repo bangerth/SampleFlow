@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_CONCEPTS_H
 #define SAMPLEFLOW_CONCEPTS_H
 
+#include <sampleflow/config.h>
+
 #include <concepts>
 
 namespace SampleFlow

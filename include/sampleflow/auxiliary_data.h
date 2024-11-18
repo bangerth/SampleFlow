@@ -16,6 +16,8 @@
 #ifndef SAMPLEFLOW_AUXILIARY_DATA_H
 #define SAMPLEFLOW_AUXILIARY_DATA_H
 
+#include <sampleflow/config.h>
+
 #include <any>
 #include <map>
 

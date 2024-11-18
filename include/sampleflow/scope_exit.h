@@ -17,6 +17,8 @@
 #define SAMPLEFLOW_SCOPE_EXIT_H
 
 
+#include <sampleflow/config.h>
+
 #include <functional>
 
 namespace SampleFlow
