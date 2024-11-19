@@ -26,7 +26,9 @@ SET (CMAKE_CXX_STANDARD 20)
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_EXTENSIONS OFF)
 
-# Also make sure we link with the threads library in question
+#########################################
+# Also make sure we link with the threads library in question.
+# We need this when linking C++ stuff that uses threads.
 FIND_PACKAGE (Threads)
 
 #########################################
@@ -84,7 +86,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       INTERFACE
                       Threads::Threads)
-TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_14)
+TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 FILE(GLOB_RECURSE _header_files
      LIST_DIRECTORIES false
