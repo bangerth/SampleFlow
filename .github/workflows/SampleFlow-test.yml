@@ -18,7 +18,7 @@ jobs:
       run: |
         pushd .
         cd $HOME
-        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang
+        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang libc++-dev libc++abi-dev
         doxygen --version
         git clone https://gitlab.com/libeigen/eigen.git
         mkdir ./eigen-build
