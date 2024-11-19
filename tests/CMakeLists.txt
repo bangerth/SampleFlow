@@ -13,7 +13,7 @@
 #
 # ---------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.28)
 
 
 MESSAGE(STATUS "Setting up tests")
@@ -48,6 +48,10 @@ FOREACH(_testfile ${_testfiles})
   # to ensure that there are no warnings in either the tests, or the
   # header files these tests #include.
   ADD_EXECUTABLE(${_testname} EXCLUDE_FROM_ALL ${_testfile})
+
+  SET_PROPERTY(TARGET ${_testname} PROPERTY CXX_STANDARD 20)
+  SET_PROPERTY(TARGET ${_testname} PROPERTY CXX_EXTENSIONS OFF)
+
   IF(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "/WX")
   ELSE()

@@ -14,17 +14,12 @@
 # ---------------------------------------------------------------------
 
 
-CMAKE_MINIMUM_REQUIRED (VERSION 3.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.28)
 PROJECT (SampleFlow
          CXX)
 
 #########################################
 ### Set up compiler flags and input paths
-
-# Compile everything with C++20 and with debug flags
-SET (CMAKE_CXX_STANDARD 20)
-SET (CMAKE_CXX_STANDARD_REQUIRED ON)
-SET (CMAKE_CXX_EXTENSIONS OFF)
 
 #########################################
 # Also make sure we link with the threads library in question.
@@ -75,9 +70,14 @@ ENDIF()
 ### Take a look at the following blog post that describes
 ### how this works:
 ###   http://mariobadr.com/creating-a-header-only-library-with-cmake.html
+###
+### SampleFlow uses C++20.
 ############################################################
 
 ADD_LIBRARY(${PROJECT_NAME} INTERFACE)
+SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
+
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
                            INTERFACE
                            $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
@@ -86,7 +86,6 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       INTERFACE
                       Threads::Threads)
-TARGET_COMPILE_FEATURES(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 FILE(GLOB_RECURSE _header_files
      LIST_DIRECTORIES false
