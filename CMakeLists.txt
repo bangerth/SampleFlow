@@ -115,6 +115,10 @@ INSTALL(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
 # Now also define a library that consists of the C++20 modules,
 # assuming the compiler supports this:
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(SAMPLEFLOW_BUILD_MODULE "ON")
+endif()
+
+if (SAMPLEFLOW_BUILD_MODULE)
   set(PROJECT_MODULE ${PROJECT_NAME}.module)
   add_library(${PROJECT_MODULE} SHARED)
   set_target_properties(${PROJECT_MODULE} PROPERTIES LINKER_LANGUAGE CXX)
