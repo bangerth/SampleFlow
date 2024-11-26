@@ -52,11 +52,7 @@ FOREACH(_testfile ${_testfiles})
   SET_PROPERTY(TARGET ${_testname} PROPERTY CXX_STANDARD 20)
   SET_PROPERTY(TARGET ${_testname} PROPERTY CXX_EXTENSIONS OFF)
 
-  IF(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "/WX")
-  ELSE()
-    TARGET_COMPILE_OPTIONS(${_testname} PRIVATE "-Werror")
-  ENDIF()
+  set_target_properties(${_testname} PROPERTIES COMPILE_WARNING_AS_ERROR ON)
   TARGET_LINK_LIBRARIES (${_testname} ${PROJECT_NAME})
 
   # Then specify what it means to run a test:
