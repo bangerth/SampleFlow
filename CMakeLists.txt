@@ -111,6 +111,35 @@ WRITE_BASIC_PACKAGE_VERSION_FILE(
 INSTALL(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
         DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake)
 
+
+# Now also define a library that consists of the C++20 modules,
+# assuming the compiler supports this:
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(PROJECT_MODULE ${PROJECT_NAME}.module)
+  add_library(${PROJECT_MODULE} SHARED)
+  set_target_properties(${PROJECT_MODULE} PROPERTIES LINKER_LANGUAGE CXX)
+  SET_PROPERTY(TARGET ${PROJECT_MODULE} PROPERTY CXX_STANDARD 20)
+  SET_PROPERTY(TARGET ${PROJECT_MODULE} PROPERTY CXX_EXTENSIONS OFF)
+  target_sources(${PROJECT_MODULE}
+                 PUBLIC
+                 ${_header_files})
+  target_sources(${PROJECT_MODULE}
+                 PUBLIC
+                 FILE_SET CXX_MODULES FILES
+                 source/sampleflow.cc)
+
+  target_compile_options(${PROJECT_MODULE} PRIVATE "-Wno-include-angled-in-module-purview")
+  TARGET_INCLUDE_DIRECTORIES(${PROJECT_MODULE}
+                             PUBLIC
+                             $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                             "${Boost_INCLUDE_DIRS}")
+  TARGET_LINK_LIBRARIES(${PROJECT_MODULE}
+                        INTERFACE
+                        Threads::Threads)
+endif()
+
+
 #########################################
 ### Provide "indent" target for indenting all headers and source files
 ADD_CUSTOM_TARGET(indent
