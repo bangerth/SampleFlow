@@ -113,8 +113,13 @@ INSTALL(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
 
 
 # Now also define a library that consists of the C++20 modules,
-# assuming the compiler supports this:
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+# assuming the compiler and generator supports this:
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
+    AND
+    ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 16
+    AND
+    ${CMAKE_GENERATOR} STREQUAL "Ninja")
+  message(STATUS "Enabling the use of C++20-style modules")
   set(SAMPLEFLOW_BUILD_MODULE "ON")
 endif()
 
