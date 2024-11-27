@@ -24,6 +24,9 @@
 #include <valarray>
 #include <random>
 
+#include "my_triangle.h"
+
+
 #ifndef SAMPLEFLOW_TEST_WITH_MODULE
 #  include <sampleflow/producers/metropolis_hastings.h>
 #  include <sampleflow/consumers/mean_value.h>
@@ -31,48 +34,6 @@
 #else
 import SampleFlow;
 #endif
-
-
-class MyTriangle
-
-{
-  public:
-
-    std::valarray<double> side_lengths;
-
-    MyTriangle(const std::valarray<double> lengths)
-    {
-      side_lengths = lengths;
-    }
-
-};
-
-
-std::ostream &operator<<(std::ostream &os, const MyTriangle &tri)
-{
-  os << "Triangle: " << tri.side_lengths[0] << ", " << tri.side_lengths[1] << ", " << tri.side_lengths[2];
-  return os;
-}
-
-
-std::pair<MyTriangle, double> perturb(const MyTriangle &sample)
-{
-  static std::mt19937 gen;
-  std::normal_distribution<> d {0, 1};
-  double side_a = sample.side_lengths[0] + d(gen);
-  double side_b = sample.side_lengths[1] + d(gen);
-  double side_c = sample.side_lengths[2] + d(gen);
-  if (side_c > (side_a + side_b))
-    side_c = side_a + side_b;
-  if (side_c < std::abs(side_a - side_b))
-    side_c = std::abs(side_a - side_b);
-  MyTriangle result({side_a, side_b, side_c});
-  // We are going to pretend that the change we are making to the triangle
-  // is equally likely to a change going in the opposite direction, even
-  // though this is not true because of the clipping that is happening
-  // in the if statements. This is okay for the purposes of this test.
-  return {result, 1.0};
-}
 
 
 double log_likelihood(const MyTriangle &sample)
@@ -93,6 +54,7 @@ double triangle_area(const MyTriangle &sample)
                           (s - sample.side_lengths[2]));
   return area;
 }
+
 
 int main()
 {
