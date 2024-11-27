@@ -29,6 +29,8 @@
 
 #include <eigen3/Eigen/Dense>
 
+#include "tests.h"
+
 #ifndef SAMPLEFLOW_TEST_WITH_MODULE
 #  include <sampleflow/producers/metropolis_hastings.h>
 #  include <sampleflow/consumers/acceptance_ratio.h>
@@ -64,7 +66,7 @@ std::pair<SampleType,double> perturb (const SampleType &x)
   // Perturb the current sample using a Gaussian distribution
   // around the current point with standard deviation 1.5.
   static std::mt19937 rng;
-  std::normal_distribution<double> distribution(0., 1.5);
+  SampleFlow::Testing::NormalDistribution<double> distribution(0., 1.5);
 
   SampleType y = x;
   for (auto &el : y)

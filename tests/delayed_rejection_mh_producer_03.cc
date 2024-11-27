@@ -22,6 +22,8 @@
 #include <random>
 #include <cmath>
 
+#include "tests.h"
+
 #ifndef SAMPLEFLOW_TEST_WITH_MODULE
 #  include <sampleflow/producers/delayed_rejection_mh.h>
 #  include <sampleflow/filters/conversion.h>
@@ -43,7 +45,7 @@ double log_likelihood (const SampleType &x)
 std::pair<SampleType,double> perturb (const SampleType &x, const std::vector<SampleType> &)
 {
   static std::mt19937 rng;
-  std::normal_distribution<double> distribution(0, 1);
+  SampleFlow::Testing::NormalDistribution<double> distribution(0, 1);
   const double perturbation = distribution(rng);
   const SampleType x_tilde = x + perturbation;
   return {x_tilde, 1.0};

@@ -21,6 +21,9 @@ PROJECT (SampleFlow
 #########################################
 ### Set up compiler flags and input paths
 
+message(STATUS "Using compiler ${CMAKE_CXX_COMPILER_ID}, version ${CMAKE_CXX_COMPILER_VERSION}")
+
+
 #########################################
 # Also make sure we link with the threads library in question.
 # We need this when linking C++ stuff that uses threads.
@@ -114,13 +117,19 @@ INSTALL(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}config.cmake"
 
 # Now also define a library that consists of the C++20 modules,
 # assuming the compiler and generator supports this:
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
-    AND
-    ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 16
+if (((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
+      AND
+      ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 16)
+     OR
+     (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
+      AND
+      ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER_EQUAL 14))   # does not actually work in practice
     AND
     ${CMAKE_GENERATOR} STREQUAL "Ninja")
   message(STATUS "Enabling the use of C++20-style modules")
   set(SAMPLEFLOW_BUILD_MODULE "ON")
+else()
+  message(STATUS "Not using C++20-style modules")
 endif()
 
 if (SAMPLEFLOW_BUILD_MODULE)

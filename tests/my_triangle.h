@@ -20,6 +20,7 @@
 #include <limits>
 #include <valarray>
 
+#include "tests.h"
 
 /**
  * A class that serves as a custom sample class that is not a vector
@@ -54,11 +55,12 @@ std::ostream &operator<<(std::ostream &os, const MyTriangle &tri)
 }
 
 
+
 inline
 std::pair<MyTriangle, double> perturb(const MyTriangle &sample)
 {
   static std::mt19937 gen;
-  std::normal_distribution<> d {0, 1};
+  SampleFlow::Testing::NormalDistribution<> d {0, 1};
   double side_a = sample.side_lengths[0] + d(gen);
   double side_b = sample.side_lengths[1] + d(gen);
   double side_c = sample.side_lengths[2] + d(gen);
