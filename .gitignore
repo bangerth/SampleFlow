@@ -1,57 +1,7 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# Ignore the build directory
 /build/
 
 # Eclipse project files
 .cproject
 .project
 
-# Make and Ninja files
-Makefile
-.ninja*
-build.ninja
-rules.ninja
-
-# Cmake files generated during in-source builds
-CMakeCache.txt
-CMakeFiles
-Testing
-cmake_install.cmake
-CTestTestfile.cmake
-SampleFlowconfig.cmake
-
-# In the tests/ directory, ignore everything but the .cc and .output files
-tests/*
-!tests/*cc
-!tests/*output
-
-# Files built by doxygen
-doc/SampleFlow.dox
-doc/SampleFlow.tag
-doc/doxygen
