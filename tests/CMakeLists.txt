@@ -33,14 +33,15 @@ IF( "${NUMDIFF_EXECUTABLE}" MATCHES "NUMDIFF_EXECUTABLE-NOTFOUND")
 ENDIF()
 
 
-# Create a target that we can use for 'make check'.
-ADD_CUSTOM_TARGET(check COMMAND ${CMAKE_CTEST_COMMAND})
+macro(sampleflow_add_test _testfile _use_cxx20_modules)
+  STRING(REPLACE ".cc" "" _testname_base ${_testfile})
+  STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" _testname_base ${_testname_base})
+  set(_testname "${_testname_base}")
 
-# Loop over all .cc files in this directory and make tests out of them.
-FILE(GLOB _testfiles "*cc")
-FOREACH(_testfile ${_testfiles})
-  STRING(REPLACE ".cc" "" _testname ${_testfile})
-  STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" _testname ${_testname})
+  if(${_use_cxx20_modules} STREQUAL "TRUE")
+    set(_testname "${_testname}.module")
+  endif()
+
   MESSAGE(STATUS "  ${_testname}")
 
   # For each test, add the corresponding executable and the commands
@@ -54,6 +55,11 @@ FOREACH(_testfile ${_testfiles})
 
   set_target_properties(${_testname} PROPERTIES COMPILE_WARNING_AS_ERROR ON)
   TARGET_LINK_LIBRARIES (${_testname} ${PROJECT_NAME})
+
+  if(${_use_cxx20_modules} STREQUAL "TRUE")
+    target_compile_definitions(${_testname} PRIVATE "SAMPLEFLOW_TEST_WITH_MODULE")
+    TARGET_LINK_LIBRARIES (${_testname} ${PROJECT_MODULE})
+  endif()
 
   # Then specify what it means to run a test:
   #
@@ -75,9 +81,9 @@ FOREACH(_testfile ${_testfiles})
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.ok
     COMMAND rm -f ${_testname}.ok
-    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n\\r=,:;<>[](){}^'" ${CMAKE_CURRENT_SOURCE_DIR}/${_testname}.output ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
+    COMMAND ${NUMDIFF_EXECUTABLE} -a 1e-6 -r 1e-8 -s "' \\t\\n\\r=,:;<>[](){}^'" ${CMAKE_CURRENT_SOURCE_DIR}/${_testname_base}.output ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result
     COMMAND touch ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.ok
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result ${_testname}.output
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.result ${_testname_base}.output
     COMMENT "Comparing test <${_testname}>...")
 
   # Now make success of the test be dependent on there being an .ok file:
@@ -91,4 +97,17 @@ FOREACH(_testfile ${_testfiles})
 
   # Now also make sure that the test is part of the 'make check' command.
   ADD_DEPENDENCIES(check ${_testname})
+endmacro()
+
+
+# Create a target that we can use for 'make check'.
+ADD_CUSTOM_TARGET(check COMMAND ${CMAKE_CTEST_COMMAND})
+
+# Loop over all .cc files in this directory and make tests out of them.
+FILE(GLOB _testfiles "*cc")
+FOREACH(_testfile ${_testfiles})
+  sampleflow_add_test(${_testfile} "FALSE")
+  if (SAMPLEFLOW_BUILD_MODULE)
+    sampleflow_add_test(${_testfile} "TRUE")
+  endif()
 ENDFOREACH()
