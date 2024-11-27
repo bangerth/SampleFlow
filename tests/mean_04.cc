@@ -20,9 +20,12 @@
 #include <iostream>
 #include <random>
 
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/consumers/mean_value.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/mean_value.h>
+#else
+import SampleFlow;
+#endif
 
 class MyTriangle
 

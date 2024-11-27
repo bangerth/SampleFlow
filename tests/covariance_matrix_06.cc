@@ -30,8 +30,12 @@
 #include <fstream>
 #include <complex>
 
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/consumers/covariance_matrix.h>
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/covariance_matrix.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = std::complex<double>;
 

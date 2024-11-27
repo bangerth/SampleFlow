@@ -19,9 +19,12 @@
 
 #include <iostream>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/last_sample.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/last_sample.h>
+#else
+import SampleFlow;
+#endif
 
 
 int main ()

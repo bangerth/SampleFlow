@@ -22,8 +22,11 @@
 #include <valarray>
 #include <vector>
 
-#include <sampleflow/element_access.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/element_access.h>
+#else
+import SampleFlow;
+#endif
 
 
 int main ()

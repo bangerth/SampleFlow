@@ -19,10 +19,15 @@
 
 
 #include <iostream>
+#include <vector>
 
-#include <sampleflow/consumers/stream_output.h>
-#include <sampleflow/filters/conversion.h>
-#include <sampleflow/producers/range.h>
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/consumers/stream_output.h>
+#  include <sampleflow/filters/conversion.h>
+#  include <sampleflow/producers/range.h>
+#else
+import SampleFlow;
+#endif
 
 /**
  * Example conversion function; converts a string to an integer

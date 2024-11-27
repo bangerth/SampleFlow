@@ -29,11 +29,16 @@
 // continue to be around 2 as in the _04 test.
 
 #include <iostream>
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/filters/conversion.h>
-#include <sampleflow/consumers/mean_value.h>
 #include <random>
 #include <cmath>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/filters/conversion.h>
+#  include <sampleflow/consumers/mean_value.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = int;
 

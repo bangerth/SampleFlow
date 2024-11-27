@@ -61,11 +61,18 @@
 
 #include <iostream>
 #include <valarray>
+#include <vector>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/auto_covariance_matrix.h>
-#include <sampleflow/consumers/covariance_matrix.h>
-#include <sampleflow/consumers/stream_output.h>
+#include <eigen3/Eigen/Dense>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/auto_covariance_matrix.h>
+#  include <sampleflow/consumers/covariance_matrix.h>
+#  include <sampleflow/consumers/stream_output.h>
+#else
+import SampleFlow;
+#endif
 
 
 template <typename T>

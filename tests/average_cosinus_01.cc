@@ -24,9 +24,14 @@
 #include <valarray>
 #include <iomanip>
 
-#include <sampleflow/producers/metropolis_hastings.h>
 #include <eigen3/Eigen/Dense>
-#include <sampleflow/consumers/average_cosinus.h>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/average_cosinus.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = std::valarray<double>;
 

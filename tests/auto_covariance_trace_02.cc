@@ -20,10 +20,14 @@
 
 #include <iostream>
 #include <valarray>
+#include <vector>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/auto_covariance_trace.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/auto_covariance_trace.h>
+#else
+import SampleFlow;
+#endif
 
 int main ()
 {
