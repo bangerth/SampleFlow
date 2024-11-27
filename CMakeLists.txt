@@ -130,6 +130,10 @@ if (SAMPLEFLOW_BUILD_MODULE)
   target_sources(${PROJECT_MODULE}
                  PUBLIC
                  FILE_SET CXX_MODULES FILES
+                 source/core.cc
+                 source/producers.cc
+                 source/filters.cc
+                 source/consumers.cc
                  source/sampleflow.cc)
 
   target_compile_options(${PROJECT_MODULE} PRIVATE "-Wno-include-angled-in-module-purview")

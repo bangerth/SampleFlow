@@ -14,84 +14,14 @@
 // ---------------------------------------------------------------------
 
 
-// Start the global module fragment that contains all of the #includes
-// of C++ headers as well as of header files from other libraries we use.
+// Say that we are building modules here.
 module;
 
-
-#include <any>
-#include <atomic>
-#include <cassert>
-#include <complex>
-#include <concepts>
-#include <cstddef>
-#include <deque>
-#include <functional>
-#include <future>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <random>
-#include <shared_mutex>
-#include <string>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <variant>
-
-#include <boost/signals2.hpp>
-#include <eigen3/Eigen/Dense>
-
-#include <sampleflow/config.h>
-
-
-// Then start the SampleFlow module:
+// Declare the principle 'SampleFlow' module that simply re-exports
+// what the sub-modules have declared:
 export module SampleFlow;
-export {
 
-// First include the basic classes and tools that all producers, filters, and
-// consumers rely upon. These need to be in this order:
-#include <sampleflow/concepts.h>
-#include <sampleflow/auxiliary_data.h>
-#include <sampleflow/types.h>
-#include <sampleflow/element_access.h>
-#include <sampleflow/parallel_mode.h>
-
-#include <sampleflow/producer.h>
-#include <sampleflow/filter.h>
-#include <sampleflow/consumer.h>
-
-#include <sampleflow/connections.h>
-#include <sampleflow/scope_exit.h>
-
-// Then the various producer classes:
-#include <sampleflow/producers/delayed_rejection_mh.impl.h>
-#include <sampleflow/producers/differential_evaluation_mh.impl.h>
-#include <sampleflow/producers/metropolis_hastings.impl.h>
-#include <sampleflow/producers/range.impl.h>
-
-// Then the various filter classes:
-#include <sampleflow/filters/component_splitter.impl.h>
-#include <sampleflow/filters/condition.impl.h>
-#include <sampleflow/filters/conversion.impl.h>
-#include <sampleflow/filters/discard_first_n.impl.h>
-#include <sampleflow/filters/pass_through.impl.h>
-#include <sampleflow/filters/take_every_nth.impl.h>
-
-// And finally the various consumer classes:
-#include <sampleflow/consumers/acceptance_ratio.impl.h>
-#include <sampleflow/consumers/action.impl.h>
-#include <sampleflow/consumers/auto_covariance_matrix.impl.h>
-#include <sampleflow/consumers/auto_covariance_trace.impl.h>
-#include <sampleflow/consumers/average_cosinus.impl.h>
-#include <sampleflow/consumers/count_samples.impl.h>
-#include <sampleflow/consumers/covariance_matrix.impl.h>
-#include <sampleflow/consumers/histogram.impl.h>
-#include <sampleflow/consumers/last_sample.impl.h>
-#include <sampleflow/consumers/maximum_probability_sample.impl.h>
-#include <sampleflow/consumers/mean_value.impl.h>
-#include <sampleflow/consumers/pair_histogram.impl.h>
-#include <sampleflow/consumers/stream_output.impl.h>
-
-}
+export import SampleFlow.core;
+export import SampleFlow.producers;
+export import SampleFlow.filters;
+export import SampleFlow.consumers;
