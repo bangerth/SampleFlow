@@ -21,11 +21,16 @@
 // test that returns ::max().
 
 #include <iostream>
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/filters/conversion.h>
-#include <sampleflow/consumers/stream_output.h>
 #include <random>
 #include <cmath>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/filters/conversion.h>
+#  include <sampleflow/consumers/stream_output.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = double;
 

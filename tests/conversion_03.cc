@@ -21,12 +21,16 @@
 
 
 #include <iostream>
-
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/consumers/stream_output.h>
-#include <sampleflow/filters/conversion.h>
 #include <valarray>
 #include <random>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/stream_output.h>
+#  include <sampleflow/filters/conversion.h>
+#else
+import SampleFlow;
+#endif
 
 
 class MyTriangle

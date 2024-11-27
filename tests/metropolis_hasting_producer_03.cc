@@ -22,12 +22,17 @@
 // sample: There is no possibility that an accepted trial sample *by
 // chance* happens to be at the same location as the previous sample.
 
-
+#include <any>
 #include <iostream>
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/consumer.h>
 #include <random>
 #include <mutex>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumer.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = int;
 

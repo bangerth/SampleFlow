@@ -21,10 +21,14 @@
 
 
 #include <iostream>
+#include <vector>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/histogram.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/histogram.h>
+#else
+import SampleFlow;
+#endif
 
 int main ()
 {

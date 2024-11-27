@@ -18,13 +18,15 @@
 // used in the documentation of the SampleFlow::Producers::Range
 // class.
 
-
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/stream_output.h>
-
 #include <iostream>
 #include <ranges>
 
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/stream_output.h>
+#else
+import SampleFlow;
+#endif
 
 int main ()
 {

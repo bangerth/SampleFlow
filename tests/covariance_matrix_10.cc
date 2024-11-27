@@ -23,11 +23,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <random>
+
 #include <eigen3/Eigen/Dense>
 
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/consumers/covariance_matrix.h>
-#include <sampleflow/consumers/mean_value.h>
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/covariance_matrix.h>
+#  include <sampleflow/consumers/mean_value.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = Eigen::Vector2d;
 

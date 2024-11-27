@@ -19,10 +19,26 @@
 // multiple of the number of chains.
 
 #include <iostream>
-#include <sampleflow/producers/differential_evaluation_mh.h>
-#include <sampleflow/consumers/count_samples.h>
 #include <random>
 #include <cmath>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/differential_evaluation_mh.h>
+#  include <sampleflow/consumers/count_samples.h>
+#else
+
+// In what is almost certainly a bug in clang 18, we get a compile
+// error about a function in a C++ header file not being known. That
+// function is called from somewhere in the module that compiled
+// successfully. It's just that the template that got us there is
+// instantiated here, in this test. Work around that by adding the
+// header file that provides the function the compiler complains
+// about.
+#  include <future>
+
+import SampleFlow;
+
+#endif
 
 using SampleType = int;
 

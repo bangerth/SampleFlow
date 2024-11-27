@@ -21,9 +21,15 @@
 #include <fstream>
 #include <valarray>
 
-#include <sampleflow/producers/metropolis_hastings.h>
 #include <eigen3/Eigen/Dense>
-#include <sampleflow/consumers/acceptance_ratio.h>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/consumers/acceptance_ratio.h>
+#else
+import SampleFlow;
+#endif
+
 
 using SampleType = std::valarray<double>;
 

@@ -20,15 +20,19 @@
 // consequence, the output of the test is a subset of the output of
 // the metropolis_hastings_03 sampler.
 
-
+#include <any>
 #include <iostream>
-#include <sampleflow/producers/metropolis_hastings.h>
-#include <sampleflow/filters/condition.h>
-#include <sampleflow/consumer.h>
-#include <sampleflow/connections.h>
-
 #include <random>
 #include <mutex>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/metropolis_hastings.h>
+#  include <sampleflow/filters/condition.h>
+#  include <sampleflow/consumer.h>
+#  include <sampleflow/connections.h>
+#else
+import SampleFlow;
+#endif
 
 using SampleType = int;
 

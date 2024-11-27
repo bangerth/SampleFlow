@@ -19,11 +19,15 @@
 
 #include <iostream>
 #include <valarray>
+#include <vector>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/stream_output.h>
-#include <sampleflow/filters/component_splitter.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/stream_output.h>
+#  include <sampleflow/filters/component_splitter.h>
+#else
+import SampleFlow;
+#endif
 
 
 int main ()

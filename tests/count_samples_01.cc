@@ -18,10 +18,13 @@
 
 #include <iostream>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/count_samples.h>
-#include <sampleflow/types.h>
-
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/count_samples.h>
+#  include <sampleflow/types.h>
+#else
+import SampleFlow;
+#endif
 
 int main ()
 {

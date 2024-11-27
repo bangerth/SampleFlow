@@ -23,9 +23,15 @@
 
 #include <iostream>
 #include <valarray>
+#include <vector>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/auto_covariance_matrix.h>
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/auto_covariance_matrix.h>
+#else
+import SampleFlow;
+#endif
+
 
 int main ()
 {

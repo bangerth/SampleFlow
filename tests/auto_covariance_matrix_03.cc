@@ -22,10 +22,17 @@
 
 #include <iostream>
 #include <valarray>
+#include <vector>
 #include <random>
 
-#include <sampleflow/producers/range.h>
-#include <sampleflow/consumers/auto_covariance_matrix.h>
+#include <eigen3/Eigen/Dense>
+
+#ifndef SAMPLEFLOW_TEST_WITH_MODULE
+#  include <sampleflow/producers/range.h>
+#  include <sampleflow/consumers/auto_covariance_matrix.h>
+#else
+import SampleFlow;
+#endif
 
 
 template <typename T>
