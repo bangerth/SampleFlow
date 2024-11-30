@@ -44,6 +44,7 @@
 #  include <sampleflow/producers/differential_evaluation_mh.h>
 #  include <sampleflow/filters/conversion.h>
 #  include <sampleflow/consumers/mean_value.h>
+#  include <sampleflow/consumers/stream_output.h>
 #else
 
 // In what is almost certainly a bug in clang 18, we get a compile
@@ -108,13 +109,16 @@ int main ()
   SampleFlow::Consumers::MeanValue<double> mean_value;
   mean_value.connect_to_producer (conversion);
 
+  SampleFlow::Consumers::StreamOutput<double> stream_output(std::cout);
+  stream_output.connect_to_producer (conversion);
+
   // Sample, starting at 1, and creating
   mh_sampler.sample ({1, 5, 10, 15, 25},
                      &log_likelihood,
                      &perturb,
                      &crossover,
                      10,
-                     100000);
+                     100);
 
   std::cout << "Mean value = " << mean_value.get() << std::endl;
 }
