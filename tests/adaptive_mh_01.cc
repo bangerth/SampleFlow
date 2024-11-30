@@ -25,6 +25,8 @@
 
 #include <eigen3/Eigen/Dense>
 
+#include "tests.h"
+
 #ifndef SAMPLEFLOW_TEST_WITH_MODULE
 #  include <sampleflow/producers/metropolis_hastings.h>
 #  include <sampleflow/consumers/covariance_matrix.h>
@@ -78,7 +80,7 @@ std::pair<SampleType,double> perturb_adaptive (const SampleType &x,
   SampleType random_vector;
   for (unsigned int i=0; i<random_vector.size(); ++i)
     random_vector(i) = 2.4/std::sqrt(1.*x.size()) *
-                       std::normal_distribution<double>(0,1)(rng);
+                       SampleFlow::Testing::NormalDistribution<double>(0,1)(rng);
 
   const SampleType y = x + LLt.matrixL() * random_vector;
 
