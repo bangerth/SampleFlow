@@ -233,11 +233,13 @@ namespace SampleFlow
                   b_dist(0, n_chains - 3);
 
                   typename std::vector<OutputType>::size_type b = b_dist(rng);
+                  if (b >= std::min<typename std::vector<OutputType>::size_type>(a, chain))
+                    ++b;
                   if (b >= std::max(a, chain))
-                    b += 2;
-                  else if (b >= std::min<typename std::vector<OutputType>::size_type>(a, chain))
-                    b += 1;
+                    ++b;
                   const OutputType trial_b = current_samples[b];
+
+                  assert (a!=b);
 
                   // Combine trial a and trial b
                   const OutputType crossover_result = crossover(current_samples[chain], trial_a, trial_b);
