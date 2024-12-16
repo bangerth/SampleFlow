@@ -35,10 +35,11 @@ jobs:
            mkdir build-clang
            cd build-clang
            export CXX=clang++
-           cmake -DCMAKE_BUILD_TYPE=Debug ..
+           cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ..
     - name: ctest-clang
       run: |
            cd build-clang
+           ninja
            ctest --output-on-failure -j2
     - name: doc
       run: |
