@@ -211,16 +211,24 @@ namespace SampleFlow
                   &&
                   (generation > 0))
                 {
-                  // Pick one of the other chains from which we want to draw from:
+                  // Pick one of the other chains from which we want to draw:
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   a_dist(0, n_chains - 2);
 
+                  // Pick one chain with index 'a', just not the current one. We do this by
+                  // drawing from [0...n_chains-2] and mapping that onto the union of the
+                  // intervals [0...chain) + (chain...n_chains-1].
                   typename std::vector<OutputType>::size_type a = a_dist(rng);
                   if (a >= chain)
                     a += 1;
                   const OutputType trial_a = current_samples[a];
 
-                  // Then the other chain to draw from:
+                  // Then the other chain to draw from, but make sure it's not the same as
+                  // 'chain' or 'a'. We do this by drawing from [0...n_chains-3] and mapping
+                  // that onto the union of the intervals
+                  //   [0...x) + (x...y) + (y...n_chains-1]
+                  // where x=min(chain,a), y=max(chain,c) are the two points we want
+                  // to avoid.
                   std::uniform_int_distribution<typename std::vector<OutputType>::size_type>
                   b_dist(0, n_chains - 3);
 
