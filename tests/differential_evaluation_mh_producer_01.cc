@@ -95,7 +95,18 @@ std::pair<SampleType,double> perturb (const SampleType &x)
 
 SampleType crossover(const SampleType &current_sample, const SampleType &sample_a, const SampleType &sample_b)
 {
-  return current_sample + (2.38 * sqrt(2)) * (sample_a - sample_b);
+  const SampleType min = 1;
+  const SampleType max = 100;
+  const SampleType x_tilde = static_cast<SampleType>(current_sample +
+                                                     (2.38 * sqrt(2)) * (sample_a - sample_b));
+
+  // Wrap around the interval [1...100]
+  if (x_tilde < min)
+    return x_tilde + (max-min+1);
+  else if (x_tilde > max)
+    return x_tilde - (max-min+1);
+  else
+    return x_tilde;
 }
 
 int main ()
