@@ -18,20 +18,14 @@ jobs:
       run: |
         pushd .
         cd $HOME
-        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang libc++-dev libc++abi-dev
+        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang libc++-dev libc++abi-dev libeigen3-dev
         doxygen --version
-        git clone https://gitlab.com/libeigen/eigen.git
-        mkdir ./eigen-build
-        mkdir ./eigen-install
-        cd ./eigen-build
-        cmake ../eigen -DCMAKE_INSTALL_PREFIX=$HOME/eigen-install
-        make install
         popd
     - name: cmake-gcc
       run: |
            mkdir build-gcc
            cd build-gcc
-           cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug ..
+           cmake -DCMAKE_BUILD_TYPE=Debug ..
     - name: ctest-gcc
       run: |
            cd build-gcc
@@ -41,7 +35,7 @@ jobs:
            mkdir build-clang
            cd build-clang
            export CXX=clang++
-           cmake -DEIGEN_DIR="$HOME/eigen-install" -DCMAKE_BUILD_TYPE=Debug ..
+           cmake -DCMAKE_BUILD_TYPE=Debug ..
     - name: ctest-clang
       run: |
            cd build-clang
