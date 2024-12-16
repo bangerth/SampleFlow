@@ -18,7 +18,7 @@ jobs:
       run: |
         pushd .
         cd $HOME
-        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang libc++-dev libc++abi-dev libeigen3-dev
+        sudo apt-get install -y doxygen graphviz libboost-all-dev numdiff clang libc++-dev libc++abi-dev libeigen3-dev ninja-build
         doxygen --version
         popd
     - name: cmake-gcc
